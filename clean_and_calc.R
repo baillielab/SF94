@@ -4,11 +4,10 @@ ccp_data<-read.csv("/home/u034/mcswets/ccp_data.csv")
 library(dplyr)
 library(tidyr)
 #smaller data frame of necessary data 
+colnames(ccp_data)
 df_1<-ccp_data[,c(1,11,26,28,42,43,63,64,128,140,142,143,146,147,148,150,169,171,173,175,
-                  176,177,178,179,180,181,195,198,199,202,203,206,207,210,211,213,214,
-                  217,218,221,224,226,229,232,233,236,239,240,243,246,247,250,251,254,255,
-                  258,261,264,265,268,269,272,273,276,279,280,283,289,290,293,392,
-                  393,394,395,396,415:444,447,448,449,450,452,598,602,603,606)]
+                  176,177,178,179,180,181,293,392,
+                  393,394,395,396,447,448,449,450,452,598,602,603,606)]
 
 ####################################### DATA PREPARATION #######################################
 #clean up SaO2
@@ -30,12 +29,16 @@ sao_admission<-data.frame(sao_admission)
 # make negative numbers positive, multiple between 0-1 by 100
 sao_admission<- with(sao_admission, ifelse (sao_admission<0, abs(sao_admission), 
                                             sao_admission))
+sao_admission<-data.frame(sao_admission)
 sao_admission<- with(sao_admission, ifelse (sao_admission>=0 & sao_admission <=1,
                                             sao_admission*100, sao_admission))
+sao_admission<-data.frame(sao_admission)
 sao_admission<- with(sao_admission, ifelse (sao_admission>100 & sao_admission <1000,
                                             sao_admission*0.1, sao_admission))
+sao_admission<-data.frame(sao_admission)
 sao_admission<- with(sao_admission, ifelse (sao_admission>1000 & sao_admission <10000,
                                             sao_admission*0.01, sao_admission))
+sao_admission<-data.frame(sao_admission)
 sao_admission<- with(sao_admission, ifelse (sao_admission>10000 & sao_admission <100000,
                                             sao_admission*0.001, sao_admission))
 #delete <50
@@ -92,53 +95,82 @@ summary(fio_abc)
 # add to dataframe
 df_1$fio2<- fio_abc
 
-df_1_backup<-df_1
+#correct fio2: roomair >fio2=0.21
+df_1$fio2_corrected<-df_1$fio2
+df_1$fio2_corrected<- ifelse(df_1$oxy_vsorresu == "Oxygen therapy" |is.na(df_1$oxy_vsorresu),
+                             df_1$fio2_corrected, 0.21 )
+
+write.csv(df_1,"cleaned_sao2_fio2.csv")
+
+#backup
+df_1backup<-df_1
+df_1<-df_1backup
 
 #days since study enrollment
 #repeat enrollment date
 df_1<-df_1 %>%
+  group_by(subjid)%>%
   fill(dsstdat, .direction = "down")
-#subtract the data of measurement from the data of enrollment 
-df_1$days_since_enrolment<-as.Date(as.character(df_1$daily_dsstdat), format="%Y-%m-%d")-
-  as.Date(as.character(df_1$dsstdat), format="%Y-%m-%d")
-df_1$days_since_enrolment<-as.numeric(df_1$days_since_enrolment)
 #day since hospital admission
 #repeat hostdat
 df_1<-df_1 %>%
+  group_by(subjid)%>%
   fill(hostdat, .direction = "down")
 #subtract the data of measurement from the data of hospital admission
 df_1$days_since_admission<-as.Date(as.character(df_1$daily_dsstdat), format="%Y-%m-%d")-
   as.Date(as.character(df_1$hostdat), format="%Y-%m-%d")
 df_1$days_since_admission<-as.numeric(df_1$days_since_admission)
 #days since start symptoms
-#repeat o2a
 df_1<-df_1 %>%
+  group_by(subjid)%>%
   fill(cestdat, .direction = "down")
 df_1$days_since_symptoms<-as.Date(as.character(df_1$daily_dsstdat), format="%Y-%m-%d")-
   as.Date(as.character(df_1$cestdat), format="%Y-%m-%d")
 df_1$days_since_symptoms<-as.numeric(df_1$days_since_symptoms)
 #repeat age for each subject so sub-setting won't leave lines out
 df_1<-df_1 %>%
+  group_by(subjid)%>%
   fill(age_estimateyears, .direction = "down")
-#difference between hospital and recruitment date
-df_1$diff_hosp_recruit<-as.Date(as.character(df_1$hostdat), format="%Y-%m-%d")-
-  as.Date(as.character(df_1$dsstdat), format="%Y-%m-%d")
-df_1$diff_hosp_recruit<-as.numeric(df_1$diff_hosp_recruit)
-summary(df_1$diff_hosp_recruit)
 
-head(df_1)
-summary(df_1$days_since_enrolment)
 #clean days since ... variables
-df_1$days_since_enrolment[df_1$days_since_enrolment< (-30)]<-NA
-df_1$days_since_enrolment[df_1$days_since_enrolment>200]<-NA
 df_1$days_since_admission[df_1$days_since_admission< (-30)]<-NA
 df_1$days_since_admission[df_1$days_since_admission>200]<-NA
 df_1$days_since_symptoms[df_1$days_since_symptoms< (-30)]<-NA
 df_1$days_since_symptoms[df_1$days_since_symptoms>200]<-NA
 
-#backup- write to ultra
-write.csv(df_1, "SF94_df_1.csv")
-df_1<-read.csv("/home/u034/mcswets/SF94_df_1.csv")
+#make day of death variable
+df_1$day_of_death<-as.Date(as.character(df_1$dsstdtc), format="%Y-%m-%d")-
+  as.Date(as.character(df_1$hostdat), format="%Y-%m-%d")
+df_1$day_of_death<-as.numeric(df_1$day_of_death)
+#remove weird values
+summary(df_1$day_of_death,na.rm=T) #min = -368866 days, max=9000 days
+df_1$day_of_death[df_1$day_of_death<0]<-NA #±200 subjects with date of outcome before date of admission
+df_1$day_of_death[df_1$day_of_death>250]<-NA#also ±200 subjects with day of death >200 days after admission
+#if days_since_admission is not known, use the days since death value
+df_1$days_since_admission<-ifelse(is.na(df_1$days_since_admission),
+                                  df_1$day_of_death,
+                                  df_1$days_since_admission)
+#check if there are duplicates in days since admission
+df_1%>%
+  na.omit()%>%
+  group_by(subjid)%>%
+  count(days_since_admission)%>%
+  filter(n>1)
+#make a new variable, if day of death matches days since admission, copy outcome 
+df_1$outcome<-ifelse((df_1$day_of_death == df_1$days_since_admission), df_1$dsterm, NA)
+#make new rows 
+df_1<-expand(df_1, subjid, days_since_admission = -30:200) %>%
+  left_join(., df_1)
+#repeat day of death value 
+df_1<-df_1 %>%
+  group_by(subjid)%>%
+  fill(day_of_death, .direction = "up")
+df_1<-df_1 %>%
+  group_by(subjid)%>%
+  fill(day_of_death, .direction = "down")
+#fill gaps
+df_1$outcome<-ifelse((df_1$day_of_death == df_1$days_since_admission), df_1$dsterm, NA)
+
 
 #make extremes variable
 #for the extremes, change the sf to 0.5/4.76 for death/alive day
@@ -146,19 +178,15 @@ df_1_extremes<-df_1
 df_1_extremes$sao2[df_1_extremes$dsterm == "Death"]<-0.5
 df_1_extremes$sao2[df_1_extremes$dsterm == "Discharged alive"]<-1
 df_1_extremes$sao2[df_1_extremes$dsterm == "Transfer to other facility"]<-1
-df_1_extremes$sao2[df_1_extremes$dsterm == "Hospitalization"]<-1
-df_1_extremes$fio2[df_1_extremes$dsterm == "Death"]<-1
-df_1_extremes$fio2[df_1_extremes$dsterm == "Discharged alive"]<-0.21
-df_1_extremes$fio2[df_1_extremes$dsterm == "Transfer to other facility"]<-0.21
-df_1_extremes$fio2[df_1_extremes$dsterm == "Hospitalization"]<-0.21
+df_1_extremes$fio2_corrected[df_1_extremes$dsterm == "Death"]<-1
+df_1_extremes$fio2_corrected[df_1_extremes$dsterm == "Discharged alive"]<-0.21
+df_1_extremes$fio2_corrected[df_1_extremes$dsterm == "Transfer to other facility"]<-0.21
 
-#remove lines with missing subjid, sao2 or fio2
+#remove lines with missing subjid, sao2 or fio2_corrected
 df_1_extremes<-subset(df_1_extremes, !is.na(subjid))
 df_1_extremes<-subset(df_1_extremes, !is.na(sao2))
-df_1_extremes<-subset(df_1_extremes, !is.na(fio2)) 
-df_1_extremes$sfr_value<-df_1_extremes$sao2/df_1_extremes$fio2
-df_1_extremes<-df_1_extremes %>%
-  dplyr::rename(sf_dd= sfr_value)
+df_1_extremes<-subset(df_1_extremes, !is.na(fio2_corrected)) 
+df_1_extremes$sf_dd<-df_1_extremes$sao2/df_1_extremes$fio2_corrected
 df_1_extremes$days_since_admission[df_1_extremes$days_since_admission <0]<-NA
 df_1_extremes$days_since_admission[df_1_extremes$days_since_admission >60]<-NA
 colnames(df_1_extremes)
@@ -173,32 +201,38 @@ df_1_extremes<-data.frame(df_1_extremes)
 df_1_extremes<-df_1_extremes%>%
   group_by(subjid)%>%
   fill(dsterm, .direction="down")
+
+df_1_extremes<-df_1_extremes%>%
+  group_by(subjid)%>%
+  fill(age_estimateyears, .direction="down")
 #change SF values
 df_1_extremes$sf_dd[df_1_extremes$dsterm == "Death"]<-0.5
 df_1_extremes$sf_dd[df_1_extremes$dsterm == "Discharged alive"]<-4.76
 df_1_extremes$sf_dd[df_1_extremes$dsterm == "Transfer to other facility"]<-4.76
-df_1_extremes$sf_dd[df_1_extremes$dsterm == "Hospitalization"]<-4.76
 
+head(df_1_extremes,100)
+table(df_1_extremes$days_since_admission)
 #add SF94 dd
 df_1_extremes$sf94_dd<-df_1_extremes$sf_dd
-df_1_extremes$sf94_dd<- ifelse((df_1_extremes$sao2<0.94 | df_1_extremes$fio2 == 0.21),
+#only keep sao2 <0.94 or FiO2==0.21
+df_1_extremes$sf94_dd<- ifelse((df_1_extremes$sao2<0.94 | df_1_extremes$fio2_corrected == 0.21),
                                df_1_extremes$sf94_dd, NA)
+#repeat extreme values
+df_1_extremes$sf94_dd[df_1_extremes$dsterm == "Death"]<-0.5
+df_1_extremes$sf94_dd[df_1_extremes$dsterm == "Discharged alive"]<-4.76
+df_1_extremes$sf94_dd[df_1_extremes$dsterm == "Transfer to other facility"]<-4.76
+#sanity check
+df_1_extremes[df_1_extremes$subjid == "7A1A1-0001",]
+write.csv(df_1_extremes, "df_1_extremes_20210131-5.csv")
 
-
-write.csv(df_1_extremes, "df_1_extremes_20210130-2.csv")
-
-
-
-#join to dfsfr
-dfsfr<-left_join(dfsfr, df_1_extremes, by="subjid")
-colnames(dfsfr)
 #copy dataframe
-dfsfr<-df_1[,c(2:20,22:27,72:76,107:112,115:121)]
+colnames(df_1)
+dfsfr<-df_1[,c(2:20,22:27,72:76,107:112,115:122)]
 #remove lines with missing subjid, sao2 or fio2
 dfsfr<-subset(dfsfr, !is.na(subjid))
 dfsfr<-subset(dfsfr, !is.na(sao2))
-dfsfr<-subset(dfsfr, !is.na(fio2)) #147565 lines left 
-dfsfr$sfr_value<-dfsfr$sao2/dfsfr$fio2
+dfsfr<-subset(dfsfr, !is.na(fio2_corrected)) #148595 lines left 
+dfsfr$sfr_value<-dfsfr$sao2/dfsfr$fio2_corrected
 
 #make a new variable based on the ordinal scale levels from the WHO
 dfsfr<-dfsfr %>% 
@@ -222,14 +256,22 @@ dfsfr$WHO_day1<-ifelse((dfsfr$days_since_admission == 0 | dfsfr$days_since_admis
                        dfsfr$WHO_day1,NA )
 #make a new variable for measurements of SaO2 <94% 
 dfsfr$sf94<-dfsfr$sfr_value
-dfsfr$sf94<- ifelse((dfsfr$sao2<0.94 | dfsfr$fio2 == 0.21),dfsfr$sf94, NA)
+dfsfr$sf94<- ifelse((dfsfr$sao2<0.94 | dfsfr$fio2_corrected == 0.21),dfsfr$sf94, NA)
 #who day1 SF94 value
 dfsfr$WHO_day1_SF94<-dfsfr$WHO_day1
 dfsfr$WHO_day1_SF94<-ifelse(is.na(dfsfr$sf94), NA, dfsfr$WHO_day1_SF94)
 head(dfsfr)
-#correct fio2: roomair >fio2=0.21
-dfsfr$fio2_corrected<-dfsfr$fio2
-dfsfr$fio2_corrected<- ifelse(dfsfr$oxy_vsorresu == "Oxygen therapy" |is.na(dfsfr$oxy_vsorresu),
-                              dfsfr$fio2_corrected, 0.21 )
 
-write.csv(dfsfr,"dfsfr_20200130-2.csv")
+
+write.csv(dfsfr,"dfsfr_20200130-3.csv")
+
+
+
+(#each subject had ±10-15 rows of which the majority is empty
+  #remove part of the empty rows and subjects without a subjid
+  df_1<-subset(df_1, !is.na(subjid))
+  df_1<-subset(df_1, ((!is.na(daily_dsstdat))
+                      | (!is.na(dsterm) )
+                      | (!is.na(dsstdtc)) 
+                      | (!is.na(sao2))
+                      | (!is.na(fio2_corrected)))))
