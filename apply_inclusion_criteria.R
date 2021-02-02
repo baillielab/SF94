@@ -8,9 +8,8 @@ subjects_to_include<-subset(df_1,((!is.na(sao2) & days_since_admission == 0)|
                                      (!is.na(sao2) & days_since_admission == 3)))
 #only keep unique values
 subjects_to_include<-unique(subjects_to_include)
-
+# (median age =74 years old so losing ±half of the population)
 #form subset inclusion criteria
 subset1<-subset(df_1[df_1$subjid %in% subjects_to_include$subjid,], age_estimateyears >19 &
                   age_estimateyears <76)
-
 

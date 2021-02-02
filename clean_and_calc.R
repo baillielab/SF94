@@ -103,7 +103,6 @@ df_1$fio2_corrected<- ifelse(df_1$oxy_vsorresu == "Oxygen therapy" |is.na(df_1$o
 write.csv(df_1,"cleaned_sao2_fio2.csv")
 
 #backup
-df_1backup<-df_1
 df_1<-df_1backup
 
 #days since study enrollment
@@ -156,7 +155,7 @@ df_1%>%
   group_by(subjid)%>%
   count(days_since_admission)%>%
   filter(n>1)
-#make a new variable, if day of death matches days since admission, copy outcome 
+#make a new variable, if day of death matches days since admission, copy dsterm to outcome 
 df_1$outcome<-ifelse((df_1$day_of_death == df_1$days_since_admission), df_1$dsterm, NA)
 #make new rows 
 df_1<-expand(df_1, subjid, days_since_admission = -30:200) %>%
