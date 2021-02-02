@@ -171,74 +171,39 @@ df_1<-df_1 %>%
 #fill gaps
 df_1$outcome<-ifelse((df_1$day_of_death == df_1$days_since_admission), df_1$dsterm, NA)
 
+#backup pause
+df_1backup2
 
-#make extremes variable
-#for the extremes, change the sf to 0.5/4.76 for death/alive day
-df_1_extremes<-df_1
-df_1_extremes$sao2[df_1_extremes$dsterm == "Death"]<-0.5
-df_1_extremes$sao2[df_1_extremes$dsterm == "Discharged alive"]<-1
-df_1_extremes$sao2[df_1_extremes$dsterm == "Transfer to other facility"]<-1
-df_1_extremes$fio2_corrected[df_1_extremes$dsterm == "Death"]<-1
-df_1_extremes$fio2_corrected[df_1_extremes$dsterm == "Discharged alive"]<-0.21
-df_1_extremes$fio2_corrected[df_1_extremes$dsterm == "Transfer to other facility"]<-0.21
+#Create SF value and SF94 value
+df_1$sfr_value<-df_1$sao2/df_1$fio2_corrected
+df_1$sf94<-df_1$sfr_value
+df_1$sf94<-ifelse((df_1$sao2 <0.94 | df_1$fio2_corrected ==0.21), df_1$sf94, NA)
 
-#remove lines with missing subjid, sao2 or fio2_corrected
-df_1_extremes<-subset(df_1_extremes, !is.na(subjid))
-df_1_extremes<-subset(df_1_extremes, !is.na(sao2))
-df_1_extremes<-subset(df_1_extremes, !is.na(fio2_corrected)) 
-df_1_extremes$sf_dd<-df_1_extremes$sao2/df_1_extremes$fio2_corrected
-df_1_extremes$days_since_admission[df_1_extremes$days_since_admission <0]<-NA
-df_1_extremes$days_since_admission[df_1_extremes$days_since_admission >60]<-NA
-colnames(df_1_extremes)
-#select essential columns
-df_1_extremes<-df_1_extremes[,c(2,5,107,116,117,119,122)]
 
-#add rows for day 0-60 and order
-df_1_extremes<-expand(df_1_extremes, subjid, days_since_admission = 0:60) %>%
-  left_join(., df_1_extremes)
-df_1_extremes<-data.frame(df_1_extremes)
-#repeat outcome
-df_1_extremes<-df_1_extremes%>%
-  group_by(subjid)%>%
-  fill(dsterm, .direction="down")
+#for the extremes, change the sf to 0.5/4.76 for the day after the outcome day
+#make new variable with sf values
+df_1$sf_dd<-df_1$sfr_value
+#change next row to extreme value if patients went home or died
+alive <- which(df_1$outcome == "Discharged alive") + 1
+df_1$sf_dd[alive] <- 4.76
+transfer <- which(df_1$outcome == "Transfer to other facility") + 1
+df_1$sf_dd[transfer] <- 4.76
+death <- which(df_1$outcome == "Death") + 1
+df_1$sf_dd[death] <- 0.5
 
-df_1_extremes<-df_1_extremes%>%
-  group_by(subjid)%>%
-  fill(age_estimateyears, .direction="down")
-#change SF values
-df_1_extremes$sf_dd[df_1_extremes$dsterm == "Death"]<-0.5
-df_1_extremes$sf_dd[df_1_extremes$dsterm == "Discharged alive"]<-4.76
-df_1_extremes$sf_dd[df_1_extremes$dsterm == "Transfer to other facility"]<-4.76
+#make a SF94 dd variable
+df_1$sf94_dd<-df_1$sf_dd
+df_1$sf94_dd<- ifelse((df_1$sao2<0.94 | df_1$fio2_corrected == 0.21 | df_1$sf_dd == 4.76| df_1$sf_dd ==0.5),
+                      df_1$sf94_dd, NA)
 
-head(df_1_extremes,100)
-table(df_1_extremes$days_since_admission)
-#add SF94 dd
-df_1_extremes$sf94_dd<-df_1_extremes$sf_dd
-#only keep sao2 <0.94 or FiO2==0.21
-df_1_extremes$sf94_dd<- ifelse((df_1_extremes$sao2<0.94 | df_1_extremes$fio2_corrected == 0.21),
-                               df_1_extremes$sf94_dd, NA)
-#repeat extreme values
-df_1_extremes$sf94_dd[df_1_extremes$dsterm == "Death"]<-0.5
-df_1_extremes$sf94_dd[df_1_extremes$dsterm == "Discharged alive"]<-4.76
-df_1_extremes$sf94_dd[df_1_extremes$dsterm == "Transfer to other facility"]<-4.76
-#sanity check
-df_1_extremes[df_1_extremes$subjid == "7A1A1-0001",]
-write.csv(df_1_extremes, "df_1_extremes_20210131-5.csv")
-
-#copy dataframe
-colnames(df_1)
-dfsfr<-df_1[,c(2:20,22:27,72:76,107:112,115:122)]
-#remove lines with missing subjid, sao2 or fio2
-dfsfr<-subset(dfsfr, !is.na(subjid))
-dfsfr<-subset(dfsfr, !is.na(sao2))
-dfsfr<-subset(dfsfr, !is.na(fio2_corrected)) #148595 lines left 
-dfsfr$sfr_value<-dfsfr$sao2/dfsfr$fio2_corrected
+# backup
+df_1<-df_1backup3
 
 #make a new variable based on the ordinal scale levels from the WHO
-dfsfr<-dfsfr %>% 
+df_1<-df_1 %>% 
   mutate(
     severity_scale_ordinal = case_when(
-      dsterm == "Death" ~ "10",
+      outcome == "Death" ~ "10",
       daily_invasive_prtrt == "YES" & sfr_value <=2.0 & 
         (daily_inotrope_cmyn == "YES"|daily_ecmo_prtrt == "YES" |daily_rrt_cmtrt == "YES") ~ "9",
       daily_invasive_prtrt == "YES" & (sfr_value <=2.0|daily_inotrope_cmyn == "YES" ) ~ "8",
@@ -250,28 +215,22 @@ dfsfr<-dfsfr %>%
       oxygen_cmoccur == "NO" ~ "4",
       oxy_vsorresu == "Room air" ~ "4"))
 #make a new variable with  severity score variable for day 1 and day 0
-dfsfr$WHO_day1<-dfsfr$severity_scale_ordinal
+df_1$WHO_day1<-df_1$severity_scale_ordinal
 #only keep value if day 0 is known
-dfsfr$WHO_day1<-ifelse((dfsfr$days_since_admission == 0 | dfsfr$days_since_admission== 1),
-                       dfsfr$WHO_day1,NA )
-#make a new variable for measurements of SaO2 <94% 
-dfsfr$sf94<-dfsfr$sfr_value
-dfsfr$sf94<- ifelse((dfsfr$sao2<0.94 | dfsfr$fio2_corrected == 0.21),dfsfr$sf94, NA)
+df_1$WHO_day1<-ifelse((df_1$days_since_admission == 0 | df_1$days_since_admission== 1),
+                       df_1$WHO_day1,NA )
 #who day1 SF94 value
-dfsfr$WHO_day1_SF94<-dfsfr$WHO_day1
-dfsfr$WHO_day1_SF94<-ifelse(is.na(dfsfr$sf94), NA, dfsfr$WHO_day1_SF94)
-head(dfsfr)
-
-
-write.csv(dfsfr,"dfsfr_20200130-3.csv")
+df_1$WHO_day1_SF94<-df_1$WHO_day1
+df_1$WHO_day1_SF94<-ifelse(is.na(df_1$sf94), NA, df_1$WHO_day1_SF94)
 
 
 
-(#each subject had ±10-15 rows of which the majority is empty
-  #remove part of the empty rows and subjects without a subjid
-  df_1<-subset(df_1, !is.na(subjid))
-  df_1<-subset(df_1, ((!is.na(daily_dsstdat))
-                      | (!is.na(dsterm) )
-                      | (!is.na(dsstdtc)) 
-                      | (!is.na(sao2))
-                      | (!is.na(fio2_corrected)))))
+write.csv(df_1,"df_1_20210202.csv")
+
+
+#repeat some values
+df_1<-df_1 %>%
+  group_by(subjid)%>%
+  fill(age_estimateyears, .direction = "down")%>%
+  fill(age_estimateyears, .direction = "up")
+
