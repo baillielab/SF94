@@ -209,11 +209,11 @@ df_1<-df_1 %>%
       daily_invasive_prtrt == "YES" & (sfr_value <=2.0|daily_inotrope_cmyn == "YES" ) ~ "8",
       daily_invasive_prtrt == "YES" & sfr_value >2.0 ~ "7",
       daily_noninvasive_prtrt == "YES" ~ "6",
-      daily_nasaloxy_cmtrt == "YES" ~ "6",
-      oxygen_cmoccur == "YES" ~ "5",
-      oxy_vsorresu == "Oxygen therapy" ~ "5",
-      oxygen_cmoccur == "NO" ~ "4",
-      oxy_vsorresu == "Room air" ~ "4"))
+      fio2_corrected >= 0.41 ~ "6",
+      fio2_corrected >= 0.22 & fio2_corrected <=0.40 ~ "5",
+      daily_nasaloxy_cmtrt == "YES" ~ "5",
+      fio2_corrected == 0.21 ~ "4"))
+
 #make a new variable with  severity score variable for day 1 and day 0
 df_1$WHO_day1<-df_1$severity_scale_ordinal
 #only keep value if day 0 is known
@@ -223,14 +223,19 @@ df_1$WHO_day1<-ifelse((df_1$days_since_admission == 0 | df_1$days_since_admissio
 df_1$WHO_day1_SF94<-df_1$WHO_day1
 df_1$WHO_day1_SF94<-ifelse(is.na(df_1$sf94), NA, df_1$WHO_day1_SF94)
 
-
-
-write.csv(df_1,"df_1_20210202.csv")
-
-
-#repeat some values
+#repeat age values for each row for a subject so they won't be filtered out by the inclusion filter
 df_1<-df_1 %>%
   group_by(subjid)%>%
   fill(age_estimateyears, .direction = "down")%>%
   fill(age_estimateyears, .direction = "up")
 
+#Make a new variable with SF values for subjects who didn't die or went home on day 0
+df_1$sf94_dd_day0<-df_1$sf94_dd
+df_1$sf94_dd_day0<-ifelse((!is.na(df_1$outcome) & 
+                             df_1$days_since_admission ==0),
+                          NA, df_1$sf94_dd)
+#check if correct
+sum(df_1$sf94_dd_day0 & df_1$outcome == "Death" & df_1$days_since_admission ==0, na.rm = T)
+
+
+write.csv(df_1,"df_1_20210202.csv")
