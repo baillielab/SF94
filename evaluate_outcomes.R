@@ -1,9 +1,5 @@
-#sorry this file is still a mess.. will clean it up!! And work on efficiency
 
-#Mean
-#####CHANGE ########### CHANGE ##################################
-colnames(subset1)
-colnames(subset_extremes)
+#Mean and SD for different days since admission (0-10) for different inclusion subsets
 mean(subset_extremes$sf94_dd_day0[subset_extremes$days_since_admission == 0], na.rm = T)
 mean(subset_extremes$sf94_dd_day0[subset_extremes$days_since_admission == 1], na.rm = T)
 mean(subset_extremes$sf94_dd_day0[subset_extremes$days_since_admission == 2], na.rm = T)
@@ -27,18 +23,6 @@ sd(subset_extremes$sf94_dd_day0[subset1$days_since_admission == 7], na.rm = T)
 sd(subset_extremes$sf94_dd_day0[subset1$days_since_admission == 8], na.rm = T)
 sd(subset_extremes$sf94_dd_day0[subset1$days_since_admission == 9], na.rm = T)
 sd(subset_extremes$sf94_dd_day0[subset1$days_since_admission == 10], na.rm = T)
-
-length(na.omit(subset1$sf94[subset1$days_since_admission == 0]))
-length(na.omit(subset1$sf94[subset1$days_since_admission == 1]))
-length(na.omit(subset1$sf94[subset1$days_since_admission == 2]))
-length(na.omit(subset1$sf94[subset1$days_since_admission == 3]))
-length(na.omit(subset1$sf94[subset1$days_since_admission == 4]))
-length(na.omit(subset1$sf94[subset1$days_since_admission == 5]))
-length(na.omit(subset1$sf94[subset1$days_since_admission == 6]))
-length(na.omit(subset1$sf94[subset1$days_since_admission == 7]))
-length(na.omit(subset1$sf94[subset1$days_since_admission == 8]))
-length(na.omit(subset1$sf94[subset1$days_since_admission == 9]))
-length(na.omit(subset1$sf94[subset1$days_since_admission == 10]))
 
 
 #correlation
@@ -71,7 +55,6 @@ correlation_subset<-correlation_subset %>%
 #make subset with data available for 2 days (0/7, 1/7, 0/5, 1/5, 1/6)
 correlation_subset_0_7<-subset(correlation_subset, !is.na(day_0))
 correlation_subset_0_7<-subset(correlation_subset_0_7, !is.na(day_7))
-nrow(correlation_subset_1_5)
 correlation_subset_0_5<-subset(correlation_subset, !is.na(day_0))
 correlation_subset_0_5<-subset(correlation_subset_0_5, !is.na(day_5))
 correlation_subset_1_5<-subset(correlation_subset, !is.na(day_1))
@@ -307,9 +290,8 @@ dfsfr_score_levels_subset1<- dfsfr_score_levels_subset1 %>%
   group_by(subjid)%>%
   filter(frail)
 
-#### EXTREME VALUES MEAN AND SD CALCULATION
-#Mean
-########## CHANGE ##### CHANGE ##################################3
+########################### EXTREME VALUES MEAN AND SD CALCULATION ####################################
+#Mean and SD
 sd(subset3_EXTREME$sfr_value[subset3_EXTREME$days_since_enrolment == 0], na.rm = T)
 sd(subset3_EXTREME$sfr_value[subset3_EXTREME$days_since_enrolment == 1], na.rm = T)
 sd(subset3_EXTREME$sfr_value[subset3_EXTREME$days_since_enrolment == 2], na.rm = T)
@@ -321,18 +303,7 @@ sd(subset3_EXTREME$sfr_value[subset3_EXTREME$days_since_enrolment == 7], na.rm =
 sd(subset3_EXTREME$sfr_value[subset3_EXTREME$days_since_enrolment == 8], na.rm = T)
 sd(subset3_EXTREME$sfr_value[subset3_EXTREME$days_since_enrolment == 9], na.rm = T)
 sd(subset3_EXTREME$sfr_value[subset3_EXTREME$days_since_enrolment == 10], na.rm = T)
-#SD
-sd(subset1$sfr_value[subset1$days_since_enrolment == 0], na.rm = T)
-sd(subset1$sfr_value[subset1$days_since_enrolment == 1], na.rm = T)
-sd(subset1$sfr_value[subset1$days_since_enrolment == 2], na.rm = T)
-sd(subset1$sfr_value[subset1$days_since_enrolment == 3], na.rm = T)
-sd(subset1$sfr_value[subset1$days_since_enrolment == 4], na.rm = T)
-sd(subset1$sfr_value[subset1$days_since_enrolment == 5], na.rm = T)
-sd(subset1$sfr_value[subset1$days_since_enrolment == 6], na.rm = T)
-sd(subset1$sfr_value[subset1$days_since_enrolment == 7], na.rm = T)
-sd(subset1$sfr_value[subset1$days_since_enrolment == 8], na.rm = T)
-sd(subset1$sfr_value[subset1$days_since_enrolment == 9], na.rm = T)
-sd(subset1$sfr_value[subset1$days_since_enrolment == 10], na.rm = T)
+
 
 #histogram WHO and SF
 hist(dfsfr94$sfr_value[dfsfr94$severity_scale_ordinal == 4], breaks = 50, main="Level 4", xlab="SF", ylim = c(0,1000), xlim = c(0,5))
