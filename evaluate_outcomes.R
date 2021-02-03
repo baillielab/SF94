@@ -1,3 +1,5 @@
+length(unique(subset1$subjid))
+
 
 #Mean and SD for different days since admission (0-10) for different variables (sf94, sf94_dd, sf94_dd_day0)
 mean(subset1$sf94_dd_day0[subset1$days_since_admission == 0], na.rm = T)
@@ -73,6 +75,24 @@ x <-  correlation_subset17$day_1
 y <-  correlation_subset17$day_7
 cor(x,y)
 
+#compare day 0-5 correlation group to the complete population
+
+
+#compare key clinical variables between 2 groups (SaO2<0.94 |fio2=0.21) and SaO2>0.94
+df_1$sf94_group<-if_else((df_1$sao2 <=0.94 | df_1$fio2_corrected == 0.21), "SF94<", "SF94>")
+tapply(df_1$age_estimateyears, df_1$sf94_group, summary, na.rm=T)
+tapply(df_1$daily_temp_vsorres, df_1$sf94_group, summary, na.rm=T)
+tapply(df_1$systolic_vsorres, df_1$sf94_group, summary, na.rm=T)
+tapply(df_1$diastolic_vsorres, df_1$sf94_group, summary, na.rm=T)
+tapply(df_1$onset2admission, df_1$sf94_group, summary, na.rm=T)
+tapply(df_1$hodur, df_1$sf94_group, summary, na.rm=T)
+table(df_1$sex, df_1$sf94_group)
+table(df_1$infiltrates_faorres, df_1$sf94_group)
+table(df_1$outcome, df_1$sf94_group)
+table(df_1$severity_scale_ordinal, df_1$sf94_group)
+#check distribution in fio2 when excluding fio2=0.21
+high_fio2<-subset(df_1, fio2_corrected >0.22)
+tapply(high_fio2$fio2_corrected, high_fio2$sf94_group, summary, na.rm=T)
 
 #barchar mean/ variance on different days
 library(ggplot2)
