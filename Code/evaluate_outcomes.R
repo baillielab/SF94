@@ -1,3 +1,90 @@
+library(dplyr)
+
+library(data.table)
+
+
+#df_1<-fread("/home/u034/mcswets/df_1_20210202.csv", data.table = FALSE)
+
+
+subset1 <- filter(df_1, ( !is.na(sao2) & days_since_admission %in% c(0,1,2,3)  & age_estimateyears >19 & age_estimateyears <76 ) )
+
+# variable should be either  'sf94' or 'who'
+# group should be 'base' if you want to include everyone except those who died or were discharged
+# 'basedd' if you want to include those who died or were discharged
+# 'day0' if you want to exclude people who died or were discharged on day_since_admission == 0
+# Output is a table that you can query for summary statistics.
+
+createDF <- function(group, variable, time){
+  
+  if( group == 'base' |  group == 'basedd' ) { 
+    df <- filter( subset1[ c('subjid', 'days_since_admission', variable ) ] , days_since_admission <= time  )
+  } else if (group == 'day0') {
+    dropID <- subset1[ ( (subset1['death'] == TRUE |  subset1['discharge'] == TRUE) & subset1$days_since_admission ==0) %in% TRUE, 'subjid']
+    
+    df <- filter(subset1[ c('subjid', 'days_since_admission', variable ) ], days_since_admission <= time & !(subjid %in% dropID)  ) 
+  } 
+  
+  
+  derived <-  df  %>%  mutate(rn= row_number()) %>% spread (days_since_admission, sf94) %>% select(-rn)
+  
+  newCols <- as.character( setdiff( 0:time,  setdiff( colnames(derived), 'subjid' ) ) )
+  
+  derived[newCols] <- NA
+  
+  derived <- derived[ c( 'subjid', as.character(0:time))  ]
+  
+  
+  if(group == 'basedd'){
+    
+    censorDeath <- filter( subset1,  death== TRUE  & day_of_death <= time    )[c('subjid', 'day_of_death')]
+    
+    censorDischarge <- filter( subset1,  discharge== TRUE  & day_of_discharge <= time    )[c('subjid', 'day_of_discharge')]
+    
+    
+    if(variable == 'sf94'){
+      deathValue <- 0.5
+      dischargeValue <- 4.76
+    } else if(variable == 'who'){
+      deathValue <- 4
+      dischargeValue <- 10
+    }
+    
+    for( i in as.numeric(rownames(censorDeath))   ){
+      
+      row <- which( derived['subjid']  ==  censorDeath[i, 'subjid']  )
+      
+      cols <- as.character( censorDeath[i, 'day_of_death']:time  )
+      
+      derived[ row ,  cols  ] <- deathValue
+    }
+    
+    for( i in as.numeric(rownames(censorDischarge))    ){
+      
+      row <- which( derived['subjid']  ==  censorDischarge[i, 'subjid']  )
+      
+      cols <- as.character( censorDischarge[i, 'day_of_discharge']:time  )
+      
+      derived[ row ,  cols  ] <- dischargeValue
+    }
+    
+  }
+  return(derived)
+  
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 length(unique(subset1$subjid))
 
 
