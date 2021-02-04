@@ -76,11 +76,6 @@ df_1$daily_fio2c_lborres <- ifelse(df_1$daily_fio2c_lborres >= 20 , (df_1$daily_
 
 
 
-
-
-
-
-
 # change negative values in cols to positive
 
 negCols = c('daily_sao2_lborres', 'daily_fio2c_lborres', 'oxy_vsorres'   )
@@ -134,7 +129,7 @@ return(df)
 
 # This function squeezes variables.
 # Values between hard limits and soft limits get set to the soft limit.
-# Everything else gets set to NA.
+# Values outside hard limits get set to NA.
 
 squeeze<- function(df, limits){
   
@@ -149,8 +144,6 @@ squeeze<- function(df, limits){
   }
 return(df)  
 }
-
-
 
 
 
@@ -197,7 +190,7 @@ df_1['fio2'] <- ifelse( is.na(df_1[,'fio2'])  &  df_1['oxy_vsorresu']=="Room air
 
 df_1['fio2'] <- ifelse( is.na(df_1[,'fio2'])  &  df_1['oxygen_cmoccur']=="NO", 0.21, df_1[,'fio2']) 
 
-df_1['fio2']<- ifelse( df_1$oxy_vsorresu == "Oxygen therapy" |is.na(df_1$oxy_vsorresu), df_1['fio2'], 0.21 )
+df_1['fio2']<- ifelse( df_1$oxy_vsorresu == "Oxygen therapy" |is.na(df_1$oxy_vsorresu), df_1[,'fio2'], 0.21 )
 
 
 
@@ -232,6 +225,6 @@ df_1<-df_1 %>%
 
 
 
-write.csv(df_1,"df_1_20210402.csv")
+write.csv(df_1,"df_1_20210402sample.csv")
 
 
