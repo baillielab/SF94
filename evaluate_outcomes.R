@@ -85,7 +85,7 @@ tapply(df_1$daily_temp_vsorres, df_1$sf94_group, summary, na.rm=T)
 tapply(df_1$systolic_vsorres, df_1$sf94_group, summary, na.rm=T)
 tapply(df_1$diastolic_vsorres, df_1$sf94_group, summary, na.rm=T)
 tapply(df_1$onset2admission, df_1$sf94_group, summary, na.rm=T)
-tapply(df_1$hodur, df_1$sf94_group, summary, na.rm=T)
+tapply(df_1$clinical_frailty, df_1$sf94_group, summary, na.rm=T)
 table(df_1$sex, df_1$sf94_group)
 table(df_1$infiltrates_faorres, df_1$sf94_group)
 table(df_1$outcome, df_1$sf94_group)
@@ -93,6 +93,42 @@ table(df_1$severity_scale_ordinal, df_1$sf94_group)
 #check distribution in fio2 when excluding fio2=0.21
 high_fio2<-subset(df_1, fio2_corrected >0.22)
 tapply(high_fio2$fio2_corrected, high_fio2$sf94_group, summary, na.rm=T)
+
+#extra columns for df_1
+54,167,113,175,250,251,264,265,279,280,96:112,114
+df_1$clinical_frailty[df_1$clinical_fraily == "N/K"]<-NA
+df_1$clinical_frailty<-as.numeric(df_1$clinical_frailty)
+df_1<-df_1 %>%
+  group_by(subjid)%>%
+  fill(sex, .direction = "down") %>%
+  fill(sex, .direction = "up")
+
+#clean up 
+colnames(ccp_data)
+df_to_add<-ccp_data[,c(54,167,113,175,250,251,264, 265,279,280,96:112,114)]
+head(df_to_add)
+table(df_to_add$daily_creat_lborresu)
+#BUN: measured as mg/dL and mmol/L, convert mg/dL to mmol/L
+#to convert from mg/dl to mmol/L for BUN: mg/dL x 0.357
+
+#creatinin measured as mg/dl, umol/L and micromol/L (last 2 the same but different entries)
+
+#is age still repeated for each row? 
+
+colnames(ccp_data)
+#compare groups based on SFgroup on day 0
+df_day0<-subset(df_1, df_1$days_since_admission == 0)
+table(df_day0$sf94_group)
+tapply(df_day0$age_estimateyears, df_day0$sf94_group, summary, na.rm=T)
+tapply(df_day0$daily_temp_vsorres, df_day0$sf94_group, summary, na.rm=T)
+tapply(df_day0$systolic_vsorres, df_day0$sf94_group, summary, na.rm=T)
+tapply(df_day0$diastolic_vsorres, df_day0$sf94_group, summary, na.rm=T)
+tapply(df_day0$onset2admission, df_day0$sf94_group, summary, na.rm=T)
+tapply(df_day0$clinical_frailty, df_day0$sf94_group, summary, na.rm=T)
+table(df_day0$sex, df_day0$sf94_group)
+table(df_day0$infiltrates_faorres, df_day0$sf94_group)
+table(df_day0$outcome, df_day0$sf94_group)
+table(df_day0$severity_scale_ordinal, df_day0$sf94_group)
 
 #barchar mean/ variance on different days
 library(ggplot2)
