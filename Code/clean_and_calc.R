@@ -3,11 +3,13 @@ library(dplyr)
 library(tidyr)
 library(data.table)
 
-cols <- c(1,11,26,28,42,43,63,64,128,140,142,143,146,147,148,150,169,171,173,175,
-          176,177,178,179,180,181,293,392,
+cols <- c(1,11,26,28,42,43,54,63,64,96:114,128,140,142,143,146,147,148,150,167,169,171,173,175,
+          176,177,178,179,180,181,293,250,251,264,265,279,280,392,
           393,394,395,396,447,448,449,450,452,598,602,603,606)
 
 df_1 <-fread("Y:/mcswets/ccp_data.csv", select = cols, data.table = FALSE)
+#read for maaike
+df_1 <-fread("/home/u034/mcswets/ccp_data.csv", select = cols, data.table = FALSE)
 
 # Take a sample
 df_1 <- sample_n(ccp_data, 500)
@@ -223,8 +225,34 @@ df_1<-df_1 %>%
       daily_nasaloxy_cmtrt == "YES" ~ 5,
       fio2 == 0.21 ~ 4))
 
+#Maaike's less efficient code
+#Clean up newly added variable
+df_1$clinical_frailty[df_1$clinical_frailty == "N/K"]<-NA
+df_1$clinical_frailty<-as.numeric(df_1$clinical_frailty)
+#repeat sex for all rows for a subject
+df_1<-df_1 %>%
+  group_by(subjid)%>%
+  fill(sex, .direction = "down") %>%
+  fill(sex, .direction = "up")
+
+#BUN: measured as mg/dL and mmol/L, convert mg/dL to mmol/L
+#to convert from mg/dl to mmol/L for BUN: mg/dL x 0.357
+df_1$daily_bun_lborres<-ifelse(df_1$daily_crp_lborresu == "mg/dL", 
+                               (df_1$daily_bun_lborres * 0.357),
+                               df_1$daily_bun_lborres)
+#creatinin measured as mg/dl or umol/L 
+#to convert from mg/dl to umol/L, multiply by 88.4
+df_1$daily_creat_lborres<-ifelse(df_1$daily_creat_lborresu == "mg/dl", 
+                                 (df_1$daily_creat_lborres * 88.4),
+                                 df_1$daily_creat_lborres)
+#crp measured in 3 ways: mg/dL, mg/L (majority) and ug/ml. mg/L=ug/ml
+df_1$daily_crp_lborres<-ifelse(df_1$daily_crp_lborresu == "mg/dL",
+                               (df_1$daily_crp_lborres * 10),
+                               df_1$daily_crp_lborres)
+
+#Complications: if any 'yes' >> repeat yes 
 
 
-write.csv(df_1,"df_1_20210402sample.csv")
 
 
+write.csv(df_1,"df_1_20210402.csv")
