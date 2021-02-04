@@ -80,9 +80,11 @@ df_1$daily_fio2c_lborres <- ifelse(df_1$daily_fio2c_lborres >= 20 , (df_1$daily_
 
 # change negative values in cols to positive
 
-negCols = c('daily_sao2_lborres', 'daily_fio2c_lborres', 'oxy_vsorres'   )
-
-df_1[negCols] <- abs(df_1[negCols])
+negCols = c('daily_sao2_lborres', 'daily_fio2c_lborres', 'oxy_vsorres', 
+            'daily_fio2b_lborres', 'daily_fio2_lborres')
+#additional columns to remove negative values
+negCols2= c('diastolic_vsorres', 'daily_gcs_vsorres', 'daily_urine_lborres','daily_crp_lborres')
+df_1[negCols2] <- abs(df_1[negCols2])
 
 
 # Clean variables that are percentages
@@ -170,7 +172,17 @@ limits <- data.frame( 'daily_sao2_lborres' = c( 100, 100, 50, 50),
                       'days_since_admission' = c(200, 200, -30, -30),  
                       'days_since_symptoms' = c(200, 200, -30, -30),
                       'day_of_death' = c(250,250,0,0),
-                      'day_of_discharge' = c(250,250,0,0))
+                      'day_of_discharge' = c(250,250,0,0),
+                      'daily_temp_vsorres'= c(44,44,34,34),
+                      'daily_gcs_vsorres'= c(15,15,3,3),
+                      'systolic_vsorres'= c(300,300,50,50),
+                      'diastolic_vsorres'= c(200,200,20,20),
+                      'daily_urine_lborres' = c(15000,15000,0,0),
+                      'daily_creat_lborres' = c(1000,1000,50,50),
+                      'daily_bun_lborres' = c(50,50,0,0),
+                      'daily_crp_lborres'= c(700,700,5,5),
+                      'rr_vsorres' = c(70,70,5,5),
+                      'onset2admission' = c(100,100,-100,-100))
 
 df_1 <- squeeze(df_1, limits)
 
@@ -214,7 +226,7 @@ df_1$sf94<- ifelse((df_1$sao2 <= 0.94 | df_1$fio2 ==0.21), df_1$sfr, NA)
 df_1<-df_1 %>% 
   mutate(
     severity_scale_ordinal = case_when(
-      death == TRUE ~ 10,
+      dsterm== "Death" ~ 10,
       daily_invasive_prtrt == "YES" & sfr <=2.0 & 
         (daily_inotrope_cmyn == "YES"|daily_ecmo_prtrt == "YES" |daily_rrt_cmtrt == "YES") ~ 9,
       daily_invasive_prtrt == "YES" & (sfr <=2.0|daily_inotrope_cmyn == "YES" ) ~ 8,
@@ -249,6 +261,8 @@ df_1$daily_creat_lborres<-ifelse(df_1$daily_creat_lborresu == "mg/dl",
 df_1$daily_crp_lborres<-ifelse(df_1$daily_crp_lborresu == "mg/dL",
                                (df_1$daily_crp_lborres * 10),
                                df_1$daily_crp_lborres)
+
+
 
 #Complications: if any 'yes' >> repeat yes 
 
