@@ -24,7 +24,6 @@ df_2 <- fread("Y:/mcswets/df_1_20210202.csv", data.table = FALSE)
 
 
 
-
 #select subjid of patients with a sats measurement on day 0,1,2 or 3
 subjects_to_include<-subset(df_1,((!is.na(sao2) & days_since_admission == 0)|
                                      (!is.na(sao2) & days_since_admission == 1)|

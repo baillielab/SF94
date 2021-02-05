@@ -75,16 +75,30 @@ df_1['day_of_discharge'] <- ifelse(  df_1[,'discharge'] == TRUE & is.finite( df_
 
 df_1$daily_fio2c_lborres <- ifelse(df_1$daily_fio2c_lborres >= 20 , (df_1$daily_fio2c_lborres-20)/4, df_1$daily_fio2c_lborres)
 
-
+#BUN: measured as mg/dL and mmol/L, convert mg/dL to mmol/L
+#to convert from mg/dl to mmol/L for BUN: mg/dL x 0.357
+df_1$daily_bun_lborres<-ifelse(df_1$daily_crp_lborresu == "mg/dL", 
+                               (df_1$daily_bun_lborres * 0.357),
+                               df_1$daily_bun_lborres)
+#creatinin measured as mg/dl or umol/L 
+#to convert from mg/dl to umol/L, multiply by 88.4
+df_1$daily_creat_lborres<-ifelse(df_1$daily_creat_lborresu == "mg/dl", 
+                                 (df_1$daily_creat_lborres * 88.4),
+                                 df_1$daily_creat_lborres)
+#crp measured in 3 ways: mg/dL, mg/L (majority) and ug/ml. mg/L=ug/ml
+df_1$daily_crp_lborres<-ifelse(df_1$daily_crp_lborresu == "mg/dL",
+                               (df_1$daily_crp_lborres * 10),
+                               df_1$daily_crp_lborres)
 
 
 # change negative values in cols to positive
 
 negCols = c('daily_sao2_lborres', 'daily_fio2c_lborres', 'oxy_vsorres', 
-            'daily_fio2b_lborres', 'daily_fio2_lborres')
+            'daily_fio2b_lborres', 'daily_fio2_lborres','diastolic_vsorres',
+            'daily_gcs_vsorres', 'daily_urine_lborres','daily_crp_lborres')
 #additional columns to remove negative values
-negCols2= c('diastolic_vsorres', 'daily_gcs_vsorres', 'daily_urine_lborres','daily_crp_lborres')
-df_1[negCols2] <- abs(df_1[negCols2])
+
+df_1[negCols] <- abs(df_1[negCols])
 
 
 # Clean variables that are percentages
@@ -136,20 +150,13 @@ return(df)
 # Values outside hard limits get set to NA.
 
 squeeze<- function(df, limits){
-  
   for(var in colnames(limits) ){
-    
     df[var][ df[var] > limits[1, var]  |   df[, var]< limits[4, var] ] <- NA
-    
-    df[var][ df[var] > limits[2, var]  &  df[, var]< limits[1, var] ] <- limits[2, var] 
-    
-    df[var][ df[var] > limits[4, var]  &   df[, var]< limits[3, var] ] <- limits[3, var]
-    
+    df[var][ df[var] > limits[2, var]  &  df[, var] <= limits[1, var] ] <- limits[2, var] 
+    df[var][ df[var] >= limits[4, var]  &   df[, var]< limits[3, var] ] <- limits[3, var]
   }
-return(df)  
+  return(df)  
 }
-
-
 
 
 percentCols <- c( 'daily_sao2_lborres', 'oxy_vsorres')
@@ -161,7 +168,7 @@ int1Cols <- c('daily_fio2_lborres', 'daily_fio2b_lborres')
 df_1 <- cleanInt1(df_1, int1Cols)
 
 
-# Limit for accetable variable values
+# Limit for acceptable variable values
 # In row order, the numbers are 1. Hard upper limit 2. Soft upper limit 3. Soft lower limit 4. Hard lower limit
 
 limits <- data.frame( 'daily_sao2_lborres' = c( 100, 100, 50, 50),
@@ -182,11 +189,12 @@ limits <- data.frame( 'daily_sao2_lborres' = c( 100, 100, 50, 50),
                       'daily_bun_lborres' = c(50,50,0,0),
                       'daily_crp_lborres'= c(700,700,5,5),
                       'rr_vsorres' = c(70,70,5,5),
-                      'onset2admission' = c(100,100,-100,-100))
+                      'onset2admission' = c(100,100,-100,-100),
+                      'hodur' = c(200,200,0,0))
 
 df_1 <- squeeze(df_1, limits)
 
-
+summary(df_1)
 
 
 # Add clean sao2, fio2 variables
@@ -206,11 +214,13 @@ df_1['fio2'] <- ifelse( is.na(df_1[,'fio2'])  &  df_1['oxygen_cmoccur']=="NO", 0
 
 df_1['fio2']<- ifelse( df_1$oxy_vsorresu == "Oxygen therapy" |is.na(df_1$oxy_vsorresu), df_1[,'fio2'], 0.21 )
 
-
+summary(df_1$fio2)
 
 # Drop columns that are no longer needed
 
-dropCols <- c('oxy_vsorres', 'daily_sao2_lborres', 'daily_fio2_lborres', 'daily_fio2b_lborres', 'daily_fio2c_lborres', 'oxy_vsorresu', 'oxygen_cmoccur')
+dropCols <- c('oxy_vsorres', 'daily_sao2_lborres', 'daily_fio2_lborres', 'daily_fio2b_lborres',
+              'daily_fio2c_lborres', 'oxy_vsorresu', 'oxygen_cmoccur', 'daily_crp_lborresu',
+              'daily_bun_lborresu', 'daily_creat_lborresu')
 
 df_1 <- df_1[, !(names(df_1) %in% dropCols)]
 
@@ -246,22 +256,6 @@ df_1<-df_1 %>%
   group_by(subjid)%>%
   fill(sex, .direction = "down") %>%
   fill(sex, .direction = "up")
-
-#BUN: measured as mg/dL and mmol/L, convert mg/dL to mmol/L
-#to convert from mg/dl to mmol/L for BUN: mg/dL x 0.357
-df_1$daily_bun_lborres<-ifelse(df_1$daily_crp_lborresu == "mg/dL", 
-                               (df_1$daily_bun_lborres * 0.357),
-                               df_1$daily_bun_lborres)
-#creatinin measured as mg/dl or umol/L 
-#to convert from mg/dl to umol/L, multiply by 88.4
-df_1$daily_creat_lborres<-ifelse(df_1$daily_creat_lborresu == "mg/dl", 
-                                 (df_1$daily_creat_lborres * 88.4),
-                                 df_1$daily_creat_lborres)
-#crp measured in 3 ways: mg/dL, mg/L (majority) and ug/ml. mg/L=ug/ml
-df_1$daily_crp_lborres<-ifelse(df_1$daily_crp_lborresu == "mg/dL",
-                               (df_1$daily_crp_lborres * 10),
-                               df_1$daily_crp_lborres)
-
 
 
 #Complications: if any 'yes' >> repeat yes 
