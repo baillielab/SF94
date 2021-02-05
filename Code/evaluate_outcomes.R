@@ -23,7 +23,7 @@ subjects_to_include<-unique(subjects_to_include)
 #form subset inclusion criteria
 subset1<-subset(df_1[df_1$subjid %in% subjects_to_include$subjid,], age_estimateyears >19 &
                   age_estimateyears <76)
-
+subset1 <- as.data.frame(subset1)
 # variable should be either  'sf94' or 'who'
 # group should be 'base' if you want to include everyone except those who died or were discharged
 # 'basedd' if you want to include those who died or were discharged
@@ -81,14 +81,15 @@ createDF <- function(group, variable, time){
       cols <- as.character( (censorDischarge[i, 'day_of_discharge']+1):time  )
       
       derived[ row ,  cols  ] <- dischargeValue
+     
     }
     
   }
   return(derived)
   
+  
+  
 }
-
-
 
 
 #(group,variable, time)
@@ -100,67 +101,26 @@ base_sf94_10<-createDF("base", "sf94", 10)
 basedd_sf94_10<-createDF("basedd", "sf94", 10)
 basedd_sf94day0_10<-createDF("day0", "sf94", 10)
 
+length(basedd_sf94day0_10$subjid)
 summary(base_sf94_10)
-
-
-
-#Mean and SD for different days since admission (0-10) for different variables (sf94, sf94_dd, sf94_dd_day0)
-mean(subset1$sf94_dd_day0[subset1$days_since_admission == 0], na.rm = T)
-mean(subset1$sf94_dd_day0[subset1$days_since_admission == 1], na.rm = T)
-mean(subset1$sf94_dd_day0[subset1$days_since_admission == 2], na.rm = T)
-mean(subset1$sf94_dd_day0[subset1$days_since_admission == 3], na.rm = T)
-mean(subset1$sf94_dd_day0[subset1$days_since_admission == 4], na.rm = T)
-mean(subset1$sf94_dd_day0[subset1$days_since_admission == 5], na.rm = T)
-mean(subset1$sf94_dd_day0[subset1$days_since_admission == 6], na.rm = T)
-mean(subset1$sf94_dd_day0[subset1$days_since_admission == 7], na.rm = T)
-mean(subset1$sf94_dd_day0[subset1$days_since_admission == 8], na.rm = T)
-mean(subset1$sf94_dd_day0[subset1$days_since_admission == 9], na.rm = T)
-mean(subset1$sf94_dd_day0[subset1$days_since_admission == 10], na.rm = T)
-#SD
-sd(subset1$sf94_dd_day0[subset1$days_since_admission == 0], na.rm = T)
-sd(subset1$sf94_dd_day0[subset1$days_since_admission == 1], na.rm = T)
-sd(subset1$sf94_dd_day0[subset1$days_since_admission == 2], na.rm = T)
-sd(subset1$sf94_dd_day0[subset1$days_since_admission == 3], na.rm = T)
-sd(subset1$sf94_dd_day0[subset1$days_since_admission == 4], na.rm = T)
-sd(subset1$sf94_dd_day0[subset1$days_since_admission == 5], na.rm = T)
-sd(subset1$sf94_dd_day0[subset1$days_since_admission == 6], na.rm = T)
-sd(subset1$sf94_dd_day0[subset1$days_since_admission == 7], na.rm = T)
-sd(subset1$sf94_dd_day0[subset1$days_since_admission == 8], na.rm = T)
-sd(subset1$sf94_dd_day0[subset1$days_since_admission == 9], na.rm = T)
-sd(subset1$sf94_dd_day0[subset1$days_since_admission == 10], na.rm = T)
+summary(basedd_sf94_10)
+summary(basedd_sf94day0_10)
+sapply(base_sf94_10, sd, na.rm=T)
+sapply(basedd_sf94_10, sd, na.rm=T)
+sapply(basedd_sf94day0_10, sd, na.rm=T)
+head(base_sf94_10)
 
 #correlation
 library(data.table)
 #Correlation subsets: same subjects for different days,
 # eg all subjects with a day-1 and day 5 measurement
-#only relevant columns (days_since_admission and SF94)
-correlation_subset<-subset1[,c(1,2,50)]
-#remove after day 10 to make easier to work with
-correlation_subset<-subset(correlation_subset, days_since_admission<11)
-correlation_subset<-subset(correlation_subset, days_since_admission>=0)
-correlation_subset<-data.frame(correlation_subset)
-#add day for more sensible variable name in wide format
-correlation_subset$days_since_admission<- paste("day", correlation_subset$days_since_admission, sep = "_")
-head(correlation_subset)
-#from long to wide format
-correlation_subset<- correlation_subset %>%
-  mutate(rn= row_number()) %>%
-  spread (days_since_admission, sf94) %>%
-  select(-rn)
-#keep only 1 row for each subject
-f <- function(x) {
-  x <- na.omit(x)
-  if (length(x) > 0) unique(x) else NA
-}
-correlation_subset<-correlation_subset %>% 
-  group_by(subjid) %>% 
-  summarise_all(funs(f))
 #make subsets of data in which all subjects have SF94 available for those 2 days
-correlation_subset_07<-subset(correlation_subset, (!is.na(day_0)&!is.na(day_7)))
-correlation_subset_05<-subset(correlation_subset, (!is.na(day_0)&!is.na(day_5)))
-correlation_subset15<-subset(correlation_subset, (!is.na(day_1)&!is.na(day_5)))
-correlation_subset17<-subset(correlation_subset, (!is.na(day_1)&!is.na(day_7)))
+correlation_subset_07<-subset(base_sf94_10, (!is.na(0)&!is.na(7)))
+correlation_subset_05<-subset(base_sf94_10, (!is.na(0)&!is.na(5)))
+correlation_subset15<-subset(base_sf94_10, (!is.na(1)&!is.na(7)))
+correlation_subset17<-subset(base_sf94_10, (!is.na(1)&!is.na(5)))
 length(correlation_subset_17$subjid)
+head(correlation_subset_07)
 # correlation DAY 0 DAY 7
 x <-  correlation_subset_07$day_0
 y <-  correlation_subset_07$day_7
