@@ -36,4 +36,3 @@ subjects_to_include<-unique(subjects_to_include)
 #form subset inclusion criteria
 subset1<-subset(df_1[df_1$subjid %in% subjects_to_include$subjid,], age_estimateyears >19 &
                   age_estimateyears <76)
-

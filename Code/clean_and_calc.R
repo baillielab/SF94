@@ -226,7 +226,7 @@ df_1$sf94<- ifelse((df_1$sao2 <= 0.94 | df_1$fio2 ==0.21), df_1$sfr, NA)
 df_1<-df_1 %>% 
   mutate(
     severity_scale_ordinal = case_when(
-      dsterm== "Death" ~ 10,
+      !is.na(day_of_death) ~ 10,
       daily_invasive_prtrt == "YES" & sfr <=2.0 & 
         (daily_inotrope_cmyn == "YES"|daily_ecmo_prtrt == "YES" |daily_rrt_cmtrt == "YES") ~ 9,
       daily_invasive_prtrt == "YES" & (sfr <=2.0|daily_inotrope_cmyn == "YES" ) ~ 8,
