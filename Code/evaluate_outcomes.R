@@ -5,9 +5,24 @@ library(data.table)
 
 #df_1<-fread("/home/u034/mcswets/df_1_20210202.csv", data.table = FALSE)
 
+#using this I think only subjects on day 0,1,2 and 3 make it to the subset data
+#used my old code to select all subject ID's with at least 1 measurement on 1 of those days, keep only unique and use that for filter
+#subset1 <- filter(df_1, ( !is.na(sao2) & days_since_admission %in% c(0,1,2,3)  & age_estimateyears >19 & age_estimateyears <76 ) )
 
-subset1 <- filter(df_1, ( !is.na(sao2) & days_since_admission %in% c(0,1,2,3)  & age_estimateyears >19 & age_estimateyears <76 ) )
+#select subjid of patients with a sats measurement on day 0,1,2 or 3
+subjects_to_include<-subset(df_1,((!is.na(sao2) & days_since_admission == 0)|
+                                    (!is.na(sao2) & days_since_admission == 1)|
+                                    (!is.na(sao2) & days_since_admission == 2)|
+                                    (!is.na(sao2) & days_since_admission == 3)))
+#only keep unique values
+subjects_to_include<-unique(subjects_to_include)
+# start population (df_1) = 79843
+# after applying age limits = 38919
+# only subjects with an sao2 on day 0,1,2 or 3 = 31245 unique subjects
 
+#form subset inclusion criteria
+subset1<-subset(df_1[df_1$subjid %in% subjects_to_include$subjid,], age_estimateyears >19 &
+                  age_estimateyears <76)
 
 # variable should be either  'sf94' or 'who'
 # group should be 'base' if you want to include everyone except those who died or were discharged
@@ -46,8 +61,8 @@ createDF <- function(group, variable, time){
       deathValue <- 0.5
       dischargeValue <- 4.76
     } else if(variable == 'who'){
-      deathValue <- 4
-      dischargeValue <- 10
+      deathValue <- 10
+      dischargeValue <- 4
     }
     
     for( i in as.numeric(rownames(censorDeath))   ){
@@ -76,17 +91,17 @@ createDF <- function(group, variable, time){
 
 
 
+#(group,variable, time)
+# variable = sf94, who
+# group= base, basedd, day0
+# time =days_since_admission
 
+base_sf94_10<-createDF("base", "sf94", 10)
+basedd_sf94_10<-createDF("basedd", "sf94", 10)
+basedd_sf94day0_10<-createDF("day0", "sf94", 10)
 
+summary(base_sf94_10)
 
-
-
-
-
-
-
-
-length(unique(subset1$subjid))
 
 
 #Mean and SD for different days since admission (0-10) for different variables (sf94, sf94_dd, sf94_dd_day0)
