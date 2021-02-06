@@ -31,7 +31,7 @@ createDF <- function(group, variable, time){
   } 
   
   
-  derived <-  df  %>%  mutate(rn= row_number()) %>% spread (days_since_admission, sf94) %>% select(-rn)
+  derived <-  df  %>%  mutate(rn= row_number()) %>% spread (days_since_admission, variable) %>% select(-rn)
   
   newCols <- as.character( setdiff( 0:time,  setdiff( colnames(derived), 'subjid' ) ) )
   
