@@ -97,7 +97,6 @@ base_who_8<-createDF("base", "severity_scale_ordinal", 8)
 basedd_who_8<-createDF("basedd", "severity_scale_ordinal",8)
 basedd0_who_8<-createDF("day0", "severity_scale_ordinal", 8)
 
-
 summary(base_sf94_10)
 summary(basedd_sf94_10)
 summary(basedd_sf94day0_10)
@@ -236,8 +235,66 @@ outcome_day5 + geom_violin()+ #remove outliers
 day5_wide<-reshape(day5, idvar="subjid", timevar="who_day5", direction="wide")
 #reorder columns
 day5_wide<-day5_wide[,c(1,8,4,3,6,2,5,7)]
+length(day5_wide$subjid)
 summary(day5_wide)
 sapply(day5_wide, sd, na.rm=T)
+
+#day 8 WHO and SF dataframe
+#WHO day 8
+day8_who<-base_who_8[,c(1,10)]
+day8_who<-day8_who%>%
+  group_by(subjid)%>%
+  summarise_all(funs(f))
+day8_who<-day8_who%>%
+  dplyr::rename(who_day8= "8")
+#SF94 day 8
+day8sf94<-base_sf94_10[,c(1,10)]
+day8sf94<-day8sf94%>%
+  group_by(subjid)%>%
+  summarise_all(funs(f))
+day8sf94<-day8sf94%>%
+  dplyr::rename(sf94_day8= "8")
+#join together
+day8<-left_join(day8_who, day8sf94, by="subjid")
+day8<-data.frame(day8)
+day8<-subset(day8, (!is.na(who_day8)))
+#make wide
+day8_wide<-reshape(day8, idvar="subjid", timevar="who_day8", direction="wide")
+#reorder columns
+day8_wide<-day8_wide[,c(1,2,3,4,5,8,7,6)]
+length(day8_wide$subjid)
+summary(day8_wide)
+sapply(day8_wide, sd, na.rm=T)
+
+
+#worst WHO value for each subject
+#keep only worst value for each subject
+worst_who<- subset1 %>%
+  group_by(subjid)%>%
+  slice(which.max(severity_scale_ordinal))
+worst_who<-data.frame(worst_who)
+#add WHO level to each row for more sensible axis labels
+worst_who$severity_scale_ordinal<- paste("WHO level", worst_who$severity_scale_ordinal, sep = " ")
+worst_who$severity_scale_ordinal<-factor(worst_who$severity_scale_ordinal,
+                      levels=c("WHO level 4","WHO level 5",
+                               "WHO level 6","WHO level 7",
+                               "WHO level 8","WHO level 9","WHO level 10"))
+#check total number of values
+sum(!is.na(worst_who$severity_scale_ordinal))
+sum(worst_who$severity_scale_ordinal=="WHO level 4")
+#violin plots (figure 4a, worst WHO)
+library(ggplot2)
+worst_who_plot<-ggplot(worst_who,
+                 aes(x=severity_scale_ordinal, y=sf94, fill=severity_scale_ordinal ))
+
+worst_who_plot+ geom_violin()+ #remove outliers
+  theme_light()+
+  ggtitle("Worst WHO value during admission (N=30487)")+
+  scale_fill_brewer(palette = "Spectral")+
+  xlab("")+
+  ylab("S/F94")+
+  theme(legend.position = "none",
+        plot.title = element_text (hjust = 0.5)) #remove legend + center title
 
 #barchar mean/ variance on different days
 library(ggplot2)
