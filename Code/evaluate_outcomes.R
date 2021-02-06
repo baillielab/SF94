@@ -14,7 +14,7 @@ subjects_to_include <- filter(df_1, ( !is.na(sao2) & days_since_admission %in% c
 subset1<-df_1[df_1$subjid %in% subjects_to_include$subjid,] 
 subset1 <- as.data.frame(subset1)
 
-# variable should be either  'sf94' or 'severity-scale_ordinal'
+# variable should be either  'sf94' or 'severity_scale_ordinal'
 # group should be 'base' if you want to include everyone except those who died or were discharged
 # 'basedd' if you want to include those who died or were discharged
 # 'day0' if you want to exclude people who died or were discharged on day_since_admission == 0
@@ -90,9 +90,9 @@ createDF <- function(group, variable, time){
 base_sf94_10<-createDF("base", "sf94", 10)
 basedd_sf94_10<-createDF("basedd", "sf94", 10)
 basedd_sf94day0_10<-createDF("day0", "sf94", 10)
-base_who_5<-createDF("base", "who", 8)
-basedd_who_5<-createDF("basedd", "who",10)
-basedd0_who_5<-createDF("day0", "who", 8)
+base_who_5<-createDF("base", "severity_scale_ordinal", 8)
+basedd_who_5<-createDF("basedd", "severity_scale_ordinal",8)
+basedd0_who_5<-createDF("day0", "severity_scale_ordinal", 8)
 
 length(base_sf94_10$subjid)
 summary(base_sf94_10)
@@ -137,10 +137,39 @@ cor(x,y)
 
 #compare day 0-5 correlation group to the complete population
 
-
+#violin plots
+#take day 5 from who and sf data
+day5who<-base_who_5[,c(1,7)]
+day5who<-day5who%>%
+  group_by(subjid)%>%
+  summarise_all(funs(f))
+day5who<-day5who%>%
+  dplyr::rename(who_day5= "5")
+day5sf94<-base_sf94_10[,c(1,7)]
+day5sf94<-day5sf94%>%
+  group_by(subjid)%>%
+  summarise_all(funs(f))
+day5sf94<-day5sf94%>%
+  dplyr::rename(sf94_day5= "5")
+#join together
+day5<-left_join(day5who, day5sf94, by="subjid")
+day5<-data.frame(day5)
+sum(!is.na(day5$sf94_day5))
+day5<-subset(day5, (!is.na(who_day5)|!is.na(sf94_day5)))
 
 #violin plots
+library(ggplot2)
+who_day5<-ggplot(day5,
+                 aes(x=as.factor(who_day5), y=sf94_day5, fill=who_day5 ))
 
+who_day5+ geom_violin()+ #remove outliers
+  theme_light()+
+  ggtitle("WHO ordinal severity scale")+
+  scale_fill_brewer(palette = "Spectral")+
+  xlab("")+
+  ylab("S/F94 day5")+
+  theme(legend.position = "none",
+        plot.title = element_text (hjust = 0.5)) #remove legend + center title
 
 #barchar mean/ variance on different days
 library(ggplot2)
