@@ -88,20 +88,23 @@ createDF <- function(group, variable, time){
 # time =days_since_admission
 
 base_sf94_10<-createDF("base", "sf94", 10)
+base_sf94_12<-createDF("base", "sf94", 12)
 basedd_sf94_10<-createDF("basedd", "sf94", 10)
+basedd_sf94_12<-createDF("basedd", "sf94", 12)
 basedd_sf94day0_10<-createDF("day0", "sf94", 10)
-base_who_5<-createDF("base", "severity_scale_ordinal", 8)
-basedd_who_5<-createDF("basedd", "severity_scale_ordinal",8)
-basedd0_who_5<-createDF("day0", "severity_scale_ordinal", 8)
+base_who_5<-createDF("base", "severity_scale_ordinal", 5)
+base_who_8<-createDF("base", "severity_scale_ordinal", 8)
+basedd_who_8<-createDF("basedd", "severity_scale_ordinal",8)
+basedd0_who_8<-createDF("day0", "severity_scale_ordinal", 8)
 
-length(base_sf94_10$subjid)
+
 summary(base_sf94_10)
 summary(basedd_sf94_10)
 summary(basedd_sf94day0_10)
-sapply(base_sf94_10, sd, na.rm=T)
-sapply(basedd_sf94_10, sd, na.rm=T)
-sapply(basedd_sf94day0_10, sd, na.rm=T)
-head(base_sf94_10)
+sapply(base_sf94_10, mean, na.rm=T)
+sapply(basedd_sf94_10, mean, na.rm=T)
+sapply(basedd_sf94day0_10, mean, na.rm=T)
+
 
 #correlation
 library(data.table)
@@ -134,9 +137,6 @@ x <-  correlation_subset_08[,2]
 y <-  correlation_subset_08[,10]
 cor(x,y)
 
-
-#compare day 0-5 correlation group to the complete population
-
 #violin plots
 #take day 5 from who and sf data
 day5who<-base_who_5[,c(1,7)]
@@ -162,7 +162,7 @@ day5$who_day5<-factor(day5$who_day5,
                                "WHO level 6","WHO level 7",
                                "WHO level 8","WHO level 9","WHO level 10"))
 sum(!is.na(day5$sf94_day5))
-#violin plots
+#violin plots (figure 4a)
 library(ggplot2)
 who_day5<-ggplot(day5,
                  aes(x=who_day5, y=sf94_day5, fill=who_day5 ))
@@ -176,7 +176,7 @@ who_day5+ geom_violin()+ #remove outliers
   theme(legend.position = "none",
         plot.title = element_text (hjust = 0.5)) #remove legend + center title
 
-#make dataframe with SF94 day 0 and day 5 + outcome
+#make dataframe with SF94 day 0 and day 5 + outcome for violin plots (figure 4b+c)
 #day 0
 day0sf94<-base_sf94_10[,c(1,2)]
 head(day0sf94)
@@ -207,7 +207,7 @@ day_05_outcome<-subset(day_05_outcome, !is.na(outcome))
 head(day_05_outcome)
 
 #violin plots
-#day 0
+#distribution of SF94 values on day 0
 outcome_day0<-ggplot(day_05_outcome,
                  aes(x=outcome, y=sf94_day0, fill=outcome ))
 sum(!is.na(day_05_outcome$sf94_day0))
@@ -219,7 +219,7 @@ outcome_day0 + geom_violin()+ #remove outliers
   ylab("S/F94 day0")+
   theme(legend.position = "none",
         plot.title = element_text (hjust = 0.5)) #remove legend + center title
-#day 5
+#distribution of SF94 values on day 5
 outcome_day5<-ggplot(day_05_outcome,
                      aes(x=outcome, y=sf94_day5, fill=outcome ))
 sum(!is.na(day_05_outcome$sf94_day5))
@@ -232,31 +232,37 @@ outcome_day5 + geom_violin()+ #remove outliers
   theme(legend.position = "none",
         plot.title = element_text (hjust = 0.5))
 
+#WHO summary stats for day 5 and day 8
+day5_wide<-reshape(day5, idvar="subjid", timevar="who_day5", direction="wide")
+#reorder columns
+day5_wide<-day5_wide[,c(1,8,4,3,6,2,5,7)]
+summary(day5_wide)
+sapply(day5_wide, sd, na.rm=T)
+
 #barchar mean/ variance on different days
 library(ggplot2)
 library(cowplot)
-days_meanvar<-df_1[,c(117,121)]
-#removing missing admission day values
-days_meanvar<-subset(days_meanvar, !is.na(days_since_admission))
-#remove days >10, easier to work with
-days_meanvar<-subset(days_meanvar, (days_since_admission <11))
-days_meanvar<-subset(days_meanvar, (days_since_admission >=0))
+#transform to long format 
+long_dfsf94_12<-gather(base_sf94_12, days_since_admission, sf94, 2:14, factor_key=T)
 #change to character and set correct order
-days_meanvar$days_since_admission<-as.character(days_meanvar$days_since_admission)
-days_meanvar$days_since_admission<-factor(days_meanvar$days_since_admission,
-                                          levels=c("0","1","2","3","4","5","6","7","8","9","10"))
+long_dfsf94_12$days_since_admission<-as.character(long_dfsf94_12$days_since_admission)
+long_dfsf94_12$days_since_admission<-factor(long_dfsf94_12$days_since_admission,
+                                          levels=c("0","1","2","3","4","5",
+                                                   "6","7","8","9","10", "11", "12"))
+head(long_dfsf94_12)
 #function to calculate summary stats
 min.mean.sd.max <- function(x) {
   r <- c(min(x), mean(x) - sd(x), mean(x), mean(x) + sd(x), max(x))
   names(r) <- c("ymin", "lower", "middle", "upper", "ymax")
   r
 }
-p <- ggplot(days_meanvar, aes(x=days_since_admission, y=sfr_value, fill=days_since_admission)) +
+p <- ggplot(long_dfsf94_12, aes(x=days_since_admission, y=sf94, fill=days_since_admission)) +
   stat_summary(fun.data = min.mean.sd.max, geom = "boxplot") +
   theme(legend.position="none")+
+  scale_fill_brewer(palette = "Spectral")+
   xlab("Day")+
-  ylab("S/F94 value")+
-  ggtitle("S/F94 value for each day- mean±SD (data=S/F94")
+  ylab("S/F94")+
+  ggtitle("")
 p
 
 
