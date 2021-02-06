@@ -3,27 +3,17 @@ library(dplyr)
 library(data.table)
 
 
-#df_1<-fread("/home/u034/mcswets/df_1_20210202.csv", data.table = FALSE)
+#df_1<-fread("/home/u034/mcswets/df_1_20210402.csv", data.table = FALSE)
 
-#using this I think only subjects on day 0,1,2 and 3 make it to the subset data
-#used my old code to select all subject ID's with at least 1 measurement on 1 of those days, keep only unique and use that for filter
-#subset1 <- filter(df_1, ( !is.na(sao2) & days_since_admission %in% c(0,1,2,3)  & age_estimateyears >19 & age_estimateyears <76 ) )
 
-#select subjid of patients with a sats measurement on day 0,1,2 or 3
-subjects_to_include<-subset(df_1,((!is.na(sao2) & days_since_admission == 0)|
-                                    (!is.na(sao2) & days_since_admission == 1)|
-                                    (!is.na(sao2) & days_since_admission == 2)|
-                                    (!is.na(sao2) & days_since_admission == 3)))
-#only keep unique values
-subjects_to_include<-unique(subjects_to_include)
 # start population (df_1) = 79843
 # after applying age limits = 38919
 # only subjects with an sao2 on day 0,1,2 or 3 = 31245 unique subjects
 
-#form subset inclusion criteria
-subset1<-subset(df_1[df_1$subjid %in% subjects_to_include$subjid,], age_estimateyears >19 &
-                  age_estimateyears <76)
+subjects_to_include <- filter(df_1, ( !is.na(sao2) & days_since_admission %in% c(0,1,2,3)  & age_estimateyears >19 & age_estimateyears <76 ) )['subjid']
+subset1<-df_1[df_1$subjid %in% subjects_to_include$subjid,] 
 subset1 <- as.data.frame(subset1)
+
 # variable should be either  'sf94' or 'who'
 # group should be 'base' if you want to include everyone except those who died or were discharged
 # 'basedd' if you want to include those who died or were discharged
@@ -100,8 +90,11 @@ createDF <- function(group, variable, time){
 base_sf94_10<-createDF("base", "sf94", 10)
 basedd_sf94_10<-createDF("basedd", "sf94", 10)
 basedd_sf94day0_10<-createDF("day0", "sf94", 10)
+base_who_5<-createDF("base", "who", 8)
+basedd_who_5<-createDF("basedd", "who",10)
+basedd0_who_5<-createDF("day0", "who", 8)
 
-length(basedd_sf94day0_10$subjid)
+length(base_sf94_10$subjid)
 summary(base_sf94_10)
 summary(basedd_sf94_10)
 summary(basedd_sf94day0_10)
@@ -112,86 +105,42 @@ head(base_sf94_10)
 
 #correlation
 library(data.table)
-#Correlation subsets: same subjects for different days,
-# eg all subjects with a day-1 and day 5 measurement
+#Correlation subsets: same subjects for different days
+#keep only 1 row for each subject
+f <- function(x) {
+  x <- na.omit(x)
+  if (length(x) > 0) unique(x) else NA
+}
+correlation_subset<-basedd_sf94day0_10
+correlation_subset<-correlation_subset %>% 
+  group_by(subjid) %>% 
+  summarise_all(funs(f))
 #make subsets of data in which all subjects have SF94 available for those 2 days
-correlation_subset_07<-subset(base_sf94_10, (!is.na(0)&!is.na(7)))
-correlation_subset_05<-subset(base_sf94_10, (!is.na(0)&!is.na(5)))
-correlation_subset15<-subset(base_sf94_10, (!is.na(1)&!is.na(7)))
-correlation_subset17<-subset(base_sf94_10, (!is.na(1)&!is.na(5)))
-length(correlation_subset_17$subjid)
+correlation_subset_05<-subset(correlation_subset, ((!is.na(correlation_subset[,2])&(!is.na(correlation_subset[,7])))))
+correlation_subset_07<-subset(correlation_subset, ((!is.na(correlation_subset[,2])&(!is.na(correlation_subset[,9])))))
+correlation_subset_08<-subset(correlation_subset, ((!is.na(correlation_subset[,2])&(!is.na(correlation_subset[,10])))))
+length(correlation_subset_08$subjid)
 head(correlation_subset_07)
-# correlation DAY 0 DAY 7
-x <-  correlation_subset_07$day_0
-y <-  correlation_subset_07$day_7
+# DAY 0/5
+x <-  correlation_subset_05[,2]
+y <-  correlation_subset_05[,7]
 cor(x,y)
-# DAY 0-5
-x <-  correlation_subset_05$day_0
-y <-  correlation_subset_05$day_5
+# Day 0/7
+x <-  correlation_subset_07[,2]
+y <-  correlation_subset_07[,9]
 cor(x,y)
-# DAY 1- 5
-x <-  correlation_subset15$day_1
-y <-  correlation_subset15$day_5
+# DAY 0/8
+x <-  correlation_subset_08[,2]
+y <-  correlation_subset_08[,10]
 cor(x,y)
-# DAY 1-7
-x <-  correlation_subset17$day_1
-y <-  correlation_subset17$day_7
-cor(x,y)
+
 
 #compare day 0-5 correlation group to the complete population
 
 
-#compare key clinical variables between 2 groups (SaO2<0.94 |fio2=0.21) and SaO2>0.94
-df_1$sf94_group<-if_else((df_1$sao2 <=0.94 | df_1$fio2_corrected == 0.21), "SF94<", "SF94>")
-tapply(df_1$age_estimateyears, df_1$sf94_group, summary, na.rm=T)
-tapply(df_1$daily_temp_vsorres, df_1$sf94_group, summary, na.rm=T)
-tapply(df_1$systolic_vsorres, df_1$sf94_group, summary, na.rm=T)
-tapply(df_1$diastolic_vsorres, df_1$sf94_group, summary, na.rm=T)
-tapply(df_1$onset2admission, df_1$sf94_group, summary, na.rm=T)
-tapply(df_1$clinical_frailty, df_1$sf94_group, summary, na.rm=T)
-table(df_1$sex, df_1$sf94_group)
-table(df_1$infiltrates_faorres, df_1$sf94_group)
-table(df_1$outcome, df_1$sf94_group)
-table(df_1$severity_scale_ordinal, df_1$sf94_group)
-#check distribution in fio2 when excluding fio2=0.21
-high_fio2<-subset(df_1, fio2_corrected >0.22)
-tapply(high_fio2$fio2_corrected, high_fio2$sf94_group, summary, na.rm=T)
 
-#extra columns for df_1
-54,167,113,175,250,251,264,265,279,280,96:112,114
-df_1$clinical_frailty[df_1$clinical_fraily == "N/K"]<-NA
-df_1$clinical_frailty<-as.numeric(df_1$clinical_frailty)
-df_1<-df_1 %>%
-  group_by(subjid)%>%
-  fill(sex, .direction = "down") %>%
-  fill(sex, .direction = "up")
+#violin plots
 
-#clean up 
-colnames(ccp_data)
-df_to_add<-ccp_data[,c(54,167,113,175,250,251,264, 265,279,280,96:112,114)]
-head(df_to_add)
-table(df_to_add$daily_creat_lborresu)
-#BUN: measured as mg/dL and mmol/L, convert mg/dL to mmol/L
-#to convert from mg/dl to mmol/L for BUN: mg/dL x 0.357
-
-#creatinin measured as mg/dl, umol/L and micromol/L (last 2 the same but different entries)
-
-#is age still repeated for each row? 
-
-colnames(ccp_data)
-#compare groups based on SFgroup on day 0
-df_day0<-subset(df_1, df_1$days_since_admission == 0)
-table(df_day0$sf94_group)
-tapply(df_day0$age_estimateyears, df_day0$sf94_group, summary, na.rm=T)
-tapply(df_day0$daily_temp_vsorres, df_day0$sf94_group, summary, na.rm=T)
-tapply(df_day0$systolic_vsorres, df_day0$sf94_group, summary, na.rm=T)
-tapply(df_day0$diastolic_vsorres, df_day0$sf94_group, summary, na.rm=T)
-tapply(df_day0$onset2admission, df_day0$sf94_group, summary, na.rm=T)
-tapply(df_day0$clinical_frailty, df_day0$sf94_group, summary, na.rm=T)
-table(df_day0$sex, df_day0$sf94_group)
-table(df_day0$infiltrates_faorres, df_day0$sf94_group)
-table(df_day0$outcome, df_day0$sf94_group)
-table(df_day0$severity_scale_ordinal, df_day0$sf94_group)
 
 #barchar mean/ variance on different days
 library(ggplot2)
