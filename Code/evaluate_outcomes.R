@@ -14,7 +14,7 @@ subjects_to_include <- filter(df_1, ( !is.na(sao2) & days_since_admission %in% c
 subset1<-df_1[df_1$subjid %in% subjects_to_include$subjid,] 
 subset1 <- as.data.frame(subset1)
 
-# variable should be either  'sf94' or 'who'
+# variable should be either  'sf94' or 'severity-scale_ordinal'
 # group should be 'base' if you want to include everyone except those who died or were discharged
 # 'basedd' if you want to include those who died or were discharged
 # 'day0' if you want to exclude people who died or were discharged on day_since_admission == 0
@@ -50,7 +50,7 @@ createDF <- function(group, variable, time){
     if(variable == 'sf94'){
       deathValue <- 0.5
       dischargeValue <- 4.76
-    } else if(variable == 'who'){
+    } else if(variable == 'severity_scale_ordinal'){
       deathValue <- 10
       dischargeValue <- 4
     }
