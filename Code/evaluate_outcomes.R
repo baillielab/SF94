@@ -3,7 +3,7 @@ library(dplyr)
 library(data.table)
 
 
-#df_1<-fread("/home/u034/mcswets/df_1_20210402.csv", data.table = FALSE)
+df_1<-fread("/home/u034/mcswets/df_1_20210402.csv", data.table = FALSE)
 
 
 # start population (df_1) = 79843
@@ -155,21 +155,82 @@ day5sf94<-day5sf94%>%
 day5<-left_join(day5who, day5sf94, by="subjid")
 day5<-data.frame(day5)
 sum(!is.na(day5$sf94_day5))
-day5<-subset(day5, (!is.na(who_day5)|!is.na(sf94_day5)))
-
+day5<-subset(day5, (!is.na(who_day5)))
+day5$who_day5<- paste("WHO level", day5$who_day5, sep = " ")
+day5$who_day5<-factor(day5$who_day5,
+                      levels=c("WHO level 4","WHO level 5",
+                               "WHO level 6","WHO level 7",
+                               "WHO level 8","WHO level 9","WHO level 10"))
+sum(!is.na(day5$sf94_day5))
 #violin plots
 library(ggplot2)
 who_day5<-ggplot(day5,
-                 aes(x=as.factor(who_day5), y=sf94_day5, fill=who_day5 ))
+                 aes(x=who_day5, y=sf94_day5, fill=who_day5 ))
 
 who_day5+ geom_violin()+ #remove outliers
   theme_light()+
-  ggtitle("WHO ordinal severity scale")+
+  ggtitle("WHO ordinal severity scale (N=5215)")+
   scale_fill_brewer(palette = "Spectral")+
   xlab("")+
   ylab("S/F94 day5")+
   theme(legend.position = "none",
         plot.title = element_text (hjust = 0.5)) #remove legend + center title
+
+#make dataframe with SF94 day 0 and day 5 + outcome
+#day 0
+day0sf94<-base_sf94_10[,c(1,2)]
+head(day0sf94)
+day0sf94<-day0sf94%>%
+  group_by(subjid)%>%
+  summarise_all(funs(f))
+day0sf94<-day0sf94%>%
+  dplyr::rename(sf94_day0= "0")
+#merge with day 5, cleaned before
+day_05<-merge(day0sf94, day5sf94, by="subjid", all=T)
+
+#outcome
+outcome_df<-subset1[,c(2,60,61)]
+outcome_df<-outcome_df %>% 
+  mutate(
+    outcome = case_when(
+      death==TRUE ~ "Death",
+      discharge==TRUE ~ "Discharge"))
+outcome_df<-outcome_df[,c(1,4)]
+#only 1 entry for each subject
+outcome_df<-outcome_df%>%
+  group_by(subjid)%>%
+  summarise_all(funs(f))
+
+#combine with day 0 and day 5 data
+day_05_outcome<-left_join(day_05, outcome_df, by="subjid")
+day_05_outcome<-subset(day_05_outcome, !is.na(outcome))
+head(day_05_outcome)
+
+#violin plots
+#day 0
+outcome_day0<-ggplot(day_05_outcome,
+                 aes(x=outcome, y=sf94_day0, fill=outcome ))
+sum(!is.na(day_05_outcome$sf94_day0))
+outcome_day0 + geom_violin()+ #remove outliers
+  theme_light()+
+  ggtitle("N=21223")+
+  scale_fill_brewer(palette = "Spectral")+
+  xlab("")+
+  ylab("S/F94 day0")+
+  theme(legend.position = "none",
+        plot.title = element_text (hjust = 0.5)) #remove legend + center title
+#day 5
+outcome_day5<-ggplot(day_05_outcome,
+                     aes(x=outcome, y=sf94_day5, fill=outcome ))
+sum(!is.na(day_05_outcome$sf94_day5))
+outcome_day5 + geom_violin()+ #remove outliers
+  theme_light()+
+  ggtitle("N=5243")+
+  scale_fill_brewer(palette = "Spectral")+
+  xlab("")+
+  ylab("S/F94 day5")+
+  theme(legend.position = "none",
+        plot.title = element_text (hjust = 0.5))
 
 #barchar mean/ variance on different days
 library(ggplot2)
