@@ -260,7 +260,12 @@ df_1<-df_1 %>%
 
 #Complications: if any 'yes' >> repeat yes 
 
-
+#1 outcome variable
+df_1<-df_1 %>% 
+  mutate(
+    outcome = case_when(
+      death==TRUE ~ "Death",
+      discharge==TRUE ~ "Discharge"))
 
 
 write.csv(df_1,"df_1_20210402.csv")
