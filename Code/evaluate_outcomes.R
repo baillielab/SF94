@@ -10,7 +10,7 @@ length(unique(subset1$subjid))
 # after applying age limits = 38919
 # only subjects with supplemental oxygen on day 0,1 or 2 = 14049 unique subjects
 
-subjects_to_include <- filter(df_1, ( fio2 >0.22 & days_since_start %in% c(0,1,2)  & age_estimateyears >19 & age_estimateyears <76 ) )['subjid']
+subjects_to_include <- filter(df_1, ( fio2 >=0.22 & days_since_start %in% c(0,1,2)  & age_estimateyears >19 & age_estimateyears <76 ) )['subjid']
 subset1<-df_1[df_1$subjid %in% subjects_to_include$subjid,] 
 subset1 <- as.data.frame(subset1)
 head(subset1)
