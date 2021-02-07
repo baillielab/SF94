@@ -281,7 +281,7 @@ worst_who$severity_scale_ordinal<-factor(worst_who$severity_scale_ordinal,
                                "WHO level 8","WHO level 9","WHO level 10"))
 #check total number of values
 sum(!is.na(worst_who$severity_scale_ordinal))
-sum(worst_who$severity_scale_ordinal=="WHO level 4")
+sum(worst_who$severity_scale_ordinal=="WHO level 10")
 #violin plots (figure 4a, worst WHO)
 library(ggplot2)
 worst_who_plot<-ggplot(worst_who,
@@ -295,6 +295,93 @@ worst_who_plot+ geom_violin()+ #remove outliers
   ylab("S/F94")+
   theme(legend.position = "none",
         plot.title = element_text (hjust = 0.5)) #remove legend + center title
+
+
+# figure 7: effect size with alternative outcome in an unselected population
+# data = df_1
+# no filters used
+head(df_1)
+#take day 5 from who and sf data
+unselected_day5<-subset(df_1, days_since_admission == 5)
+head(unselected_day5)
+
+unselected_day5<-subset(unselected_day5, (!is.na(severity_scale_ordinal)))
+unselected_day5$severity_scale_ordinal<- paste("WHO level", unselected_day5$severity_scale_ordinal, sep = " ")
+unselected_day5$severity_scale_ordinal<-factor(unselected_day5$severity_scale_ordinal,
+                      levels=c("WHO level 4","WHO level 5",
+                               "WHO level 6","WHO level 7",
+                               "WHO level 8","WHO level 9","WHO level 10"))
+sum(!is.na(unselected_day5$sf94))
+#violin plots (figure 4a)
+library(ggplot2)
+unselect_who5<-ggplot(unselected_day5,
+                 aes(x=severity_scale_ordinal, y=sf94, fill=severity_scale_ordinal ))
+
+unselect_who5+ geom_violin()+ #remove outliers
+  theme_light()+
+  ggtitle("WHO ordinal severity scale for unselected subjects (N=9607)")+
+  scale_fill_brewer(palette = "Spectral")+
+  xlab("")+
+  ylab("S/F94 day5")+
+  theme(legend.position = "none",
+        plot.title = element_text (hjust = 0.5)) #remove legend + center title
+
+#make dataframe with SF94 day 0 and day 5 + outcome for violin plots (figure 4b+c)
+#day 0
+day0sf94<-base_sf94_10[,c(1,2)]
+head(day0sf94)
+day0sf94<-day0sf94%>%
+  group_by(subjid)%>%
+  summarise_all(funs(f))
+day0sf94<-day0sf94%>%
+  dplyr::rename(sf94_day0= "0")
+#merge with day 5, cleaned before
+day_05<-merge(day0sf94, day5sf94, by="subjid", all=T)
+
+#outcome
+outcome_df<-subset1[,c(2,60,61)]
+outcome_df<-outcome_df %>% 
+  mutate(
+    outcome = case_when(
+      death==TRUE ~ "Death",
+      discharge==TRUE ~ "Discharge"))
+outcome_df<-outcome_df[,c(1,4)]
+#only 1 entry for each subject
+outcome_df<-outcome_df%>%
+  group_by(subjid)%>%
+  summarise_all(funs(f))
+
+#combine with day 0 and day 5 data
+day_05_outcome<-left_join(day_05, outcome_df, by="subjid")
+day_05_outcome<-subset(day_05_outcome, !is.na(outcome))
+head(day_05_outcome)
+
+#violin plots
+#distribution of SF94 values on day 0
+outcome_day0<-ggplot(day_05_outcome,
+                     aes(x=outcome, y=sf94_day0, fill=outcome ))
+sum(!is.na(day_05_outcome$sf94_day0))
+outcome_day0 + geom_violin()+ #remove outliers
+  theme_light()+
+  ggtitle("N=21223")+
+  scale_fill_brewer(palette = "Spectral")+
+  xlab("")+
+  ylab("S/F94 day0")+
+  theme(legend.position = "none",
+        plot.title = element_text (hjust = 0.5)) #remove legend + center title
+#distribution of SF94 values on day 5
+outcome_day5<-ggplot(day_05_outcome,
+                     aes(x=outcome, y=sf94_day5, fill=outcome ))
+sum(!is.na(day_05_outcome$sf94_day5))
+outcome_day5 + geom_violin()+ #remove outliers
+  theme_light()+
+  ggtitle("N=5243")+
+  scale_fill_brewer(palette = "Spectral")+
+  xlab("")+
+  ylab("S/F94 day5")+
+  theme(legend.position = "none",
+        plot.title = element_text (hjust = 0.5))
+
 
 #barchar mean/ variance on different days
 library(ggplot2)
