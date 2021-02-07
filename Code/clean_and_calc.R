@@ -51,19 +51,24 @@ df_1$days_since_admission <-  ifelse(   is.finite(as.numeric( df_1$daily_dsstdat
 
 df_1$days_since_symptoms <- ifelse(   is.finite(as.numeric( df_1$daily_dsstdat -  df_1$cestdat )),  as.numeric( df_1$daily_dsstdat -  df_1$cestdat ), NA)
 
-
-
+# add column for day since first assessment (= days_since_start)
+df_1<-df_1 %>%
+  group_by  (subjid) %>%
+  mutate(days_since_start = as.numeric(as.Date(daily_dsstdat) - first(as.Date(daily_dsstdat))))
+#make a new variable, alternative to hostdat, with the first study date (=first daily_dsstdat)
+df_1<-df_1 %>%
+  group_by  (subjid) %>%
+  mutate(first_study_day = first(as.Date(daily_dsstdat)))
 # For reasons unkonwn, some columns get formatted as tibbles. Make everything a dataframe.
 
 df_1 <- as.data.frame(df_1)
 
 
-
 # Create columns for day of death and day of discharge
 
-df_1['day_of_death'] <- ifelse(  df_1[,'death'] == TRUE & is.finite( df_1[, 'dsstdtc'] - df_1[, 'hostdat']  ) , df_1[, 'dsstdtc'] - df_1[, 'hostdat'],  NA  )
+df_1['day_of_death'] <- ifelse(  df_1[,'death'] == TRUE & is.finite( df_1[, 'dsstdtc'] - df_1[, 'first_study_day']  ) , df_1[, 'dsstdtc'] - df_1[, 'first_study_day'],  NA  )
 
-df_1['day_of_discharge'] <- ifelse(  df_1[,'discharge'] == TRUE & is.finite( df_1[, 'dsstdtc'] - df_1[, 'hostdat']  ) , df_1[, 'dsstdtc'] - df_1[, 'hostdat'],  NA  )
+df_1['day_of_discharge'] <- ifelse(  df_1[,'discharge'] == TRUE & is.finite( df_1[, 'dsstdtc'] - df_1[, 'first_study_day']  ) , df_1[, 'dsstdtc'] - df_1[, 'first_study_day'],  NA  )
   
   
 
@@ -190,7 +195,8 @@ limits <- data.frame( 'daily_sao2_lborres' = c( 100, 100, 50, 50),
                       'daily_crp_lborres'= c(700,700,5,5),
                       'rr_vsorres' = c(70,70,5,5),
                       'onset2admission' = c(100,100,-100,-100),
-                      'hodur' = c(200,200,0,0))
+                      'hodur' = c(200,200,0,0),
+                      'days_since_start' = c(200,200,0,0))
 
 df_1 <- squeeze(df_1, limits)
 
@@ -261,11 +267,13 @@ df_1<-df_1 %>%
 #Complications: if any 'yes' >> repeat yes 
 
 #1 outcome variable
+library(tidyr)
 df_1<-df_1 %>% 
   mutate(
     outcome = case_when(
       death==TRUE ~ "Death",
       discharge==TRUE ~ "Discharge"))
 
+head(df_1)
 
 write.csv(df_1,"df_1_20210402.csv")

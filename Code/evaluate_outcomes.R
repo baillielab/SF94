@@ -5,15 +5,15 @@ library(data.table)
 
 df_1<-fread("/home/u034/mcswets/df_1_20210402.csv", data.table = FALSE)
 
-
+length(unique(subset1$subjid))
 # start population (df_1) = 79843
 # after applying age limits = 38919
-# only subjects with an sao2 on day 0,1,2 or 3 = 31245 unique subjects
+# only subjects with supplemental oxygen on day 0,1 or 2 = 14049 unique subjects
 
-subjects_to_include <- filter(df_1, ( !is.na(sao2) & days_since_admission %in% c(0,1,2,3)  & age_estimateyears >19 & age_estimateyears <76 ) )['subjid']
+subjects_to_include <- filter(df_1, ( fio2 >0.22 & days_since_start %in% c(0,1,2)  & age_estimateyears >19 & age_estimateyears <76 ) )['subjid']
 subset1<-df_1[df_1$subjid %in% subjects_to_include$subjid,] 
 subset1 <- as.data.frame(subset1)
-
+head(subset1)
 # variable should be either  'sf94' or 'severity_scale_ordinal'
 # group should be 'base' if you want to include everyone except those who died or were discharged
 # 'basedd' if you want to include those who died or were discharged
@@ -23,15 +23,15 @@ subset1 <- as.data.frame(subset1)
 createDF <- function(group, variable, time){
   
   if( group == 'base' |  group == 'basedd' ) { 
-    df <- filter( subset1[ c('subjid', 'days_since_admission', variable ) ] , days_since_admission <= time  )
+    df <- filter( subset1[ c('subjid', 'days_since_start', variable ) ] , days_since_start <= time  )
   } else if (group == 'day0') {
     dropID <- subset1[   (subset1[ 'day_of_death' ] == 0 |  subset1['day_of_discharge'] == 0) %in% TRUE, 'subjid']
     
-    df <- filter(subset1[ c('subjid', 'days_since_admission', variable ) ], days_since_admission <= time & !(subjid %in% dropID)  ) 
+    df <- filter(subset1[ c('subjid', 'days_since_start', variable ) ], days_since_start <= time & !(subjid %in% dropID)  ) 
   } 
   
   
-  derived <-  df  %>%  mutate(rn= row_number()) %>% spread (days_since_admission, variable) %>% select(-rn)
+  derived <-  df  %>%  mutate(rn= row_number()) %>% spread (days_since_start, variable) %>% select(-rn)
   
   newCols <- as.character( setdiff( 0:time,  setdiff( colnames(derived), 'subjid' ) ) )
   
@@ -85,7 +85,7 @@ createDF <- function(group, variable, time){
 #(group,variable, time)
 # variable = sf94, who
 # group= base, basedd, day0
-# time =days_since_admission
+# time =days_since_start
 
 base_sf94_10<-createDF("base", "sf94", 10)
 base_sf94_12<-createDF("base", "sf94", 12)
