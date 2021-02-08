@@ -206,7 +206,7 @@ summary(df_1)
 # Add clean sao2, fio2 variables
 
 
-df_1['sao2'] <- ifelse(is.na(df_1[,'oxy_vsorres']) & !is.na(df_1[,'daily_sao2_lborres'])  , df_1[,'daily_sao2_lborres'],   df_1[,'oxy_vsorres'])/100
+df_1['sao2'] <- ifelse(is.na(df_1[,'daily_sao2_lborres']) & !is.na(df_1[,'oxy_vsorres'])  , df_1[,'oxy_vsorres'],   df_1[,'daily_sao2_lborres'])/100
 
 
 
@@ -220,7 +220,7 @@ df_1['fio2'] <- ifelse( is.na(df_1[,'fio2'])  &  df_1['oxygen_cmoccur']=="NO", 0
 
 df_1['fio2']<- ifelse( df_1$oxy_vsorresu == "Oxygen therapy" |is.na(df_1$oxy_vsorresu), df_1[,'fio2'], 0.21 )
 
-summary(df_1$fio2)
+summary(df_1$sa02)
 
 # Drop columns that are no longer needed
 
@@ -273,6 +273,17 @@ df_1<-df_1 %>%
     outcome = case_when(
       death==TRUE ~ "Death",
       discharge==TRUE ~ "Discharge"))
+#30 day mortality variable
+df_1<-df_1 %>% 
+  mutate(
+   mortality_30 = case_when(
+      death==TRUE & day_of_death <31 ~ 1,
+      discharge==TRUE & day_of_discharge<31 ~ 0))
+
+df_1<-df_1 %>%
+  group_by(subjid)%>%
+  fill(mortality_30, .direction = "down") %>%
+  fill(mortality_30, .direction = "up")
 
 head(df_1)
 
