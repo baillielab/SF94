@@ -208,8 +208,6 @@ summary(df_1)
 
 df_1['sao2'] <- ifelse(is.na(df_1[,'daily_sao2_lborres']) & !is.na(df_1[,'oxy_vsorres'])  , df_1[,'oxy_vsorres'],   df_1[,'daily_sao2_lborres'])/100
 
-
-
 df_1['fio2'] <- ifelse(is.na(df_1[,'daily_fio2_lborres']) & !is.na(df_1[,'daily_fio2b_lborres']), df_1[,'daily_fio2b_lborres'], df_1[,'daily_fio2_lborres'])
 
 df_1['fio2'] <- ifelse(is.na(df_1[,'fio2']) & !is.na(df_1[,'daily_fio2c_lborres']), df_1[,'daily_fio2c_lborres']*0.04 + 0.21, df_1[,'fio2'])
@@ -220,7 +218,7 @@ df_1['fio2'] <- ifelse( is.na(df_1[,'fio2'])  &  df_1['oxygen_cmoccur']=="NO", 0
 
 df_1['fio2']<- ifelse( df_1$oxy_vsorresu == "Oxygen therapy" |is.na(df_1$oxy_vsorresu), df_1[,'fio2'], 0.21 )
 
-summary(df_1$sa02)
+summary(df_1$sao2)
 
 # Drop columns that are no longer needed
 

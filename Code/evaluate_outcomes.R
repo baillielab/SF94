@@ -2,10 +2,8 @@ library(dplyr)
 
 library(data.table)
 
-
 df_1<-fread("/home/u034/mcswets/df_1_20210402.csv", data.table = FALSE)
 
-length(unique(subset1$subjid))
 # start population (df_1) = 79843
 # after applying age limits = 38919
 # only subjects with supplemental oxygen on day 0,1 or 2 = 14049 unique subjects
@@ -15,7 +13,7 @@ subset1<-df_1[df_1$subjid %in% subjects_to_include$subjid,]
 subset1 <- as.data.frame(subset1)
 subset1<-df_1
 
-head(subset1)
+
 # variable should be either  'sf94' or 'severity_scale_ordinal'
 # group should be 'base' if you want to include everyone except those who died or were discharged
 # 'basedd' if you want to include those who died or were discharged
@@ -115,7 +113,7 @@ f <- function(x) {
   x <- na.omit(x)
   if (length(x) > 0) unique(x) else NA
 }
-correlation_subset<-basedd_sf94day0_10
+correlation_subset<-base_sf94_10
 correlation_subset<-correlation_subset %>% 
   group_by(subjid) %>% 
   summarise_all(funs(f))
@@ -123,7 +121,7 @@ correlation_subset<-correlation_subset %>%
 correlation_subset_05<-subset(correlation_subset, ((!is.na(correlation_subset[,2])&(!is.na(correlation_subset[,7])))))
 correlation_subset_08<-subset(correlation_subset, ((!is.na(correlation_subset[,2])&(!is.na(correlation_subset[,10])))))
 length(correlation_subset_05$subjid)
-head(correlation_subset_08)
+head(correlation_subset_05)
 # DAY 0/5
 x <-  correlation_subset_05[,2]
 y <-  correlation_subset_05[,7]
@@ -187,15 +185,12 @@ sapply(day8_wide, sd, na.rm=T)
 #regression model D5 SF94 and mortality
 install.packages("rms", repos="http://cran.us.r-project.org")
 library(rms)
-#with sf94_dd values regression
-#use extreme values, take subject ID and day 5 SF94_dd values (from DF_1, so not using filters)
+#with sf94 values regression
 day05<-base_sf94_10[,c(1,2,7)]
 day05<-day05%>%
-  dplyr::rename(sf94_day5= "5")
-day05<-day05%>%
-  dplyr::rename(sf94_day0= "0")
+  dplyr::rename(sf94_day5= "5", sf94_day0= "0")
 #make small dataframe for 30-day mortality and outcome
-mortality<-df_1[,c(1,73)]
+mortality<-df_1[,c("subjid","mortality_30")]
 mortality<-mortality%>%
   group_by(subjid)%>%
   summarise_all(funs(f))
@@ -205,11 +200,12 @@ regresson_df<-left_join(day05, mortality, by="subjid")
 regresson_df <- regresson_df %>% 
   group_by(subjid)%>%
   summarise_all(funs(f))
-regresson_df <-data.frame(regresson_df)
 #remove rows with missing values
-regresson_df<-subset(regresson_df, (!is.na(sf94_day5)&!is.na(sf94_day0) & !is.na(mortality_30))) #7353 unique subjects, 1 row/subject
-summary(regresson_df)
+regresson_df<-subset(regresson_df, (!is.na(sf94_day5)&!is.na(sf94_day0) & !is.na(mortality_30))) #8145 unique subjects, 1 row/subject
+regresson_df <-data.frame(regresson_df)
+
 #First need to set data distribution for rms functions
+library(cowplot)
 attach(regresson_df)
 ddist <- datadist(sf94_day0, sf94_day5, mortality_30)
 options(datadist='ddist')
@@ -218,34 +214,33 @@ detach(regresson_df)
 linear_model <- lrm(mortality_30 ~ sf94_day0 + sf94_day5, regresson_df, x=TRUE, y=TRUE)
 splines_model <- lrm(mortality_30 ~ rcs(sf94_day0 , 4) + rcs(sf94_day5, 4), regresson_df, x=TRUE, y=TRUE)
 #Visualise association between SF94 and mortality (note this will use log y axis scale)
-plot_associations_linear <- ggplot(Predict(linear_model))
-plot_associations_linear 
-rpng.off()
-plot_associations_splines <- ggplot(Predict(splines_model))
+plot_associations_linear <- ggplot(Predict(linear_model), ggtitle = "N=8145" )
+plot_associations_linear
+plot_associations_splines <- ggplot(Predict(splines_model), ggtitle = "N=8145")
 plot_associations_splines 
+rpng.off()
 #Visualise using exp scale
-plot_associations_linear_exp <- ggplot(Predict(linear_model), fun=plogis)+  ylab("Risk of 30-day mortality") +
-  ggtitle("S/F94 on day 5 and mortality (N=7353)")
+plot_associations_linear_exp <- ggplot(Predict(linear_model), fun=plogis, ylab = "Risk of 30-day mortality", ggtitle = "N=8145")
 plot_associations_linear_exp 
-plot_associations_splines_exp <- ggplot(Predict(splines_model), fun=plogis)+ ylab("Risk of 30-day mortality") +
-  ggtitle("S/F94 on day 5 and mortality (N=7353)")
+plot_associations_splines_exp <- ggplot(Predict(splines_model), fun=plogis, ylab = "Risk of 30-day mortality", ggtitle = "N=8145")
 plot_associations_splines_exp 
-
+rpng.off()
 
 
 #with sf94_dd values regression
 #use extreme values, take subject ID and day 5 SF94_dd values (from DF_1, so not using filters)
 day5_dd<-basedd_sf94_10[,c(1,2,7)]
 day5_dd<-day5_dd%>%
-  dplyr::rename(sf94_day5_dd= "5")
-day5_dd<-day5_dd%>%
-  dplyr::rename(sf94_day0_dd= "0")
+  dplyr::rename(sf94_day5_dd= "5",sf94_day0_dd= "0")
 #join to mortality dataframe
 dd_regression<-left_join(day5_dd, mortality, by="subjid")
 #keep 1 value/ subject
 dd_regression <- dd_regression %>% 
   group_by(subjid) %>% 
-  slice(which.max(sf94_day5_dd))
+  summarise_all(funs(f))
+dd_regression <- dd_regression %>% 
+  group_by(subjid) %>% 
+  slice(which.min(sf94_day5_dd))
 dd_regression <-data.frame(dd_regression)
 dd_regression<-subset(dd_regression, (!is.na(sf94_day5_dd)&!is.na(sf94_day0_dd) & !is.na(mortality_30))) #16822 unique subjects, 1 row/subject
 head(dd_regression)
@@ -254,29 +249,34 @@ length(unique(dd_regression$subjid))
 
 #First need to set data distribution for rms functions
 attach(dd_regression)
-ddist <- datadist(sf94_day5_dd, mortality_30)
+ddist <- datadist(sf94_day0_dd, sf94_day5_dd, mortality_30)
 options(datadist='ddist')
 detach(dd_regression)
-#Then fit splines model (using 4 knots here)
-splines_model <- lrm(mortality_30 ~ rcs(sf94_day5_dd, 4), dd_regression, x=TRUE, y=TRUE)
+#Then fit models (splines using 4 knots here)
+linear_model_dd <- lrm(mortality_30 ~ sf94_day0_dd + sf94_day5_dd, dd_regression, x=TRUE, y=TRUE)
+splines_model_dd <- lrm(mortality_30 ~ rcs(sf94_day0_dd , 4) + rcs(sf94_day5_dd, 4), dd_regression, x=TRUE, y=TRUE)
 #Visualise association between SF94 and mortality (note this will use log y axis scale)
-plot_associations <- ggplot(Predict(splines_model))+
-  ggtitle("S/F94 on day 5 and mortality using imputed values after death/discharge (N=30766)")
-
-plot_associations
+plot_associations_linear <- ggplot(Predict(linear_model_dd), ggtitle = "N=25857" )
+plot_associations_linear
+plot_associations_splines <- ggplot(Predict(splines_model_dd), ggtitle = "N=25857")
+plot_associations_splines 
+rpng.off()
 #Visualise using exp scale
-plot_associations_exp <- ggplot(Predict(splines_model, fun=plogis))+
-  ylab("Risk of 30-day mortality") +
-  ggtitle("S/F94 on day 5 and mortality using imputed values after death/discharge (N=30766)")
-plot_associations_exp 
+plot_associations_linear_exp <- ggplot(Predict(linear_model_dd), fun=plogis, ylab = "Risk of 30-day mortality" , main= "SF94_imputed" )
+plot_associations_linear_exp 
+plot_associations_splines_exp <- ggplot(Predict(splines_model_dd), fun=plogis, ylab = "Risk of 30-day mortality", ggtitle = "N=25857")
+plot_associations_splines_exp 
+rpng.off()
 
-sum(df_1$day_of_death<5 | df_1$day_of_discharge<5, na.rm=T)
-
+#stats
+lrtest(linear_model, splines_model)
+lrtest(linear_model_dd, splines_model_dd)
 #split violin plot
 
 #scatterplot
+library(ggplot2)
 ggplot(regresson_df, aes(x=sf94_day0, y=sf94_day5)) +
   geom_point()+
-  geom_smooth(method=lm)+
   xlab("S/F94 D0")+
   ylab("S/F94 D5")
+
