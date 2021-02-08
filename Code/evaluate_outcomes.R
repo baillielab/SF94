@@ -11,7 +11,8 @@ df_1<-fread("/home/u034/mcswets/df_1_20210402.csv", data.table = FALSE)
 subjects_to_include <- filter(df_1, ( fio2 >=0.22 & days_since_start %in% c(0,1,2)  & age_estimateyears >19 & age_estimateyears <76 ) )['subjid']
 subset1<-df_1[df_1$subjid %in% subjects_to_include$subjid,] 
 subset1 <- as.data.frame(subset1)
-subset1<-df_1
+
+# subset1<-df_1
 
 
 # variable should be either  'sf94' or 'severity_scale_ordinal'
@@ -271,7 +272,7 @@ rpng.off()
 #stats
 lrtest(linear_model, splines_model)
 lrtest(linear_model_dd, splines_model_dd)
-#split violin plot
+anova(linear_model_dd)
 
 #scatterplot
 library(ggplot2)
@@ -280,3 +281,68 @@ ggplot(regresson_df, aes(x=sf94_day0, y=sf94_day5)) +
   xlab("S/F94 D0")+
   ylab("S/F94 D5")
 
+
+#split violin plot
+#transform to long format 
+long_dfsf94_12<-gather(base_sf94_12, days_since_start, sf94, 2:14, factor_key=T)
+#removing rows without SF94 value
+long_dfsf94_12 <- subset(long_dfsf94_12, !is.na(sf94))
+#add 30 day mortality data
+long_dfsf94_12<-left_join(long_dfsf94_12, mortality, by="subjid")
+long_dfsf94_12 <- subset(long_dfsf94_12, !is.na(mortality_30))
+#change to character and set correct order
+long_dfsf94_12$mortality_30<-as.character(long_dfsf94_12$mortality_30)
+long_dfsf94_12$mortality_30<-factor(long_dfsf94_12$mortality_30,
+                                            levels=c("0","1"))
+long_dfsf94_12$days_since_start<-as.character(long_dfsf94_12$days_since_start)
+long_dfsf94_12$days_since_start<-factor(long_dfsf94_12$days_since_start,
+                                        levels=c("0","1","2","3","4","5",
+                                                 "6","7","8","9","10", "11", "12"))
+head(long_dfsf94_12)
+#function to calculate summary stats
+min.mean.sd.max <- function(x) {
+  r <- c(min(x), mean(x) - sd(x), mean(x), mean(x) + sd(x), max(x))
+  names(r) <- c("ymin", "lower", "middle", "upper", "ymax")
+  r
+}
+p <- ggplot(long_dfsf94_12, aes(x=days_since_start, y=sf94, fill=mortality_30)) +
+  stat_summary(fun.data = min.mean.sd.max, geom = "boxplot") +
+  geom_split_violin(trim = T)+
+  scale_fill_brewer(palette = "Spectral")+
+  xlab("Day")+
+  ylab("S/F94")+
+  ggtitle("")
+p
+
+
+
+GeomSplitViolin <- ggproto("GeomSplitViolin", GeomViolin, 
+                           draw_group = function(self, data, ..., draw_quantiles = NULL) {
+                             data <- transform(data, xminv = x - violinwidth * (x - xmin), xmaxv = x + violinwidth * (xmax - x))
+                             grp <- data[1, "group"]
+                             newdata <- plyr::arrange(transform(data, x = if (grp %% 2 == 1) xminv else xmaxv), if (grp %% 2 == 1) y else -y)
+                             newdata <- rbind(newdata[1, ], newdata, newdata[nrow(newdata), ], newdata[1, ])
+                             newdata[c(1, nrow(newdata) - 1, nrow(newdata)), "x"] <- round(newdata[1, "x"])
+                             
+                             if (length(draw_quantiles) > 0 & !scales::zero_range(range(data$y))) {
+                               stopifnot(all(draw_quantiles >= 0), all(draw_quantiles <=
+                                                                         1))
+                               quantiles <- ggplot2:::create_quantile_segment_frame(data, draw_quantiles)
+                               aesthetics <- data[rep(1, nrow(quantiles)), setdiff(names(data), c("x", "y")), drop = FALSE]
+                               aesthetics$alpha <- rep(1, nrow(quantiles))
+                               both <- cbind(quantiles, aesthetics)
+                               quantile_grob <- GeomPath$draw_panel(both, ...)
+                               ggplot2:::ggname("geom_split_violin", grid::grobTree(GeomPolygon$draw_panel(newdata, ...), quantile_grob))
+                             }
+                             else {
+                               ggplot2:::ggname("geom_split_violin", GeomPolygon$draw_panel(newdata, ...))
+                             }
+                           })
+
+geom_split_violin <- function(mapping = NULL, data = NULL, stat = "ydensity", position = "identity", ..., 
+                              draw_quantiles = NULL, trim = TRUE, scale = "area", na.rm = FALSE, 
+                              show.legend = NA, inherit.aes = TRUE) {
+  layer(data = data, mapping = mapping, stat = stat, geom = GeomSplitViolin, 
+        position = position, show.legend = show.legend, inherit.aes = inherit.aes, 
+        params = list(trim = trim, scale = scale, draw_quantiles = draw_quantiles, na.rm = na.rm, ...))
+}
