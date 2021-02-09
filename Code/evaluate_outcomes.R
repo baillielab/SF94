@@ -1,6 +1,7 @@
 library(dplyr)
-
+library(ggplot2)
 library(data.table)
+library(tidyr)
 
 df_1<-fread("/home/u034/mcswets/df_1_20210402.csv", data.table = FALSE)
 
@@ -11,7 +12,7 @@ df_1<-fread("/home/u034/mcswets/df_1_20210402.csv", data.table = FALSE)
 subjects_to_include <- filter(df_1, ( fio2 >=0.22 & days_since_start %in% c(0,1,2)  & age_estimateyears >19 & age_estimateyears <76 ) )['subjid']
 subset1<-df_1[df_1$subjid %in% subjects_to_include$subjid,] 
 subset1 <- as.data.frame(subset1)
-
+subset1<-df_1
 # subset1<-df_1
 
 
@@ -191,7 +192,7 @@ day05<-base_sf94_10[,c(1,2,7)]
 day05<-day05%>%
   dplyr::rename(sf94_day5= "5", sf94_day0= "0")
 #make small dataframe for 30-day mortality and outcome
-mortality<-df_1[,c("subjid","mortality_30")]
+mortality<-df_1[,c("subjid","mortality_28")]
 mortality<-mortality%>%
   group_by(subjid)%>%
   summarise_all(funs(f))
@@ -202,18 +203,18 @@ regresson_df <- regresson_df %>%
   group_by(subjid)%>%
   summarise_all(funs(f))
 #remove rows with missing values
-regresson_df<-subset(regresson_df, (!is.na(sf94_day5)&!is.na(sf94_day0) & !is.na(mortality_30))) #8145 unique subjects, 1 row/subject
+regresson_df<-subset(regresson_df, (!is.na(sf94_day5)&!is.na(sf94_day0) & !is.na(mortality_28))) #8145 unique subjects, 1 row/subject
 regresson_df <-data.frame(regresson_df)
 
 #First need to set data distribution for rms functions
 library(cowplot)
 attach(regresson_df)
-ddist <- datadist(sf94_day0, sf94_day5, mortality_30)
+ddist <- datadist(sf94_day0, sf94_day5, mortality_28)
 options(datadist='ddist')
 detach(regresson_df)
 #Then fit models (splines using 4 knots here)
-linear_model <- lrm(mortality_30 ~ sf94_day0 + sf94_day5, regresson_df, x=TRUE, y=TRUE)
-splines_model <- lrm(mortality_30 ~ rcs(sf94_day0 , 4) + rcs(sf94_day5, 4), regresson_df, x=TRUE, y=TRUE)
+linear_model <- lrm(mortality_28 ~ sf94_day0 + sf94_day5, regresson_df, x=TRUE, y=TRUE)
+splines_model <- lrm(mortality_28 ~ rcs(sf94_day0 , 4) + rcs(sf94_day5, 4), regresson_df, x=TRUE, y=TRUE)
 #Visualise association between SF94 and mortality (note this will use log y axis scale)
 plot_associations_linear <- ggplot(Predict(linear_model), ggtitle = "N=8145" )
 plot_associations_linear
@@ -243,19 +244,19 @@ dd_regression <- dd_regression %>%
   group_by(subjid) %>% 
   slice(which.min(sf94_day5_dd))
 dd_regression <-data.frame(dd_regression)
-dd_regression<-subset(dd_regression, (!is.na(sf94_day5_dd)&!is.na(sf94_day0_dd) & !is.na(mortality_30))) #16822 unique subjects, 1 row/subject
+dd_regression<-subset(dd_regression, (!is.na(sf94_day5_dd)&!is.na(sf94_day0_dd) & !is.na(mortality_28))) #16822 unique subjects, 1 row/subject
 head(dd_regression)
 length(unique(dd_regression$subjid))
 
 
 #First need to set data distribution for rms functions
 attach(dd_regression)
-ddist <- datadist(sf94_day0_dd, sf94_day5_dd, mortality_30)
+ddist <- datadist(sf94_day0_dd, sf94_day5_dd, mortality_28)
 options(datadist='ddist')
 detach(dd_regression)
 #Then fit models (splines using 4 knots here)
-linear_model_dd <- lrm(mortality_30 ~ sf94_day0_dd + sf94_day5_dd, dd_regression, x=TRUE, y=TRUE)
-splines_model_dd <- lrm(mortality_30 ~ rcs(sf94_day0_dd , 4) + rcs(sf94_day5_dd, 4), dd_regression, x=TRUE, y=TRUE)
+linear_model_dd <- lrm(mortality_28 ~ sf94_day0_dd + sf94_day5_dd, dd_regression, x=TRUE, y=TRUE)
+splines_model_dd <- lrm(mortality_28 ~ rcs(sf94_day0_dd , 4) + rcs(sf94_day5_dd, 4), dd_regression, x=TRUE, y=TRUE)
 #Visualise association between SF94 and mortality (note this will use log y axis scale)
 plot_associations_linear <- ggplot(Predict(linear_model_dd), ggtitle = "N=25857" )
 plot_associations_linear
@@ -273,6 +274,13 @@ rpng.off()
 lrtest(linear_model, splines_model)
 lrtest(linear_model_dd, splines_model_dd)
 anova(linear_model_dd)
+BIC(linear_model)
+BIC(linear_model_dd)
+BIC(splines_model)
+BIC(splines_model_dd)
+x <-  correlation_subset_08[,2]
+y <-  correlation_subset_08[,10]
+cor(x,y)
 
 #scatterplot
 library(ggplot2)
@@ -289,33 +297,34 @@ long_dfsf94_12<-gather(base_sf94_12, days_since_start, sf94, 2:14, factor_key=T)
 long_dfsf94_12 <- subset(long_dfsf94_12, !is.na(sf94))
 #add 30 day mortality data
 long_dfsf94_12<-left_join(long_dfsf94_12, mortality, by="subjid")
-long_dfsf94_12 <- subset(long_dfsf94_12, !is.na(mortality_30))
+long_dfsf94_12 <- subset(long_dfsf94_12, !is.na(mortality_28))
 #change to character and set correct order
-long_dfsf94_12$mortality_30<-as.character(long_dfsf94_12$mortality_30)
-long_dfsf94_12$mortality_30<-factor(long_dfsf94_12$mortality_30,
+long_dfsf94_12$mortality_28<-as.character(long_dfsf94_12$mortality_28)
+long_dfsf94_12$mortality_28<-factor(long_dfsf94_12$mortality_28,
                                             levels=c("0","1"))
 long_dfsf94_12$days_since_start<-as.character(long_dfsf94_12$days_since_start)
 long_dfsf94_12$days_since_start<-factor(long_dfsf94_12$days_since_start,
                                         levels=c("0","1","2","3","4","5",
                                                  "6","7","8","9","10", "11", "12"))
 head(long_dfsf94_12)
-#function to calculate summary stats
-min.mean.sd.max <- function(x) {
-  r <- c(min(x), mean(x) - sd(x), mean(x), mean(x) + sd(x), max(x))
-  names(r) <- c("ymin", "lower", "middle", "upper", "ymax")
-  r
-}
-p <- ggplot(long_dfsf94_12, aes(x=days_since_start, y=sf94, fill=mortality_30)) +
-  stat_summary(fun.data = min.mean.sd.max, geom = "boxplot") +
-  geom_split_violin(trim = T)+
-  scale_fill_brewer(palette = "Spectral")+
+
+p <- ggplot(long_dfsf94_12, aes(x=days_since_start, y=sf94, fill=mortality_28)) +
+  geom_split_violin()+
+  coord_flip()+
   xlab("Day")+
   ylab("S/F94")+
-  ggtitle("")
+  ggtitle("")+
+  scale_fill_discrete(name="28-day outcome", labels= c("Discharged alive", "Death"))
+p <- ggplot(long_dfsf94_12, aes(x=days_since_start, y=sf94, fill=mortality_28)) +
+  geom_violin()+
+  xlab("Day")+
+  ylab("S/F94")+
+  ggtitle("")+
+  scale_fill_discrete(name="28-day outcome", labels= c("Discharged alive", "Death"))
 p
 
 
-
+#function code for split violin plots
 GeomSplitViolin <- ggproto("GeomSplitViolin", GeomViolin, 
                            draw_group = function(self, data, ..., draw_quantiles = NULL) {
                              data <- transform(data, xminv = x - violinwidth * (x - xmin), xmaxv = x + violinwidth * (xmax - x))
