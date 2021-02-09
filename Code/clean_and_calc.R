@@ -2,6 +2,7 @@
 library(dplyr)
 library(tidyr)
 library(data.table)
+library(readr) # loaded with tidyverse anyway
 
 cols <- c(1,11,26,28,42,43,54,63,64,96:114,128,140,142,143,146,147,148,150,167,169,171,173,175,
           176,177,178,179,180,181,293,250,251,264,265,279,280,392,
@@ -11,11 +12,40 @@ df_1 <-fread("Y:/mcswets/ccp_data.csv", select = cols, data.table = FALSE)
 #read for maaike
 df_1 <-fread("/home/u034/mcswets/ccp_data.csv", select = cols, data.table = FALSE)
 
+
+
+# For working on argosafe
+
+datadir = "/home/common/covid/cleaned/full/"
+timestamp = "2021-02-05_1049"
+
+ccp_data   = read_rds(paste0(datadir, "ccp_data_", timestamp, "_full.rds"))
+
+colNames <- c("subjid", "dsstdat", "sex", "age_estimateyears", "cestdat", "hostdat", "rr_vsorres", "oxy_vsorres",            
+              "oxy_vsorresu", "chrincard", "hypertension_mhyn", "chronicpul_mhyn", "asthma_mhyn", "renal_mhyn",             
+              "modliv", "mildliver", "chronicneu_mhyn", "malignantneo_mhyn", "chronichaemo_mhyn", "obesity_mhyn",           
+              "diabetes_type_mhyn", "diabetescom_mhyn", "diabetes_mhyn", "rheumatologic_mhyn" , "dementia_mhyn",           
+              "malnutrition_mhyn", "smoking_mhyn", "other_mhyn", "clinical_frailty", "daily_dsstdat", 
+              "daily_temp_vsorres", "daily_temp_vsorresu", "daily_fio2_lborres", "daily_fio2b_lborres", 
+              "daily_fio2c_lborres", "daily_sao2_lborres", "daily_gcs_vsorres", "systolic_vsorres", 
+              "diastolic_vsorres", "daily_meanart_vsorres", "daily_urine_lborres", "daily_noninvasive_prtrt",
+              "daily_invasive_prtrt", "daily_nasaloxy_cmtrt", "daily_ecmo_prtrt", "daily_rrt_cmtrt",
+              "daily_inotrope_cmyn", "infiltrates_faorres", "daily_bun_lborres", "daily_bun_lborresu",    
+              "daily_creat_lborres", "daily_creat_lborresu", "daily_crp_lborres", "daily_crp_lborresu",     
+              "hodur", "oxygen_cmoccur", "oxygenhf_cmoccur", "noninvasive_proccur", "invasive_proccur", "dsterm",                 
+              "dshosp", "dsstdtcyn", "dsstdtc", "oxygen_proccur", "onset2admission", "ethnicity", 
+              "smoking_mhyn_2levels", "any_invasive") 
+
+df_1 <- ccp_data[colNames]
+
+
 # Take a sample
-df_1 <- sample_n(ccp_data, 500)
+#df_1 <- sample_n(ccp_data, 500)
+
 
 
 ####################################### DATA PREPARATION #######################################
+
 
 
 # convert date columns to date objects
@@ -59,7 +89,8 @@ df_1<-df_1 %>%
 df_1<-df_1 %>%
   group_by  (subjid) %>%
   mutate(first_study_day = first(as.Date(daily_dsstdat)))
-# For reasons unkonwn, some columns get formatted as tibbles. Make everything a dataframe.
+
+# Make df_1 a dataframe, otherwise next fewlines throws an error
 
 df_1 <- as.data.frame(df_1)
 
@@ -69,8 +100,8 @@ df_1 <- as.data.frame(df_1)
 df_1['day_of_death'] <- ifelse(  df_1[,'death'] == TRUE & is.finite( df_1[, 'dsstdtc'] - df_1[, 'first_study_day']  ) , df_1[, 'dsstdtc'] - df_1[, 'first_study_day'],  NA  )
 
 df_1['day_of_discharge'] <- ifelse(  df_1[,'discharge'] == TRUE & is.finite( df_1[, 'dsstdtc'] - df_1[, 'first_study_day']  ) , df_1[, 'dsstdtc'] - df_1[, 'first_study_day'],  NA  )
-  
-  
+
+
 
 
 # 'daily_fio2c_lborres' is is oxygen received in litres per minute.
@@ -114,25 +145,25 @@ df_1[negCols] <- abs(df_1[negCols])
 
 cleanPercent <- function(df, cols){
   
-     for(var in cols){
+  for(var in cols){
     
-       indices <- which(df[, var] >0 & df[, var]<= 1)
-       
-       df[indices, var] <- df[indices, var] * 100
-       
-       indices <- which(df[, var] >100 & df[, var]<= 1000)
-       
-       df[indices, var] <- df[indices, var]/10
-       
-       indices <- which(df[, var] >1000 & df[, var]<= 10000)
-       
-       df[indices, var] <- df[indices, var]/100
-       
-       indices <- which(df[, var] >10000 & df[, var]<= 100000)
-       
-       df[indices, var] <- df[indices, var]/1000
-}
-return(df)  
+    indices <- which(df[, var] >0 & df[, var]<= 1)
+    
+    df[indices, var] <- df[indices, var] * 100
+    
+    indices <- which(df[, var] >100 & df[, var]<= 1000)
+    
+    df[indices, var] <- df[indices, var]/10
+    
+    indices <- which(df[, var] >1000 & df[, var]<= 10000)
+    
+    df[indices, var] <- df[indices, var]/100
+    
+    indices <- which(df[, var] >10000 & df[, var]<= 100000)
+    
+    df[indices, var] <- df[indices, var]/1000
+  }
+  return(df)  
 }
 
 # Clean variables that take values in unit interval
@@ -146,7 +177,7 @@ cleanInt1 <- function(df, cols){
     df[indices, var] <- df[indices, var]/100
     
   }
-return(df)  
+  return(df)  
 }
 
 
@@ -222,11 +253,11 @@ summary(df_1$fio2)
 
 # Drop columns that are no longer needed
 
-dropCols <- c('oxy_vsorres', 'daily_sao2_lborres', 'daily_fio2_lborres', 'daily_fio2b_lborres',
-              'daily_fio2c_lborres', 'oxy_vsorresu', 'oxygen_cmoccur', 'daily_crp_lborresu',
-              'daily_bun_lborresu', 'daily_creat_lborresu')
+#dropCols <- c('oxy_vsorres', 'daily_sao2_lborres', 'daily_fio2_lborres', 'daily_fio2b_lborres',
+#              'daily_fio2c_lborres', 'oxy_vsorresu', 'oxygen_cmoccur', 'daily_crp_lborresu',
+#              'daily_bun_lborresu', 'daily_creat_lborresu')
 
-df_1 <- df_1[, !(names(df_1) %in% dropCols)]
+#df_1 <- df_1[, !(names(df_1) %in% dropCols)]
 
 
 
@@ -274,7 +305,7 @@ df_1<-df_1 %>%
 #28 day mortality variable
 df_1<-df_1 %>% 
   mutate(
-   mortality_28 = case_when(
+    mortality_28 = case_when(
       death==TRUE & day_of_death <29 ~ 1,
       discharge==TRUE & day_of_discharge<29 ~ 0))
 
@@ -286,4 +317,9 @@ df_1<-df_1 %>%
 head(df_1)
 colnames(df_1)
 
-write.csv(df_1,"df_1_20210402.csv")
+#write.csv(df_1,"df_1_20210402.csv")
+
+# write on argosafe
+
+write.csv(df_1,"/home/skerr/df_1_20210902.csv")
+
