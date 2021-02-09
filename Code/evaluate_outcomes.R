@@ -12,8 +12,8 @@ df_1<-fread("/home/u034/mcswets/df_1_20210402.csv", data.table = FALSE)
 subjects_to_include <- filter(df_1, ( fio2 >=0.22 & days_since_start %in% c(0,1,2)  & age_estimateyears >19 & age_estimateyears <76 ) )['subjid']
 subset1<-df_1[df_1$subjid %in% subjects_to_include$subjid,] 
 subset1 <- as.data.frame(subset1)
+
 subset1<-df_1
-# subset1<-df_1
 
 
 # variable should be either  'sf94' or 'severity_scale_ordinal'
@@ -88,7 +88,7 @@ sum((!is.na(subset1$day_of_death) | !is.na(subset1$day_of_discharge)) & subset1$
 # variable = sf94, who
 # group= base, basedd, day0
 # time =days_since_start
-
+detach("package:plyr", unload=T)
 base_sf94_10<-createDF("base", "sf94", 10)
 basedd_sf94_10<-createDF("basedd", "sf94", 10)
 basedd_sf94day0_10<-createDF("day0", "sf94", 10)
@@ -108,7 +108,7 @@ summary(basedd_sf94day0_10)
 sapply(base_sf94_10, sd, na.rm=T)
 sapply(basedd_sf94_10, sd, na.rm=T)
 sapply(basedd_sf94day0_10, sd, na.rm=T)
-length(basedd_sf94_10$subjid)
+
 
 #correlation
 library(data.table)
@@ -206,13 +206,18 @@ regresson_df <- regresson_df %>%
   group_by(subjid)%>%
   summarise_all(funs(f))
 #remove rows with missing values
-regresson_df<-subset(regresson_df, (!is.na(sf94_day5)&!is.na(sf94_day0) & !is.na(mortality_28))) #8145 unique subjects, 1 row/subject
+regresson_df<-subset(regresson_df, (!is.na(sf94_day5)&!is.na(sf94_day0) & !is.na(mortality_28))) #5159 unique subjects, 1 row/subject
 regresson_df <-data.frame(regresson_df)
 head(regresson_df)
 summary(regresson_df)
 
+sum(df_1$day_of_death<5, na.rm=T)
+sum(df_1$day_of_discharge<5, na.rm=T)
+head(df_1)
+
+sum((!is.na(df_1$mortality_4)) & (is.na(df_1$sf94) & df_1$days_since_start ==0), na.rm=T)
+
 #First need to set data distribution for rms functions
-library(cowplot)
 attach(regresson_df)
 ddist <- datadist(sf94_day0, sf94_day5, mortality_28)
 options(datadist='ddist')
@@ -229,6 +234,7 @@ rpng.off()
 
 #with sf94_dd values regression
 #use extreme values, take subject ID and day 5 SF94_dd values (from DF_1, so not using filters)
+length(unique(basedd_sf94_10$subjid))
 day5_dd<-basedd_sf94_10[,c(1,2,7)]
 day5_dd<-day5_dd%>%
   dplyr::rename(sf94_day5_dd= "5",sf94_day0_dd= "0")
@@ -242,10 +248,12 @@ dd_regression <- dd_regression %>%
   group_by(subjid) %>% 
   slice(which.min(sf94_day5_dd))
 dd_regression <-data.frame(dd_regression)
-dd_regression<-subset(dd_regression, (!is.na(sf94_day5_dd)&!is.na(sf94_day0_dd) & !is.na(mortality_28))) #16822 unique subjects, 1 row/subject
+dd_regression<-subset(dd_regression, (!is.na(sf94_day5_dd)&!is.na(sf94_day0_dd) & !is.na(mortality_28))) #11532 unique subjects, 1 row/subject
 head(dd_regression)
 length(unique(dd_regression$subjid))
-
+table(dd_regression$mortality_28)
+table(regresson_df$mortality_28)
+table(df_1$mortality_28)
 
 #First need to set data distribution for rms functions
 attach(dd_regression)
@@ -347,3 +355,4 @@ geom_split_violin <- function(mapping = NULL, data = NULL, stat = "ydensity", po
         position = position, show.legend = show.legend, inherit.aes = inherit.aes, 
         params = list(trim = trim, scale = scale, draw_quantiles = draw_quantiles, na.rm = na.rm, ...))
 }
+
