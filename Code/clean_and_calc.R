@@ -309,10 +309,16 @@ df_1<-df_1 %>%
       death==TRUE & day_of_death <29 ~ 1,
       discharge==TRUE & day_of_discharge<29 ~ 0))
 
+df_1<-df_1 %>% 
+  mutate(
+    mortality_4 = case_when(
+      death==TRUE & day_of_death <5 ~ 1,
+      discharge==TRUE & day_of_discharge<5 ~ 0))
+
 df_1<-df_1 %>%
   group_by(subjid)%>%
-  fill(mortality_28, .direction = "down") %>%
-  fill(mortality_28, .direction = "up")
+  fill(mortality_4, .direction = "down") %>%
+  fill(mortality_4, .direction = "up")
 
 head(df_1)
 colnames(df_1)
