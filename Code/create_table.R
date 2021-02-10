@@ -1,3 +1,11 @@
+###################################################################### 
+
+## Code author: Steven Kerr
+
+## Description: This code creates a table of summary statistics for people in the CCP data
+##              in different groups according to various conditions related to oxygen treatments and CRP   
+
+###################################################################### 
 library(dplyr)
 library(tidyr)
 library(data.table)
@@ -31,7 +39,7 @@ df_1 <- mutate(df_1,  respiratory_support = case_when(
 
 query <- function(df, time, condition){
   
-  if(time == 'all'){
+  if(time == 'any'){
     Subset <- df
   } else {
     Subset <- filter( df, days_since_admission == time )
@@ -73,7 +81,7 @@ query <- function(df, time, condition){
 }
 
 
-createTable <- function(time){
+createDF <- function(time){
   
   df <- data.frame(matrix(ncol = 6, nrow = 0))
   
@@ -97,16 +105,20 @@ createTable <- function(time){
 }
 
 
-# Create tables
+# Create dataframes for tables
 
-table0 <- createTable(0)
+df0 <- createDF(0)
 
-tableall <- createTable('all')
+dfAny <- createDF('any')
+
+write.csv(df0, '/home/skerr/Git/SF94/Outputs/table0.csv')
+
+write.csv(dfAny, '/home/skerr/Git/SF94/Outputs/tableAny.csv')
 
 
 #Create table plots
 
-t1 <- tableGrob(table0)
+t1 <- tableGrob(df0)
 
 title <- textGrob("Day 0",gp=gpar(fontsize=20))
 padding <- unit(5,"mm")
@@ -125,9 +137,9 @@ grid.draw(table)
 
 
 
-t2 <- tableGrob(tableall)
+t2 <- tableGrob(dfAny)
 
-title <- textGrob("All days",gp=gpar(fontsize=20))
+title <- textGrob("Any days",gp=gpar(fontsize=20))
 padding <- unit(5,"mm")
 
 table <- gtable_add_rows(
@@ -141,3 +153,4 @@ table <- gtable_add_grob(
 
 grid.newpage()
 grid.draw(table)
+
