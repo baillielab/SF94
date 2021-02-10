@@ -9,16 +9,11 @@ library(gtable)
 
 df_1<-fread("/home/skerr/df_1_20210902.csv", data.table = FALSE)
 
-
-
 cols <- c('daily_invasive_prtrt', 'daily_noninvasive_prtrt', 'daily_nasaloxy_cmtrt')
 
 df_1[cols][  df_1[cols] == 'N/A'  ] <- NA
 
 df_1['obesity_mhyn'][   df_1['obesity_mhyn'] == 'Unknown' ] <- NA
-
-
-
 
 df_1 <- mutate(df_1,  respiratory_support = case_when(
   daily_invasive_prtrt == 'YES'   ~ 'IMV',
@@ -26,13 +21,12 @@ df_1 <- mutate(df_1,  respiratory_support = case_when(
   daily_nasaloxy_cmtrt == 'YES'  ~ 'Oxygen' ) )
 
 
-
 # Criterion numbers:
 # 1: daily_crp_lborres > 75
-# (sao2 <= 0.92 & fio2 == 0.21) OR respiratory_support = 'Oxygen'
-# CRP > 75 & (  (sao2 <= 0.92 & fio2 == 0.21)   OR   respiratory_support = 'Oxygen')
-# CRP > 75 & respiratory_support == 'NIV'
-# CRP > 75 & respiratory_support == 'IMV'
+# 2:(sao2 <= 0.92 & fio2 == 0.21) OR respiratory_support = 'Oxygen'
+# 3: CRP > 75 & (  (sao2 <= 0.92 & fio2 == 0.21)   OR   respiratory_support = 'Oxygen')
+# 4: CRP > 75 & respiratory_support == 'NIV'
+# 5: CRP > 75 & respiratory_support == 'IMV'
 
 
 query <- function(df, time, condition){
@@ -43,9 +37,7 @@ query <- function(df, time, condition){
     Subset <- filter( df, days_since_admission == time )
   }
   
-  
   total_patients <-  length( unique(Subset$subjid)) 
-  
   
   if(condition == 1){
     
@@ -64,11 +56,9 @@ query <- function(df, time, condition){
     Subset <- mutate(Subset, condition = daily_crp_lborres > 75 & ( (sao2 <= 0.92 & fio2 == 0.21) | respiratory_support == 'IMV') ) 
   }
   
-  
   number_present =   length( unique ( filter(Subset, !is.na(condition) )$subjid   ) )
   
   number_satifying_condition <- length( unique ( filter(Subset, condition == TRUE )$subjid   ) )
-  
   
   number_obese <-  length( unique(  filter(Subset, condition==TRUE & obesity_mhyn == 'YES')$subjid  ) ) 
   
@@ -81,8 +71,6 @@ query <- function(df, time, condition){
   return(output)
   
 }
-
-
 
 
 createTable <- function(time){
