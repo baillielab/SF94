@@ -250,7 +250,7 @@ dd_regression <- dd_regression %>%
 dd_regression <-data.frame(dd_regression)
 dd_regression<-subset(dd_regression, (!is.na(sf94_day5_dd)&!is.na(sf94_day0_dd) & !is.na(mortality_28))) #11532 unique subjects, 1 row/subject
 head(dd_regression)
-length(unique(dd_regression$subjid))
+length((dd_regression$subjid))
 table(dd_regression$mortality_28)
 table(regresson_df$mortality_28)
 table(df_1$mortality_28)
@@ -323,6 +323,79 @@ p <- ggplot(long_dfsf94_12, aes(x=days_since_start, y=sf94, fill=mortality_28)) 
   scale_fill_discrete(name="28-day outcome", labels= c("Discharged alive", "Death"))
 p
 
+
+#find time it takes for a certain change in WHO level (2 or 1)
+#subset dataframe
+severity_difference<-subset1 #start with 17180 unique subjects
+#>10.000 subjects with no WHO value on day of discharge, set those to level 4 (day of death all have a value)
+severity_difference$severity_scale_ordinal<- ifelse(is.na(severity_difference$severity_scale_ordinal) &
+                                                      !is.na(severity_difference$day_of_discharge), 4, 
+                             severity_difference$severity_scale_ordinal)
+#make new variable for last who level available
+last_sev<-severity_difference %>%
+  group_by(subjid)%>%
+  filter(!is.na(severity_scale_ordinal))%>%
+  dplyr::mutate(final_who_score= dplyr::last((severity_scale_ordinal)))%>%
+  slice(which.min(final_who_score))
+last_sev<-last_sev[,c("subjid","final_who_score")]
+#make subset of data
+severity_difference<-severity_difference[,c("subjid","days_since_start","severity_scale_ordinal")]
+#only select subjects with >1 measurement, remove rows with missing days and severity score
+severity_difference<-severity_difference %>%
+  group_by(subjid)%>%
+  filter(n()>=2) #17180 subjects
+severity_difference<-subset(severity_difference, !is.na(days_since_start)) #17180 subjects
+severity_difference<-subset(severity_difference, !is.na(severity_scale_ordinal)) #17180 subjects
+#calculate time it takes for a change of 2
+severity_dif_1level<-severity_difference %>%
+  left_join(severity_difference, ("subjid")) %>%
+  filter(severity_scale_ordinal.x != 10)%>% #some wrong entries where after death there is still a non-dead value
+  mutate(Days = (days_since_start.y - days_since_start.x)) %>% # creates all possible combinations (day 3- day 1 and day 1- day 3)
+  filter(Days>0)%>% #only keep if day y > day x (as this means 'forward' change)
+  mutate(score_difference= severity_scale_ordinal.y- severity_scale_ordinal.x) %>% #calculate the change in severity levels 
+  filter(score_difference <= -1) %>% # improvement >> score gets lower
+  group_by(subjid) %>%
+  slice(which.min(Days)) %>% #if multiple combination for a 1/2 level difference, take the smallest no of days
+  ungroup %>%
+  right_join(distinct(severity_difference["subjid"]), "subjid") # 17180 subjects
+
+#add both together
+severity_dif_1level<-left_join(severity_dif_1level, last_sev, by="subjid") #17180 subjects
+#only keep if value is the same as last value
+#if subject improves further- we don't want to lose them, so sev_scale_ord.y needs to be smaller than final score
+#sev_scale.y can also be the same as final score
+# if final score is higher than sev_score.y >> remove days value
+severity_dif_1level$severity_scale_ordinal.y<-as.numeric(severity_dif_1level$severity_scale_ordinal.y)
+severity_dif_1level$final_who_score<-as.numeric(severity_dif_1level$final_who_score)
+severity_dif_1level<-severity_dif_1level %>% 
+  mutate(
+    Days = case_when(
+      score_difference == -1 & 
+        (severity_scale_ordinal.y >= final_who_score) ~ Days,
+      score_difference == -2 & 
+        ((severity_scale_ordinal.y +1) >= final_who_score) ~ Days,
+      score_difference == -3 & 
+        ((severity_scale_ordinal.y +2) >= final_who_score) ~ Days,
+      score_difference == -4 & 
+        ((severity_scale_ordinal.y +3) >= final_who_score) ~ Days
+    ))
+
+#for 2 levels difference
+severity_dif_2level<-severity_dif_2level %>% 
+  mutate(
+    Days = case_when(
+      score_difference == -2 & 
+        (severity_scale_ordinal.y >= final_who_score) ~ Days,
+      score_difference == -3 & 
+        ((severity_scale_ordinal.y +1) >= final_who_score) ~ Days,
+      score_difference == -4 & 
+        ((severity_scale_ordinal.y +2) >= final_who_score) ~ Days
+      ))
+
+#555 subjects meet criteria of improving 2 or more levels and having that level or higher at discharge
+#2940 subjects meet criteria of improving 1 or more levels and having that level or higher at discharge
+#6423 when all discharge ==4 (1 level) and 2479
+sum(!is.na(severity_dif_2level$Days))
 
 #function code for split violin plots
 GeomSplitViolin <- ggproto("GeomSplitViolin", GeomViolin, 
