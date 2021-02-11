@@ -13,7 +13,7 @@ subjects_to_include <- filter(df_1, ( fio2 >=0.22 & days_since_start %in% c(0,1,
 subset1<-df_1[df_1$subjid %in% subjects_to_include$subjid,] 
 subset1 <- as.data.frame(subset1)
 
-#subset1<-df_1
+subset1<-df_1
 
 
 # variable should be either  'sf94' or 'severity_scale_ordinal'
@@ -190,35 +190,57 @@ summary(day8_wide)
 sapply(day8_wide, sd, na.rm=T)
 
 #regression model D5 SF94 and mortality
-install.packages("rms", repos="http://cran.us.r-project.org")
 library(rms)
 #with sf94 values regression
 day05<-base_sf94_10[,c(1,2,7)]
 day05<-day05%>%
   dplyr::rename(sf94_day5= "5", sf94_day0= "0")
+
+#Data imputation based on total number of deaths
+dead5<-sum(subset1$day_of_death <5, na.rm = T) 
+alive5<-sum(subset1$day_of_discharge <5, na.rm = T) 
+available5<-sum((!is.na(subset1$sf94) & subset1$days_since_start == 5), na.rm=T) 
+percdead5<-dead5/length(unique(subset1$subjid)) #% that died before day from total subjects
+percalive5<-alive5/length(unique(subset1$subjid))# % that went home before day 5 from total subjects
+percavailable5<- (1-percdead5- percalive5)# % of available values
+dead_to_add<-(percdead5*available5)/percavailable5 #number of 0.5 values to add to variable
+alive_to_add<-(percalive5*available5)/percavailable5 #number of 4.76 values to add to variable
+head(day05)
+day05_P<-day05 # base_s94_10, select subjid, day 0 and day 5
+day05_P<-day05_P%>% #keep 1 entry/subject
+  group_by(subjid) %>% 
+  summarise_all(funs(f))
+set.seed(1234)
+sf94_D5_P<-day05_P$sf94_day5 #add day 5 to a separate df
+rows_to_replace<-which(is.na(sf94_D5_P))
+sf94_D5_P[sample(rows_to_replace, dead_to_add)]<- 0.5
+rows_to_replace<-which(is.na(sf94_D5_P))
+sf94_D5_P[sample(rows_to_replace, alive_to_add)]<- 4.76
+
+sf94_D5_P<-data.frame(sf94_D5_P)
+day05_P<-cbind(day05_P, sf94_D5_P)
+day05_P<-data.frame(day05_P)
+
+head(day05_P,55)
+sum(!is.na(day05_P$sf94_day5)) #11135
+sum(!is.na(day05_P$sf94_D5_P)) #15145, so all newly made values are added
+
+
 #make small dataframe for 30-day mortality and outcome
 mortality<-df_1[,c("subjid","mortality_28")]
 mortality<-mortality%>%
   group_by(subjid)%>%
   summarise_all(funs(f))
 #join both together
-regresson_df<-left_join(day05, mortality, by="subjid")
-#keep 1 value/ subject
-regresson_df <- regresson_df %>% 
-  group_by(subjid)%>%
-  summarise_all(funs(f))
+regresson_df<-left_join(day05_P, mortality, by="subjid")
+regresson_df_P<-regresson_df # make separate df form the proportionally imputed values
 #remove rows with missing values
 regresson_df<-subset(regresson_df, (!is.na(sf94_day5)&!is.na(sf94_day0) & !is.na(mortality_28))) #5159 unique subjects, 1 row/subject
 regresson_df <-data.frame(regresson_df)
 head(regresson_df)
 summary(regresson_df)
 
-sum(df_1$day_of_death<5, na.rm=T)
-sum(df_1$day_of_discharge<5, na.rm=T)
-head(df_1)
-
-sum((!is.na(df_1$mortality_4)) & (is.na(df_1$sf94) & df_1$days_since_start ==0), na.rm=T)
-
+rm(sf94_D5_P) #remove from global environment
 #First need to set data distribution for rms functions
 attach(regresson_df)
 ddist <- datadist(sf94_day0, sf94_day5, mortality_28)
@@ -234,59 +256,56 @@ plot_associations_splines <- ggplot(Predict(splines_model), ggtitle = "N=5159")
 plot_associations_splines 
 rpng.off()
 
-#with sf94_dd values regression
-#use extreme values, take subject ID and day 5 SF94_dd values (from DF_1, so not using filters)
-length(unique(basedd_sf94_10$subjid))
-day5_dd<-basedd_sf94_10[,c(1,2,7)]
-day5_dd<-day5_dd%>%
-  dplyr::rename(sf94_day5_dd= "5",sf94_day0_dd= "0")
-sum(day5_dd$sf94_day5_dd== 4.76, na.rm = T)
-sum(day5_dd$sf94_day5_dd== 0.5, na.rm = T)
-sum(!is.na(day5_dd$sf94_day5_dd), na.rm = T)
-sum(is.na(day5_dd$sf94_day5_dd), na.rm = T)
-#join to mortality dataframe
-dd_regression<-left_join(day5_dd, mortality, by="subjid")
-#keep 1 value/ subject
-dd_regression <- dd_regression %>% 
-  group_by(subjid) %>% 
-  summarise_all(funs(f))
-dd_regression <- dd_regression %>% 
-  group_by(subjid) %>% 
-  slice(which.min(sf94_day5_dd))
-dd_regression <-data.frame(dd_regression)
-dd_regression<-subset(dd_regression, (!is.na(sf94_day5_dd)&!is.na(sf94_day0_dd) & !is.na(mortality_28))) #11532 unique subjects, 1 row/subject
-head(dd_regression)
-length((dd_regression$subjid))
-table(dd_regression$mortality_28)
-table(regresson_df$mortality_28)
-table(df_1$mortality_28)
+#with sf94_P values regression
+#use proportionally added outcome values, take subject ID and day 5 SF94_P values (from DF_1, so not using filters)
+regresson_df_P <-data.frame(regresson_df_P)
+head(regresson_df_P,250)
+regresson_df_P<-regresson_df_P %>% 
+  mutate(
+    mortality_28 = case_when(
+      sf94_D5_P == 4.760 & is.na(sf94_day5) ~ 0,sf94_D5_P == 0.5 & is.na(sf94_day5) ~ 1,TRUE ~ as.numeric(mortality_28)))
+regresson_df_P<-subset(regresson_df_P, (!is.na(sf94_D5_P)&!is.na(sf94_day0) & !is.na(mortality_28))) #6248 unique subjects, 1 row/subject
+
+length(regresson_df_P$subjid)
 
 #First need to set data distribution for rms functions
-attach(dd_regression)
-ddist <- datadist(sf94_day0_dd, sf94_day5_dd, mortality_28)
+attach(regresson_df_P)
+ddist <- datadist(sf94_day0, sf94_D5_P, mortality_28)
 options(datadist='ddist')
-detach(dd_regression)
+detach(regresson_df_P)
 #Then fit models (splines using 4 knots here)
-linear_model_dd <- lrm(mortality_28 ~ sf94_day0_dd + sf94_day5_dd, dd_regression, x=TRUE, y=TRUE)
-splines_model_dd <- lrm(mortality_28 ~ rcs(sf94_day0_dd , 4) + rcs(sf94_day5_dd, 4), dd_regression, x=TRUE, y=TRUE)
+linear_model_P <- lrm(mortality_28 ~ sf94_day0 + sf94_D5_P, regresson_df_P, x=TRUE, y=TRUE)
+splines_model_P <- lrm(mortality_28 ~ rcs(sf94_day0 , 4) + rcs(sf94_D5_P, 4), regresson_df_P, x=TRUE, y=TRUE)
 #Visualise association between SF94 and mortality (note this will use log y axis scale)
-plot_associations_linear <- ggplot(Predict(linear_model_dd), ggtitle = "N=11534" )
-plot_associations_linear
-plot_associations_splines <- ggplot(Predict(splines_model_dd), ggtitle = "N=11534")
-plot_associations_splines 
+plot_associations_linear_P <- ggplot(Predict(linear_model_P), ggtitle = "N=6248" )
+plot_associations_linear_P
+plot_associations_splines_P <- ggplot(Predict(splines_model_P), ggtitle = "N=6248")
+plot_associations_splines_P 
 rpng.off()
 
 #stats
+
+summary(linear_model)
+linear_model
+colnames(linear_model_P)
+plot(linear_model_P$residuals)
+linear_model_P
+splines_model
+splines_model_P
 lrtest(linear_model, splines_model)
 lrtest(linear_model_dd, splines_model_dd)
 anova(linear_model_dd)
 BIC(linear_model)
-BIC(linear_model_dd)
+BIC(linear_model_P)
 BIC(splines_model)
-BIC(splines_model_dd)
-x <-  regresson_df$sf94_day0
-y <-  regresson_df$sf94_day5
+BIC(splines_model_P)
+x <-  regresson_df_P$sf94_day0
+y <-  regresson_df_P$sf94_D5_P
 cor(x,y)
+
+library(gtsummary)
+linear_model_glm <- glm(mortality_28 ~ sf94_day0 + sf94_D5_P, family=binomial, data=regresson_df_P)
+linear_model_glm  %>% tbl_regression(exponentiate=T)
 
 #scatterplot
 library(ggplot2)
@@ -398,30 +417,7 @@ severity_dif_2level<-severity_dif_2level %>%
         ((severity_scale_ordinal.y +2) >= final_who_score) ~ Days
       ))
 
-#Data imputation based on total number of deaths
-dead5<-sum(subset1$day_of_death <5, na.rm = T) #1477 subjects died before day 5 (1477/17180=8.6%)
-alive5<-sum(subset1$day_of_discharge <5, na.rm = T) #2574 subjects died before day 5 (2574/17180=15%)
-available5<-sum((!is.na(subset1$sf94) & subset1$days_since_start == 5), na.rm=T) #5383 known SF94 values
-percdead5<-dead5/length(unique(subset1$subjid)) #% that died before day from total subjects
-percalive5<-alive5/length(unique(subset1$subjid))# % that went home before day 5 from total subjects
-percavailable5<- (1-percdead5- percalive5)# % of available values
-dead_to_add<-(percdead5*available5)/percavailable5 #number of 0.5 values to add to variable
-alive_to_add<-(percalive5*available5)/percavailable5 #number of 4.76 values to add to variable
 
-day05_I<-day05 # base_s94_10, select subjid, day 0 and day 5
-day05_I<-day05_I%>% #keep 1 entry/subject
-group_by(subjid) %>% 
-  summarise_all(funs(f))
-sf94_D5_I<-day05_I$sf94_day5 #add day 5 to a separate df
-rows_to_replace<-which(is.na(sf94_D5_I))
-sf94_D5_I[sample(rows_to_replace, dead_to_add)]<- 0.5
-rows_to_replace<-which(is.na(sf94_D5_I))
-sf94_D5_I[sample(rows_to_replace, alive_to_add)]<- 4.76
-
-sf94_D5_I<-data.frame(sf94_D5_I)
-day05_I<-cbind(day05_I, sf94_D5_I)
-day05_I<-data.frame(day05_I)
-head(day05_I)
 
 #function code for split violin plots
 GeomSplitViolin <- ggproto("GeomSplitViolin", GeomViolin, 
@@ -455,3 +451,47 @@ geom_split_violin <- function(mapping = NULL, data = NULL, stat = "ydensity", po
         params = list(trim = trim, scale = scale, draw_quantiles = draw_quantiles, na.rm = na.rm, ...))
 }
 
+
+
+# code not in use currently
+#with sf94_dd values regression
+#use extreme values, take subject ID and day 5 SF94_dd values (from DF_1, so not using filters)
+length(unique(basedd_sf94_10$subjid))
+day5_dd<-basedd_sf94_10[,c(1,2,7)]
+day5_dd<-day5_dd%>%
+  dplyr::rename(sf94_day5_dd= "5",sf94_day0_dd= "0")
+sum(day5_dd$sf94_day5_dd== 4.76, na.rm = T)
+sum(day5_dd$sf94_day5_dd== 0.5, na.rm = T)
+sum(!is.na(day5_dd$sf94_day5_dd), na.rm = T)
+sum(is.na(day5_dd$sf94_day5_dd), na.rm = T)
+#join to mortality dataframe
+dd_regression<-left_join(day5_dd, mortality, by="subjid")
+#keep 1 value/ subject
+dd_regression <- dd_regression %>% 
+  group_by(subjid) %>% 
+  summarise_all(funs(f))
+dd_regression <- dd_regression %>% 
+  group_by(subjid) %>% 
+  slice(which.min(sf94_day5_dd))
+dd_regression <-data.frame(dd_regression)
+dd_regression<-subset(dd_regression, (!is.na(sf94_day5_dd)&!is.na(sf94_day0_dd) & !is.na(mortality_28))) #11532 unique subjects, 1 row/subject
+head(dd_regression)
+length((dd_regression$subjid))
+table(dd_regression$mortality_28)
+table(regresson_df$mortality_28)
+table(df_1$mortality_28)
+
+#First need to set data distribution for rms functions
+attach(dd_regression)
+ddist <- datadist(sf94_day0_dd, sf94_day5_dd, mortality_28)
+options(datadist='ddist')
+detach(dd_regression)
+#Then fit models (splines using 4 knots here)
+linear_model_dd <- lrm(mortality_28 ~ sf94_day0_dd + sf94_day5_dd, dd_regression, x=TRUE, y=TRUE)
+splines_model_dd <- lrm(mortality_28 ~ rcs(sf94_day0_dd , 4) + rcs(sf94_day5_dd, 4), dd_regression, x=TRUE, y=TRUE)
+#Visualise association between SF94 and mortality (note this will use log y axis scale)
+plot_associations_linear <- ggplot(Predict(linear_model_dd), ggtitle = "N=11534" )
+plot_associations_linear
+plot_associations_splines <- ggplot(Predict(splines_model_dd), ggtitle = "N=11534")
+plot_associations_splines 
+rpng.off()
