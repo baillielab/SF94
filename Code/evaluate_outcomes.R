@@ -13,7 +13,7 @@ subjects_to_include <- filter(df_1, ( fio2 >=0.22 & days_since_start %in% c(0,1,
 subset1<-df_1[df_1$subjid %in% subjects_to_include$subjid,] 
 subset1 <- as.data.frame(subset1)
 
-subset1<-df_1
+#subset1<-df_1
 
 
 # variable should be either  'sf94' or 'severity_scale_ordinal'
@@ -109,6 +109,8 @@ sapply(base_sf94_10, sd, na.rm=T)
 sapply(basedd_sf94_10, sd, na.rm=T)
 sapply(basedd_sf94day0_10, sd, na.rm=T)
 
+head(basedd_sf94_10)
+length(basedd_sf94_10[,7]
 
 #correlation
 library(data.table)
@@ -238,6 +240,10 @@ length(unique(basedd_sf94_10$subjid))
 day5_dd<-basedd_sf94_10[,c(1,2,7)]
 day5_dd<-day5_dd%>%
   dplyr::rename(sf94_day5_dd= "5",sf94_day0_dd= "0")
+sum(day5_dd$sf94_day5_dd== 4.76, na.rm = T)
+sum(day5_dd$sf94_day5_dd== 0.5, na.rm = T)
+sum(!is.na(day5_dd$sf94_day5_dd), na.rm = T)
+sum(is.na(day5_dd$sf94_day5_dd), na.rm = T)
 #join to mortality dataframe
 dd_regression<-left_join(day5_dd, mortality, by="subjid")
 #keep 1 value/ subject
@@ -372,7 +378,7 @@ severity_dif_1level<-severity_dif_1level %>%
     Days = case_when(
       score_difference == -1 & 
         (severity_scale_ordinal.y >= final_who_score) ~ Days,
-      score_difference == -2 & 
+      score_difference == -2 & #if difference was 2 points and someone still has 1 point improvement at end, don't exclude
         ((severity_scale_ordinal.y +1) >= final_who_score) ~ Days,
       score_difference == -3 & 
         ((severity_scale_ordinal.y +2) >= final_who_score) ~ Days,
@@ -392,10 +398,30 @@ severity_dif_2level<-severity_dif_2level %>%
         ((severity_scale_ordinal.y +2) >= final_who_score) ~ Days
       ))
 
-#555 subjects meet criteria of improving 2 or more levels and having that level or higher at discharge
-#2940 subjects meet criteria of improving 1 or more levels and having that level or higher at discharge
-#6423 when all discharge ==4 (1 level) and 2479
-sum(!is.na(severity_dif_2level$Days))
+#Data imputation based on total number of deaths
+dead5<-sum(subset1$day_of_death <5, na.rm = T) #1477 subjects died before day 5 (1477/17180=8.6%)
+alive5<-sum(subset1$day_of_discharge <5, na.rm = T) #2574 subjects died before day 5 (2574/17180=15%)
+available5<-sum((!is.na(subset1$sf94) & subset1$days_since_start == 5), na.rm=T) #5383 known SF94 values
+percdead5<-dead5/length(unique(subset1$subjid)) #% that died before day from total subjects
+percalive5<-alive5/length(unique(subset1$subjid))# % that went home before day 5 from total subjects
+percavailable5<- (1-percdead5- percalive5)# % of available values
+dead_to_add<-(percdead5*available5)/percavailable5 #number of 0.5 values to add to variable
+alive_to_add<-(percalive5*available5)/percavailable5 #number of 4.76 values to add to variable
+
+day05_I<-day05 # base_s94_10, select subjid, day 0 and day 5
+day05_I<-day05_I%>% #keep 1 entry/subject
+group_by(subjid) %>% 
+  summarise_all(funs(f))
+sf94_D5_I<-day05_I$sf94_day5 #add day 5 to a separate df
+rows_to_replace<-which(is.na(sf94_D5_I))
+sf94_D5_I[sample(rows_to_replace, dead_to_add)]<- 0.5
+rows_to_replace<-which(is.na(sf94_D5_I))
+sf94_D5_I[sample(rows_to_replace, alive_to_add)]<- 4.76
+
+sf94_D5_I<-data.frame(sf94_D5_I)
+day05_I<-cbind(day05_I, sf94_D5_I)
+day05_I<-data.frame(day05_I)
+head(day05_I)
 
 #function code for split violin plots
 GeomSplitViolin <- ggproto("GeomSplitViolin", GeomViolin, 
