@@ -254,7 +254,16 @@ plot_associations_linear <- ggplot(Predict(linear_model), ggtitle = "N=5159" )
 plot_associations_linear
 plot_associations_splines <- ggplot(Predict(splines_model), ggtitle = "N=5159")
 plot_associations_splines 
+plot_associations_linear_exp <- ggplot(Predict(linear_model, fun=plogis), ylab= "Risk of 28-day mortality")
+plot_associations_linear_exp
+#univariate model
+univariate_model<-lrm(mortality_28 ~ sf94_day0, regresson_df, x=TRUE, y=TRUE)
+plot_linear_uni<-ggplot(Predict(univariate_model))
+plot_linear_exp_uni<-ggplot(Predict(univariate_model, fun=plogis), ylab= "Risk of 28-day mortality")
+plot_linear_uni
+plot_linear_exp_uni
 rpng.off()
+
 
 #with sf94_P values regression
 #use proportionally added outcome values, take subject ID and day 5 SF94_P values (from DF_1, so not using filters)
@@ -281,6 +290,10 @@ plot_associations_linear_P <- ggplot(Predict(linear_model_P), ggtitle = "N=6248"
 plot_associations_linear_P
 plot_associations_splines_P <- ggplot(Predict(splines_model_P), ggtitle = "N=6248")
 plot_associations_splines_P 
+#Visualise using exp scale
+plot_associations_linear_exp_P <- ggplot(Predict(linear_model_P, fun=plogis), ylab= "Risk of 28-day mortality")
+plot_associations_linear_exp_P
+
 rpng.off()
 
 #stats
@@ -304,9 +317,10 @@ y <-  regresson_df_P$sf94_D5_P
 cor(x,y)
 
 library(gtsummary)
-linear_model_glm <- glm(mortality_28 ~ sf94_day0 + sf94_D5_P, family=binomial, data=regresson_df_P)
-linear_model_glm  %>% tbl_regression(exponentiate=T)
-
+linear_model_glm_P <- glm(mortality_28 ~ sf94_day0 + sf94_D5_P, family=binomial, data=regresson_df_P)
+linear_model_glm_P  %>% tbl_regression(exponentiate=T, intercept= T)
+linear_model_glm <- glm(mortality_28 ~ sf94_day0 + sf94_day5, family=binomial, data=regresson_df)
+linear_model_glm  %>% tbl_regression(exponentiate=T, intercept= T)
 #scatterplot
 library(ggplot2)
 ggplot(regresson_df, aes(x=sf94_day0, y=sf94_day5)) +
