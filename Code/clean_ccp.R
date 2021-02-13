@@ -152,7 +152,6 @@ df <- distinct(df)
 # daily_temp_vsorres is recorded as a character. Take it to be numberic
 df['daily_temp_vsorres'] <- sapply(df['daily_temp_vsorres'], as.numeric)
 
-
 ####################################### UNIT CONVERSIONS: #######################################
 
 #BUN: measured as mg/dL and mmol/L, convert mg/dL to mmol/L
@@ -259,6 +258,9 @@ df <- df %>% group_by(subjid, daily_dsstdat) %>% mutate_at( intersect(  union(bi
 
 df <- df %>% group_by(subjid, daily_dsstdat) %>% mutate_at( setdiff(nonConstVars, union( union(binaryVars, otherCatVars), unitVars) ), mean)
 
+# Taking means leaves NaN values. Make them NA. 
+df[is.na(df)] <- NA
+
 ################################ REMOVE UNINFORMATIVE ROWS: ###################################
 
 # Remove duplicate rows
@@ -266,10 +268,7 @@ df <- distinct(df)
 
 # Remove any rows that have NA for daily_dsstdat & all non constant variables.
 # They don't contain any information
-df <- df %>% filter_at( c('daily_dsstdat', nonConstVars ), any_vars(!is.na(.))) 
-
-# Taking means leaves NaN values. Make them NA. 
-df[is.na(df)] <- NA
+df <- df %>% filter_at( c('daily_dsstdat', setdiff(nonConstVars, unitVars) ), any_vars(!is.na(.))) 
 
 ####################################### WRITE DATA: #######################################
 
