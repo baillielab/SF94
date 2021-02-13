@@ -21,7 +21,7 @@ library(forcats)
 dateVars <- c( "dsstdat", "cestdat", "hostdat", "daily_dsstdat", "dsstdtc")
 
 #Variables that should be constant in the data
-constantVars <- c("sex", "age_estimateyears", "hypertension_mhyn", "chrincard", "chronicpul_mhyn", "asthma_mhyn", "renal_mhyn",             
+constVars <- c("sex", "age_estimateyears", "hypertension_mhyn", "chrincard", "chronicpul_mhyn", "asthma_mhyn", "renal_mhyn",             
                   "modliv", "mildliver", "chronicneu_mhyn", "malignantneo_mhyn", "chronichaemo_mhyn", "obesity_mhyn",           
                   "diabetes_type_mhyn", "diabetescom_mhyn", "diabetes_mhyn", "rheumatologic_mhyn" , "dementia_mhyn",           
                   "malnutrition_mhyn", "smoking_mhyn", "other_mhyn", "ethnicity","clinical_frailty", "oxygen_cmoccur",
@@ -38,7 +38,7 @@ nonConstVars <- c("rr_vsorres", "oxy_vsorres", "oxy_vsorresu","daily_temp_vsorre
                      "hodur")
 
 # All variables
-allVars <- c("subjid", dateVars, constantVars, nonConstVars) 
+allVars <- c("subjid", dateVars, constVars, nonConstVars) 
 
 # Binary variables - take values YES or NO
 binaryVars <- c("hypertension_mhyn", "chrincard", "chronicpul_mhyn", "asthma_mhyn", "renal_mhyn",             
@@ -126,7 +126,6 @@ Mode <- function(x) {
 }
 }
 
-
 ####################################### GENERAL REPLACEMENTS: #######################################
 
 # Variables of type date have to be excluded from this, otherwise an error will be thrown.
@@ -193,7 +192,6 @@ df['daily_temp_vsorresu'][ !is.na( df['daily_temp_vsorresu'])  ] <- '°C'
 # Each additional 4% FiO2 is equivalent to 1 L/min
 df$daily_fio2c_lborres <- ifelse(df$daily_fio2c_lborres >= 20 , (df$daily_fio2c_lborres-20)/4, df$daily_fio2c_lborres)
 
-
 # change negative values in cols to positive
 
 negCols = c('daily_sao2_lborres', 'daily_fio2c_lborres', 'oxy_vsorres', 
@@ -246,12 +244,12 @@ df <- squeeze(df, limits)
 
 df <- df %>% group_by(subjid) %>% mutate_at( c('dsstdat', 'hostdat', 'cestdat', 'dsstdtc'), min, na.rm = TRUE )
 
-df <- df %>% group_by(subjid) %>% mutate_at(  intersect(binaryVars, constantVars),  ~case_when( any(. == 'YES') ~ 'YES',
+df <- df %>% group_by(subjid) %>% mutate_at(  intersect(binaryVars, constVars),  ~case_when( any(. == 'YES') ~ 'YES',
                                                                                                     any(. == 'NO', na.rm = TRUE) ~ 'NO') )
 
-df <- df %>% group_by(subjid) %>% mutate_at( setdiff( constantVars, union(binaryVars, otherCatVars) ), mean, na.rm = TRUE )
+df <- df %>% group_by(subjid) %>% mutate_at( setdiff( constVars, union(binaryVars, otherCatVars) ), mean, na.rm = TRUE )
 
-df <- df %>% group_by(subjid) %>% mutate_at( intersect(otherCatVars, constantVars), Mode)
+df <- df %>% group_by(subjid) %>% mutate_at( intersect(otherCatVars, constVars), Mode)
 
 # Some patients have multiple entries for the same day
 # For categorical non-constant values, we take the mode
@@ -259,7 +257,7 @@ df <- df %>% group_by(subjid) %>% mutate_at( intersect(otherCatVars, constantVar
 
 df <- df %>% group_by(subjid, daily_dsstdat) %>% mutate_at( intersect(  union(binaryVars, otherCatVars), nonConstVars), Mode)
 
-df <- df %>% group_by(subjid, daily_dsstdat) %>% mutate_at( setdiff(nonConstVars, union(binaryVars, otherCatVars)  ), mean)
+df <- df %>% group_by(subjid, daily_dsstdat) %>% mutate_at( setdiff(nonConstVars, union( union(binaryVars, otherCatVars), unitVars) ), mean)
 
 ################################ REMOVE UNINFORMATIVE ROWS: ###################################
 
