@@ -1,6 +1,6 @@
 #We could add this to evaluate_outcome when you're no longer working on it :)
 #it's inefficient but it works
-
+df_1$clinical_frailty<-as.numeric(df_1$clinical_frailty)
 #compare groups
 #compare key clinical variables between 2 groups (SaO2<0.94 |fio2=0.21) and SaO2>0.94
 df_1$sf94_group<-if_else((df_1$sao2 <=0.94 | df_1$fio2 == 0.21), "SF94<", "SF94>")
