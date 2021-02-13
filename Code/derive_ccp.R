@@ -33,8 +33,6 @@ squeeze<- function(df, limits){
 
 ####################################### ADD DERIVED VARIABLES: #######################################
 
-
-
 # Add variable that is True if they died, False otherwise
 # and similary for if they were dicharged
 
@@ -44,12 +42,10 @@ df <- mutate(df, death = case_when( dsterm == 'Death' ~ 'YES',
 df <- mutate(df, discharge = case_when( dsterm == 'Discharged alive' | dsterm == 'Transfer to other facility'  ~ 'YES',
                                     !is.na(dsterm) ~ 'NO')   )
 
-
 # Add columns for days since admission, days since symptoms
-df$days_since_admission <-  as.numeric( df$daily_dsstdat- df$hostdat )
+df$days_since_admission <-  df$daily_dsstdat- df$hostdat 
 
-df$days_since_symptoms <- as.numeric( df$daily_dsstdat -  df$cestdat )
-
+df$days_since_symptoms <-  df$daily_dsstdat -  df$cestdat 
 
 # Add column for date of first assessment
 df <- df %>% group_by  (subjid) %>% dplyr::mutate(first_study_day =  min(daily_dsstdat) )
@@ -58,31 +54,33 @@ df <- df %>% group_by  (subjid) %>% dplyr::mutate(first_study_day =  min(daily_d
 df <- as.data.frame(df)
 
 # add column for day since first assessment (= days_since_start)
-df<-mutate(df, days_since_start = as.numeric( daily_dsstdat - first_study_day )) 
-
+df<-mutate(df, days_since_start =  daily_dsstdat - first_study_day) 
 
 # Create columns for day of death and day of discharge
-df['day_of_death'] <- ifelse(  df[,'death'] == TRUE, df[, 'dsstdtc'] - df[, 'first_study_day'],  NA )
+df <- mutate(df, day_of_death = case_when( death == 'YES' ~  dsstdtc - first_study_day ))
 
-df['day_of_discharge'] <- ifelse(  df[,'discharge'] == TRUE, df[, 'dsstdtc'] - df[, 'first_study_day'],  NA )
+df <- mutate(df, day_of_discharge = case_when( discharge == 'YES' ~  dsstdtc - first_study_day ))
 
 # Add clean sao2, fio2 variables
-df['sao2'] <- ifelse( is.na(df[,'daily_sao2_lborres']) & !is.na(df[,'oxy_vsorres'])  , df[,'oxy_vsorres'],   df[,'daily_sao2_lborres'])/100
+df <- mutate(df, sao2 = case_when(  !is.na(daily_sao2_lborres) ~ daily_sao2_lborres/100,
+                                    !is.na(oxy_vsorres) ~ oxy_vsorres/100))
 
 df <- mutate(df, fio2 = case_when(  !is.na(daily_fio2_lborres) ~ daily_fio2_lborres,
                                     !is.na(daily_fio2b_lborres) ~ daily_fio2b_lborres,
                                     !is.na(daily_fio2c_lborres) ~ 0.04 * daily_fio2c_lborres + 0.21)  )
 
-# Add diabetes variable
+# Add diabetes and liver disease variable
 df <- mutate(df, diabetes = case_when(diabetes_type_mhyn == 2 | diabetes_type_mhyn == 1 
                                           | diabetescom_mhyn == 'YES' | diabetes_mhyn == 'YES' ~ 'YES',
                                           diabetes_type_mhyn == 'NO' | diabetescom_mhyn == 'NO' | diabetes_mhyn == 'NO' ~ 'NO')   )
 
+df <- mutate(df, liver = case_when( modliv == 'YES' | mildliver == 'YES' ~ 'YES',
+                                        modliv == 'NO' | mildliver == 'NO' ~ 'NO')    )               
+
 #Create SF value and SF94 value
 df$sfr<- df$sao2/df$fio2
 
-df$sf94<- ifelse((df$sao2 <= 0.94 | df$fio2 ==0.21), df$sfr, NA)
-
+df <- mutate(df, sf94 = case_when(  sao2 <= 0.94  | fio2 == 0.21 ~ sfr))  
 
 #make a new variable based on the ordinal scale levels from the WHO
 df<-df %>% 
@@ -103,8 +101,8 @@ df<-df %>%
 df<-df %>% 
   mutate(
     outcome = case_when(
-      death==TRUE ~ "Death",
-      discharge==TRUE ~ "Discharge"))
+      death=='YES' ~ "Death",
+      discharge=='YES' ~ "Discharge"))
 
 #28 day mortality variable
 df<-df %>% 
@@ -117,9 +115,8 @@ df<-df %>%
 df<-df %>% 
   mutate(
     mortality_4 = case_when(
-      death==TRUE & day_of_death <5 ~ 1,
-      discharge==TRUE & day_of_discharge<5 ~ 0))
-
+       day_of_death <5 ~ 1,
+       day_of_discharge<5 ~ 0))
 
 ############################# CLEAN DERIVED VARIABLES: ###################################
 
@@ -135,6 +132,3 @@ df <- squeeze(df, limits)
 
 # Write on argosafe
 write.csv(df,"/home/skerr/Data/ccp_subset_derived.csv", row.names = FALSE)
-
-
-
