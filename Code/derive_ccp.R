@@ -16,6 +16,8 @@ library(readr)
 
 df<-fread("/home/skerr/Data/ccp_subset_clean.csv", data.table = FALSE, )
 
+#read for maaike
+df <-fread("/home/u034/mcswets/df_20211402.csv")
 ####################################### FUNCTIONS THAT WILL BE USED: #######################################
 
 # This function squeezes variables.
@@ -34,7 +36,7 @@ squeeze<- function(df, limits){
 ####################################### ADD DERIVED VARIABLES: #######################################
 
 # Add variable that is True if they died, False otherwise
-# and similary for if they were dicharged
+# and similarly for if they were discharged
 
 df <- mutate(df, death = case_when( dsterm == 'Death' ~ 'YES',
                                     !is.na(dsterm) ~ 'NO')   )
@@ -43,18 +45,25 @@ df <- mutate(df, discharge = case_when( dsterm == 'Discharged alive' | dsterm ==
                                     !is.na(dsterm) ~ 'NO')   )
 
 # Add columns for days since admission, days since symptoms
-df$days_since_admission <-  df$daily_dsstdat- df$hostdat 
+df$daily_dsstdat<-(as.Date(as.character(df$daily_dsstdat), format="%Y-%m-%d"))
+df$dsstdtc<-(as.Date(as.character(df$dsstdtc), format="%Y-%m-%d"))
+df$hostdat<-(as.Date(as.character(df$hostdat), format="%Y-%m-%d"))
+df$cestdat<-(as.Date(as.character(df$cestdat), format="%Y-%m-%d"))
 
-df$days_since_symptoms <-  df$daily_dsstdat -  df$cestdat 
+df$days_since_admission <-  df$daily_dsstdat - df$hostdat
+
+df$days_since_symptoms <-  df$daily_dsstdat - df$cestdat
 
 # Add column for date of first assessment
 df <- df %>% group_by  (subjid) %>% dplyr::mutate(first_study_day =  min(daily_dsstdat) )
 
+df$first_study_day<-(as.Date(as.character(df$first_study_day), format="%Y-%m-%d"))
+
 # Code throws errors if df is a tibble rather than a dataframe
 df <- as.data.frame(df)
-
+head(df)
 # add column for day since first assessment (= days_since_start)
-df<-mutate(df, days_since_start =  daily_dsstdat - first_study_day) 
+df<-mutate(df, days_since_start =  daily_dsstdat- first_study_day)
 
 # Create columns for day of death and day of discharge
 df <- mutate(df, day_of_death = case_when( death == 'YES' ~  dsstdtc - first_study_day ))
@@ -62,8 +71,7 @@ df <- mutate(df, day_of_death = case_when( death == 'YES' ~  dsstdtc - first_stu
 df <- mutate(df, day_of_discharge = case_when( discharge == 'YES' ~  dsstdtc - first_study_day ))
 
 # Add clean sao2, fio2 variables
-df <- mutate(df, sao2 = case_when(  !is.na(daily_sao2_lborres) ~ daily_sao2_lborres/100,
-                                    !is.na(oxy_vsorres) ~ oxy_vsorres/100))
+df <- mutate(df, sao2 = case_when(  !is.na(daily_sao2_lborres) ~ daily_sao2_lborres/100))
 
 df <- mutate(df, fio2 = case_when(  !is.na(daily_fio2_lborres) ~ daily_fio2_lborres,
                                     !is.na(daily_fio2b_lborres) ~ daily_fio2b_lborres,
@@ -127,6 +135,7 @@ limits <- data.frame( 'days_since_start' = c(200,200,0,0),
                       'day_of_discharge' = c(250,250,0,0))
 
 df <- squeeze(df, limits)
+head(df)
 
 ####################################### WRITE DATA: #######################################
 

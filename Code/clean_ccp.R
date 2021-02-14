@@ -205,7 +205,8 @@ percentCols <- c( 'daily_sao2_lborres', 'oxy_vsorres')
 df <- cleanPercent(df, percentCols)
 
 int1Cols <- c('daily_fio2_lborres', 'daily_fio2b_lborres')
-
+#error: daily_fio2b_lborres is not numeric
+df$daily_fio2b_lborres<-as.numeric(df$daily_fio2b_lborres)
 df <- cleanInt1(df, int1Cols)
 
 # Limit for acceptable variable values
@@ -273,7 +274,7 @@ df <- df %>% filter_at( c('daily_dsstdat', setdiff(nonConstVars, unitVars) ), an
 ####################################### WRITE DATA: #######################################
 
 # Write for Maaike
-write.csv(df,"df_1_20210402.csv")
+write.csv(df,"df_20211402.csv")
 
 # Write on argosafe
 write.csv(df,"/home/skerr/Data/ccp_subset_clean.csv", row.names = FALSE)
