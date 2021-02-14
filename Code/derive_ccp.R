@@ -44,8 +44,14 @@ df <- mutate(df, death = case_when( dsterm == 'Death' ~ 'YES',
 df <- mutate(df, discharge = case_when( dsterm == 'Discharged alive' | dsterm == 'Transfer to other facility'  ~ 'YES',
                                     !is.na(dsterm) ~ 'NO')   )
 
+#change typos in year entry to 2020
+### change this when using 177K subjects as they are also admitted in 2021!!
+library(lubridate)
+df$daily_dsstdat<-as.Date(df$daily_dsstdat)
+year(df$daily_dsstdat)<-2020
+table(year(df$daily_dsstdat))
+
 # Add columns for days since admission, days since symptoms
-df$daily_dsstdat<-(as.Date(as.character(df$daily_dsstdat), format="%Y-%m-%d"))
 df$dsstdtc<-(as.Date(as.character(df$dsstdtc), format="%Y-%m-%d"))
 df$hostdat<-(as.Date(as.character(df$hostdat), format="%Y-%m-%d"))
 df$cestdat<-(as.Date(as.character(df$cestdat), format="%Y-%m-%d"))
@@ -55,13 +61,17 @@ df$days_since_admission <-  df$daily_dsstdat - df$hostdat
 df$days_since_symptoms <-  df$daily_dsstdat - df$cestdat
 
 # Add column for date of first assessment
-df <- df %>% group_by  (subjid) %>% dplyr::mutate(first_study_day =  min(daily_dsstdat) )
-
-df$first_study_day<-(as.Date(as.character(df$first_study_day), format="%Y-%m-%d"))
+df<-df %>%
+  group_by  (subjid) %>%
+  arrange(daily_dsstdat) %>%
+  mutate(first_study_day = first(daily_dsstdat))
+#arrange by subjid
+df<-df %>%
+  arrange(subjid)
 
 # Code throws errors if df is a tibble rather than a dataframe
 df <- as.data.frame(df)
-head(df)
+
 # add column for day since first assessment (= days_since_start)
 df<-mutate(df, days_since_start =  daily_dsstdat- first_study_day)
 
@@ -141,3 +151,6 @@ head(df)
 
 # Write on argosafe
 write.csv(df,"/home/skerr/Data/ccp_subset_derived.csv", row.names = FALSE)
+
+# Write for Maaike
+write.csv(df,"df_20211402.csv")

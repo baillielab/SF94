@@ -3,7 +3,7 @@ library(ggplot2)
 library(data.table)
 library(tidyr)
 
-df_1<-fread("/home/u034/mcswets/df_1_20210402.csv", data.table = FALSE)
+df_1<-fread("/home/u034/mcswets/df_20211402.csv", data.table = FALSE)
 
 # start population (df_1) = 79843
 # after applying age limits = 38919
