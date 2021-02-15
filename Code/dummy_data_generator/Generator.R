@@ -4,108 +4,59 @@
 
 ## Description: 
 
-# This file generates a simulated dataset for the sf94 project
-# The original data is CCP. The variables in the simulated dataset are in the variable cols below
+# This file generates a simulated dfset for the sf94 project
+# The original df is CCP. The variables in the simulated dfset are in the variable cols below
 # The basic strategy is to use multiple imputation by chained equations (MICE) in 2 steps. 
 # I add n rows that are empty except for having a subject id, and days_since_admission = 8.
-# I then use MICE to impute the values of variables that are constant in time for the period of the dataset, e.g. comorbidities
-# Then each simulated subjid gets 2 news rows of data, corresponding to days_since_admission = 0, 5.
+# I then use MICE to impute the values of variables that are constant in time for the period of the dfset, e.g. comorbidities
+# Then each simulated subjid gets 2 news rows of df, corresponding to days_since_admission = 0, 5.
 # A second use of MICE fills in values for sao2, severity_ordinal_scale and sf94.
 
 ###################################################################### 
 
 library(dplyr)
-
 library(ggplot2)
-
 library(mice)
-
 library(data.table)
 
+cols <- c('subjid', 'sex', 'age_estimateyears', 'days_since_start', 'day_of_death', 'death', 'severity_scale_ordinal', 'sao2', 
+          'sf94', 'chrincard', 'hypertension_mhyn', 'chronicpul_mhyn', 'renal_mhyn', 'chronicneu_mhyn', 'malignantneo_mhyn', 
+          'chronichaemo_mhyn', 'obesity_mhyn', 'dementia_mhyn', 'clinical_frailty', 'diabetes', 'liver')
 
-ultra <- FALSE
-
-if (ultra == TRUE){
-  
-  root <- '/home/u034/'
-} else {
-  
-  root <- 'Y:/'
-}
-
-
-
-cols <- c('subjid', 'sex', 'age_estimateyears', 'days_since_admission', 'day_of_death', 'death', 'severity_scale_ordinal', 'sao2', 'sf94', 
-          'chrincard', 'hypertension_mhyn', 'chronicpul_mhyn', 'renal_mhyn', 'modliv', 'mildliver', 'chronicneu_mhyn', 'malignantneo_mhyn', 
-          'chronichaemo_mhyn', 'obesity_mhyn','diabetes_type_mhyn', 'diabetescom_mhyn', 'diabetes_mhyn', 'dementia_mhyn', 'clinical_frailty')
-
-
-data<- fread(  paste( root, "mcswets/df_1_20210402.csv", sep= "") , select = cols, data.table = FALSE)
-
-
-# Create clean columns for diabetes and liver disease
-
-data <- mutate(data, diabetes = case_when( diabetes_type_mhyn == 1 | diabetes_type_mhyn == 2 | diabetescom_mhyn == 'YES' |  diabetes_mhyn == 'YES' ~ 1,
-                                           diabetes_type_mhyn == 'NO' |  diabetescom_mhyn == 'NO' |  diabetes_mhyn == 'NO' ~ 0) )
-
-
-data <- mutate(data, liver = case_when( modliv == 'YES' | mildliver == 'YES' ~ 1,
-                                        modliv == 'NO' | mildliver == 'NO' ~ 0)    )               
-
-# Drop columns that aren't needed anymore
-
-data[ c('diabetes_type_mhyn', 'diabetescom_mhyn', 'diabetes_mhyn', 'modliv', 'mildliver') ] <- NULL
-
-# Replace some values
-data[ data == 'Not Specified' ] <- NA
-data[ data == 'Not specified' ] <- NA
-data[ data == 'Unknown' ] <- NA
-data[ data == 'N/K' ] <- NA
-data[ is.na(data['death']), ]$death <- FALSE
-
+df<- fread("/home/skerr/Data/ccp_subset_derived.csv", select = cols, data.table = FALSE)
 
 # Take a sample
-sample <- sample_n(data, 10000)              
+sample <- sample_n(df, 1000)              
 
-
-# Create a dataframe for simulated data
+# Create a dataframe for simulated df
 # n is the size of the simulated dataset
+n <- 100
 
-n <- 1000
+simulated <- do.call(data.frame, replicate( length(df), rep(NA, n), simplify=FALSE))
 
-simulated <- do.call(data.frame, replicate( length(data), rep(NA, n), simplify=FALSE))
-
-colnames(simulated ) <- colnames(data)
+colnames(simulated ) <- colnames(df)
 
 simulated ['subjid'] <- paste( 'Simulated', rownames(simulated ), sep= ' ')
 
-simulated ['days_since_admission'] <- 8
+simulated ['days_since_start'] <- 8
 
-#Combine real and simulated data
-
-fullData <- rbind(sample, simulated)
-
+#Combine real and simulated df
+fulldf <- rbind(sample, simulated)
 
 # catVars is a list of variables that are categorical.
-
 catVars <- c('sex', 'death', 'chrincard', 'hypertension_mhyn','chronicpul_mhyn', 'renal_mhyn',  'chronicneu_mhyn', 
-             'malignantneo_mhyn', 'chronichaemo_mhyn', 'obesity_mhyn', 'dementia_mhyn', 'clinical_frailty',
-             'diabetes', 'liver')
+             'malignantneo_mhyn', 'chronichaemo_mhyn', 'obesity_mhyn', 'dementia_mhyn', 'clinical_frailty', 'diabetes', 'liver')
 
 # mice needs categorical varaiables to be factors
+fulldf[catVars] <- lapply(fulldf[catVars], factor )
 
-fullData[catVars] <- lapply(fullData[catVars], factor )
-
-
-# Variables that will not be imputed
-
-impExclude <- c('subjid','days_since_admission', 'severity_scale_ordinal', 'sao2', 'sf94' )
+# Variables that will not be imputed in first imputation
+impExclude <- c('subjid','days_since_start', 'severity_scale_ordinal', 'sao2', 'sf94')
 
 # Need to set the method option in mice manually
-
 createMethod <- function(impExclude){
   
-  method <- as.data.frame( sapply(fullData, nlevels) )
+  method <- as.data.frame( sapply(fulldf, nlevels) )
   
   method[ method[,1] > 2, ] <- 'polyreg'
   
@@ -121,26 +72,16 @@ createMethod <- function(impExclude){
 method <- createMethod(impExclude)
 
 
-predMat <- quickpred(data, exclude = impExclude)
+predMat <- quickpred(df, exclude = impExclude, mincor = -1)
 
-predMat[, 'day_of_death'] <- 0
-
-
-Imputation <- mice(fullData ,m=1,maxit=100, predictorMatrix = predMat, method = method  )
+Imputation <- mice(fulldf ,m=1, maxit=100, predictorMatrix = predMat, method = method)
 
 
-
-
-
-# freqTab prints frequency tables for the imputations and the real data against each other for the categorical variables
+# freqTab prints frequency tables for the imputations and the real df against each other for the categorical variables
 # to allow comparison.
-
-
 freqTab <- function(Imputation){
-  
   for (var in catVars){
-    
-    real <- table(fullData[var])
+    real <- table(fulldf[var])
     
     nlevels <- length(real)
     
@@ -150,20 +91,16 @@ freqTab <- function(Imputation){
     
     rownames(freqTable) <- seq(0, nlevels-1, 1)
     
-    
     for (m in 1:Imputation$m ){
-      
       tab <- table(as.data.frame(Imputation$imp[var])[,m] )
       
       freqTable[, m] <- tab / sum(tab)
       
-      freqTable[, 'real'] <- table(fullData[var]) / sum( table(fullData[var]) )
+      freqTable[, 'real'] <- table(fulldf[var]) / sum( table(fulldf[var]) )
       
     }
     print(var)
-    
     print(freqTable)
-    
   }
 }
 
@@ -171,75 +108,78 @@ freqTab <- function(Imputation){
 
 # Look at results of Imputation
 
-pdf( paste( root, 'stevenkerr/Git/SF94/Code/dummy_data_generator/Imputation.pdf', sep= "") )
+pdf( paste( root, 'stevenkerr/Git/SF94/Code/dummy_df_generator/Imputation.pdf', sep= "") )
 
-densityplot(Imputation, fullData ~ age_estimateyears + day_of_death)
+densityplot(Imputation, fulldf ~ age_estimateyears + day_of_death)
 
 dev.off()
 
 freqTab(Imputation)
 
 
-# Set fullData equal to the complete imputation
+# Set fulldf equal to the complete imputation
+fulldf1 <- complete(Imputation)
 
-fullData1 <- complete(Imputation)
+sapply(fulldf1['severity_scale_ordinal'], class)
 
-fullData1[  fullData1['death']==FALSE,  ]['day_of_death'] <- NA
+fulldf1 <- fulldf1 %>% mutate_at('severity_scale_ordinal', ~case_when(  day_of_death == days_since_start ~ 10,
+                                                                TRUE ~ severity_scale_ordinal))
 
 
-# Add rows for day 5 and day 8
+# Add rows for day 0 and 5
 
-addRows <- function(fullData){
-  
-  for(i in (nrow(fullData) - n +1):nrow(fullData)    ){
+addRows <- function(fulldf){
+  for(i in (nrow(fulldf) - n +1):nrow(fulldf)    ){
+    row <-  fulldf[i,   ] 
+    if( row['death'] == 'NO' |  ( row['death'] == 'YES' &   row['day_of_death'] > 5)  ){
+      newrow <- row
+      
+      newrow['days_since_start'] <- 5
+      
+      fulldf <- rbind(fulldf, newrow)
+    }
     
-    row <-  fullData[i,   ] 
-    
-    if( row['death'] == FALSE |  ( row['death'] == TRUE &   row['day_of_death'] > 5)  ){
+    if( row['death'] == 'NO' |  ( row['death'] == 'YES' &   row['day_of_death'] > 0)   ){
       
       newrow <- row
       
-      newrow['days_since_admission'] <- 5
+      newrow['days_since_start'] <- 0
       
-      fullData <- rbind(fullData, newrow)
+      fulldf <- rbind(fulldf, newrow)
     }
-    
-    
-    if( row['death'] == FALSE |  ( row['death'] == TRUE &   row['day_of_death'] > 0)   ){
-      
-      newrow <- row
-      
-      newrow['days_since_admission'] <- 0
-      
-      fullData <- rbind(fullData, newrow)
     }
-    
-  }
-  
-  rownames(fullData) <- 1:nrow(fullData)
-  
-  return(fullData)  
+  rownames(fulldf) <- 1:nrow(fulldf)
+  return(fulldf)  
 }
 
-
-fullData2 <- addRows(fullData1)
-
+fulldf2 <- addRows(fulldf1)
 
 
+impExclude2 <- setdiff(colnames(df), c('severity_scale_ordinal', 'sao2', 'sf94'))
 
-impExclude2 <- setdiff( colnames(data), c('severity_scale_ordinal', 'sao2', 'sf94')    )
+method2 <- createMethod(impExclude2)
 
-method <- createMethod(impExclude2)
+predMat2 <- quickpred(df, mincor = -1 )
+
+predMat2['day_of_death'] <- 0
+
+Imputation2 <- mice(fulldf2 ,m=1,maxit=100, predictorMatrix = quickpred(df), method = method2)
 
 
-Imputation2 <- mice(fullData2 ,m=1,maxit=100, predictorMatrix = quickpred(data), method = method)
+pdf( paste( root, 'stevenkerr/Git/SF94/Code/dummy_df_generator/Imputation2.pdf', sep= "") )
 
-
-pdf( paste( root, 'stevenkerr/Git/SF94/Code/dummy_data_generator/Imputation2.pdf', sep= "") )
-
-densityplot(Imputation2, fullData2 ~ severity_scale_ordinal + sao2 + sf94)
+densityplot(Imputation2, fulldf2 ~ severity_scale_ordinal + sao2 + sf94)
 
 dev.off()
 
 
-fullData2 <- complete(Imputation2 )
+
+fulldf3 <- complete(Imputation2)
+
+fulldf3[  fulldf3['death']=='NO',  ]['day_of_death'] <- NA
+
+sapply(fulldf3['severity_scale_ordinal'], class)
+
+fulldf3 <- mutate(fulldf3, severity_scale_ordinal = case_when(  day_of_death == days_since_start ~ 10,
+                                                                TRUE ~ severity_scale_ordinal))
+

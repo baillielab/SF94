@@ -12,6 +12,8 @@ library(tidyr)
 library(data.table)
 library(readr)
 library(forcats)
+library(lubridate)
+library(stringr)
 
 ####################################### CURATE VARIABLE SELECTION: #######################################
 
@@ -60,10 +62,10 @@ unitVars <- c('daily_temp_vsorresu', "daily_bun_lborresu", "daily_creat_lborresu
 # You should run code in this section selectively, or add your own read path depending on your environment
 
 #read for Steven
-df <-fread("Y:/mcswets/ccp_data.csv", select = allVars, data.table = FALSE)
+#df <-fread("Y:/mcswets/ccp_data.csv", select = allVars, data.table = FALSE)
 
 #read for maaike
-df <-fread("/home/u034/mcswets/ccp_data.csv", select = allVars, data.table = FALSE)
+#df <-fread("/home/u034/mcswets/ccp_data.csv", select = allVars, data.table = FALSE)
 
 
 # Read on argosafe
@@ -75,7 +77,7 @@ ccp_data = read_rds(paste0(datadir, "ccp_data_", timestamp, "_full.rds"))
 df <- ccp_data[allVars]
 
 # Take a sample. 
-df <- sample_n(df, 1000)
+#df <- sample_n(bob, 1000)
 
 ####################################### FUNCTIONS THAT WILL BE USED: #######################################
 
@@ -143,7 +145,6 @@ df <- mutate_at(df, c('any_invasive', 'other_mhyn', 'dsstdtcyn'), ~ fct_recode(.
 
 ################################ REMOVE DUPLICATE ROWS: ###################################
 
-# Remove duplicate rows
 # Worth doing this at the start to make the rest of the code run quicker.
 df <- distinct(df)
 
@@ -151,6 +152,13 @@ df <- distinct(df)
 
 # daily_temp_vsorres is recorded as a character. Take it to be numberic
 df['daily_temp_vsorres'] <- sapply(df['daily_temp_vsorres'], as.numeric)
+
+# Redundant for argosafe data, but in other data date variables might be formatted as characters
+# rather than as dates
+df[dateVars] <- lapply(df[dateVars], as.Date)
+
+# Redundant for argosafe data, but in other data daily_fio2b_lborres might be formatted as npon-numeric
+df['daily_fio2b_lborres'] <- lapply(df['daily_fio2b_lborres'], as.numeric )
 
 ####################################### UNIT CONVERSIONS: #######################################
 
@@ -231,8 +239,14 @@ limits <- data.frame( 'daily_sao2_lborres' = c( 100, 100, 50, 50),
 
 df <- squeeze(df, limits)
 
-
 ####################################### TIME SERIES CLEANING: #######################################
+
+# If the year of a date variable is in 2020 or 2021, leave it be. 
+# If the year of a date variable is 2002, 2030 or 3030, we assume they meant 2020.
+# Otherwise set to NA
+
+df <- mutate_at(df, dateVars,  ~case_when(    year(.) %in% c(2020, 2021) ~ . ,
+  year(.) %in% c(2002, 2030, 3030) ~ as.Date( paste( '2020', str_sub(. ,-6,-1), sep=""), format = '%Y-%m-%d') ))
 
 # For each subjid, take dates of admission, symptoms, etc as the earliest recorded
 # For binary variables that are constant, take them to be 'YES' if they are ever 'YES' for a given subjid.
@@ -244,8 +258,8 @@ df <- squeeze(df, limits)
 
 df <- df %>% group_by(subjid) %>% mutate_at( c('dsstdat', 'hostdat', 'cestdat', 'dsstdtc'), min, na.rm = TRUE )
 
-df <- df %>% group_by(subjid) %>% mutate_at(  intersect(binaryVars, constVars),  ~case_when( any(. == 'YES') ~ 'YES',
-                                                                                                    any(. == 'NO', na.rm = TRUE) ~ 'NO') )
+df <- df %>% group_by(subjid) %>% mutate_at(intersect(binaryVars, constVars),  ~case_when( any(. == 'YES') ~ 'YES',
+                                                                              any(. == 'NO', na.rm = TRUE) ~ 'NO') )
 
 df <- df %>% group_by(subjid) %>% mutate_at( setdiff( constVars, union(binaryVars, otherCatVars) ), mean, na.rm = TRUE )
 
@@ -274,7 +288,7 @@ df <- df %>% filter_at( c('daily_dsstdat', setdiff(nonConstVars, unitVars) ), an
 ####################################### WRITE DATA: #######################################
 
 # Write for Maaike
-write.csv(df,"df_20211402.csv")
+#write.csv(df,"df_20211402.csv")
 
 # Write on argosafe
 write.csv(df,"/home/skerr/Data/ccp_subset_clean.csv", row.names = FALSE)
