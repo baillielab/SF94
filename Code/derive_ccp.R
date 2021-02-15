@@ -14,6 +14,7 @@ library(readr)
 
 ####################################### IMPORT DATA: #######################################
 
+# Read on argosafe
 df<-fread("/home/skerr/Data/ccp_subset_clean.csv", data.table = FALSE, )
 
 #read for maaike
@@ -44,30 +45,18 @@ df <- mutate(df, death = case_when( dsterm == 'Death' ~ 'YES',
 df <- mutate(df, discharge = case_when( dsterm == 'Discharged alive' | dsterm == 'Transfer to other facility'  ~ 'YES',
                                     !is.na(dsterm) ~ 'NO')   )
 
-#change typos in year entry to 2020
-### change this when using 177K subjects as they are also admitted in 2021!!
-library(lubridate)
-df$daily_dsstdat<-as.Date(df$daily_dsstdat)
-year(df$daily_dsstdat)<-2020
-table(year(df$daily_dsstdat))
-
 # Add columns for days since admission, days since symptoms
-df$dsstdtc<-(as.Date(as.character(df$dsstdtc), format="%Y-%m-%d"))
-df$hostdat<-(as.Date(as.character(df$hostdat), format="%Y-%m-%d"))
-df$cestdat<-(as.Date(as.character(df$cestdat), format="%Y-%m-%d"))
-
 df$days_since_admission <-  df$daily_dsstdat - df$hostdat
 
 df$days_since_symptoms <-  df$daily_dsstdat - df$cestdat
 
 # Add column for date of first assessment
-df<-df %>%
-  group_by  (subjid) %>%
-  arrange(daily_dsstdat) %>%
-  mutate(first_study_day = first(daily_dsstdat))
-#arrange by subjid
-df<-df %>%
-  arrange(subjid)
+df <- df %>% group_by  (subjid) %>% dplyr::mutate(first_study_day =  min(daily_dsstdat) )
+
+#df<-df %>%
+#  group_by  (subjid) %>%
+#  arrange(daily_dsstdat) %>%
+#  mutate(first_study_day = first(daily_dsstdat))
 
 # Code throws errors if df is a tibble rather than a dataframe
 df <- as.data.frame(df)
@@ -81,7 +70,7 @@ df <- mutate(df, day_of_death = case_when( death == 'YES' ~  dsstdtc - first_stu
 df <- mutate(df, day_of_discharge = case_when( discharge == 'YES' ~  dsstdtc - first_study_day ))
 
 # Add clean sao2, fio2 variables
-df <- mutate(df, sao2 = case_when(  !is.na(daily_sao2_lborres) ~ daily_sao2_lborres/100))
+df['sao2'] <- df['daily_sao2_lborres']/100
 
 df <- mutate(df, fio2 = case_when(  !is.na(daily_fio2_lborres) ~ daily_fio2_lborres,
                                     !is.na(daily_fio2b_lborres) ~ daily_fio2b_lborres,
@@ -89,7 +78,7 @@ df <- mutate(df, fio2 = case_when(  !is.na(daily_fio2_lborres) ~ daily_fio2_lbor
 
 # Add diabetes and liver disease variable
 df <- mutate(df, diabetes = case_when(diabetes_type_mhyn == 2 | diabetes_type_mhyn == 1 
-                                          | diabetescom_mhyn == 'YES' | diabetes_mhyn == 'YES' ~ 'YES',
+                                        | diabetescom_mhyn == 'YES' | diabetes_mhyn == 'YES' ~ 'YES',
                                           diabetes_type_mhyn == 'NO' | diabetescom_mhyn == 'NO' | diabetes_mhyn == 'NO' ~ 'NO')   )
 
 df <- mutate(df, liver = case_when( modliv == 'YES' | mildliver == 'YES' ~ 'YES',
