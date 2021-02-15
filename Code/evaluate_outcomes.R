@@ -4,6 +4,8 @@ library(data.table)
 library(tidyr)
 
 df_1<-fread("/home/u034/mcswets/df_20211402.csv", data.table = FALSE)
+df_1<-df_1[,c(3:87)]
+length(df_1$subjid)
 
 # start population (df_1) = 79843
 # after applying age limits = 38919
@@ -15,7 +17,7 @@ subset1 <- as.data.frame(subset1)
 
 subset1<-df_1
 
-
+head(subset1)
 # variable should be either  'sf94' or 'severity_scale_ordinal'
 # group should be 'base' if you want to include everyone except those who died or were discharged
 # 'basedd' if you want to include those who died or were discharged
@@ -44,9 +46,9 @@ createDF <- function(group, variable, time){
   
   if(group == 'basedd' | group == 'day0' ){
     
-    censorDeath <- filter( subset1,  death== TRUE  & day_of_death < time    )[c('subjid', 'day_of_death')]
+    censorDeath <- filter( subset1,  death== "YES"  & day_of_death < time    )[c('subjid', 'day_of_death')]
     
-    censorDischarge <- filter( subset1,  discharge== TRUE  & day_of_discharge < time    )[c('subjid', 'day_of_discharge')]
+    censorDischarge <- filter( subset1,  discharge== "YES"  & day_of_discharge < time    )[c('subjid', 'day_of_discharge')]
     
     
     if(variable == 'sf94'){
@@ -82,6 +84,7 @@ createDF <- function(group, variable, time){
   
   
 }
+
 
 sum((!is.na(subset1$day_of_death) | !is.na(subset1$day_of_discharge)) & subset1$days_since_start == 0, na.rm = T)
 #(group,variable, time)
@@ -145,6 +148,9 @@ day5who<-day5who%>%
   summarise_all(funs(f))
 day5who<-day5who%>%
   dplyr::rename(who_day5= "5")
+#calculate mean level at day 5
+summary(day5who$who_day5)
+#add SF94 for other analysis
 day5sf94<-base_sf94_10[,c(1,7)]
 day5sf94<-day5sf94%>%
   group_by(subjid)%>%
@@ -164,12 +170,19 @@ sapply(day5_wide, sd, na.rm=T)
 
 #day 8 WHO and SF dataframe
 #WHO day 8
-day8_who<-base_who_8[,c(1,10)]
+day8_who<-basedd_who_8[,c(1,7,10)]
 day8_who<-day8_who%>%
   group_by(subjid)%>%
   summarise_all(funs(f))
 day8_who<-day8_who%>%
-  dplyr::rename(who_day8= "8")
+  dplyr::rename(who_day8= "8",
+                who_day5= "5")
+head(day8_who)
+hist(day8_who$who_day5, breaks=50)
+rpng.off()
+summary(day8_who$who_day5)
+summary(day8_who$who_day8)
+sd(day8_who$who_day5, na.rm = T)
 #SF94 day 8
 day8sf94<-base_sf94_10[,c(1,10)]
 day8sf94<-day8sf94%>%
@@ -189,6 +202,14 @@ length(day8_wide$subjid)
 summary(day8_wide)
 sapply(day8_wide, sd, na.rm=T)
 
+#mortality at 28 days
+head(subset1)
+length(unique(subset1$subjid))
+mort<-subset1 %>%
+  group_by(subjid)%>%
+  count(mortality_28)
+table(mort$mortality_28)
+4420/(10331+4420)
 #regression model D5 SF94 and mortality
 library(rms)
 #with sf94 values regression
@@ -418,7 +439,11 @@ severity_dif_1level<-severity_dif_1level %>%
       score_difference == -4 & 
         ((severity_scale_ordinal.y +3) >= final_who_score) ~ Days
     ))
+severity_dif_1level<-data.frame(severity_dif_1level)
+head(severity_dif_1level)
 
+summary(severity_dif_1level$Days, na.rm = T)
+summary(severity_dif_2level$Days, na.rm = T)
 #for 2 levels difference
 severity_dif_2level<-severity_dif_2level %>% 
   mutate(
