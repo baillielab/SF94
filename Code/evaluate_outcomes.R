@@ -123,7 +123,7 @@ f <- function(x) {
   x <- na.omit(x)
   if (length(x) > 0) unique(x) else NA
 }
-correlation_subset<-basedd_sf94day0_10
+correlation_subset<-basedd_sf94_10
 correlation_subset<-correlation_subset %>% 
   group_by(subjid) %>% 
   summarise_all(funs(f))
