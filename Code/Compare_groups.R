@@ -58,3 +58,41 @@ table(df_sex0$sf94_group, df_sex0$sex)
 table(df_sex0$sf94_group, df_sex0$death)
 table(df_sex0$sf94_group, df_sex0$discharge)
 table(df_day0$severity_scale_ordinal, df_day0$sf94_group)
+
+# compare day0/5 correlation group to complete population (both basedd_sf94_10)
+# correlation_subset_05 is those with available measurements on day 0 and day 5
+# comparing with complete basedd population (minus the subjects in correlation subset 05)
+compare_correlation<-subset1
+#if subject is in correlation day 0/day 5 list, add to 'group 05', if not add to other
+compare_correlation$group<-ifelse(compare_correlation$subjid %in% correlation_subset_05$subjid, "group 05",
+                                  "group other")
+table(compare_correlation$group)
+#compare groups
+number_subjects_compare<-compare_correlation %>%
+  group_by(subjid) %>%
+  count(group)
+table(number_subjects_compare$group)
+#compare other characteristics
+tapply(compare_correlation$age_estimateyears, compare_correlation$group, summary, na.rm=T)
+tapply(compare_correlation$daily_temp_vsorres, compare_correlation$group, summary, na.rm=T)
+tapply(compare_correlation$systolic_vsorres, compare_correlation$group, summary, na.rm=T)
+tapply(compare_correlation$diastolic_vsorres, compare_correlation$group, summary, na.rm=T)
+tapply(compare_correlation$onset2admission, compare_correlation$group, summary, na.rm=T)
+tapply(compare_correlation$rr_vsorres, compare_correlation$group, summary, na.rm=T)
+tapply(compare_correlation$clinical_frailty, compare_correlation$group, summary, na.rm=T)
+tapply(compare_correlation$daily_urine_lborres, compare_correlation$group, summary, na.rm=T)
+tapply(compare_correlation$daily_bun_lborres, compare_correlation$group, summary, na.rm=T)
+tapply(compare_correlation$daily_gcs_vsorres, compare_correlation$group, summary, na.rm=T)
+tapply(compare_correlation$daily_creat_lborres, compare_correlation$group, summary, na.rm=T)
+tapply(compare_correlation$daily_crp_lborres, compare_correlation$group, summary, na.rm=T)
+compare_group_cat<-compare_correlation%>%
+  group_by(subjid, group)%>%
+  count(infiltrates_faorres)
+table(compare_group_cat$group, compare_group_cat$sex)
+table(compare_group_cat$group, compare_group_cat$outcome)
+table(compare_group_cat$group, compare_group_cat$infiltrates_faorres)
+table(compare_correlation$severity_scale_ordinal, compare_correlation$group)
+
+head(compare_correlation[,c(77,81,82)], 50)
+colnames(compare_correlation)
+sum(subset1$fio2 == 0.21, na.rm = T)

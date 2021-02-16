@@ -4,8 +4,7 @@ library(data.table)
 library(tidyr)
 
 df_1<-fread("/home/u034/mcswets/df_20211402.csv", data.table = FALSE)
-df_1<-df_1[,c(3:87)]
-length(df_1$subjid)
+df_1<-df_1[,c(2:86)]
 
 # start population (df_1) = 79843
 # after applying age limits = 38919
@@ -17,7 +16,6 @@ subset1 <- as.data.frame(subset1)
 
 subset1<-df_1
 
-head(subset1)
 # variable should be either  'sf94' or 'severity_scale_ordinal'
 # group should be 'base' if you want to include everyone except those who died or were discharged
 # 'basedd' if you want to include those who died or were discharged
@@ -177,12 +175,9 @@ day8_who<-day8_who%>%
 day8_who<-day8_who%>%
   dplyr::rename(who_day8= "8",
                 who_day5= "5")
-head(day8_who)
-hist(day8_who$who_day5, breaks=50)
-rpng.off()
 summary(day8_who$who_day5)
 summary(day8_who$who_day8)
-sd(day8_who$who_day5, na.rm = T)
+sd(day8_who$who_day8, na.rm = T)
 #SF94 day 8
 day8sf94<-base_sf94_10[,c(1,10)]
 day8sf94<-day8sf94%>%
