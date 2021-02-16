@@ -18,7 +18,7 @@ library(readr)
 df<-fread("/home/skerr/Data/ccp_subset_clean.csv", data.table = FALSE, )
 
 #read for maaike
-df <-fread("/home/u034/mcswets/df_20211402.csv")
+#df <-fread("/home/u034/mcswets/df_20211402.csv")
 ####################################### FUNCTIONS THAT WILL BE USED: #######################################
 
 # This function squeezes variables.
@@ -93,7 +93,7 @@ df <- mutate(df, sf94 = case_when(  sao2 <= 0.94  | fio2 == 0.21 ~ sfr))
 df<-df %>% 
   mutate(
     severity_scale_ordinal = case_when(
-      !is.na(day_of_death) ~ 10,
+      day_of_death == days_since_start ~ 10,
       daily_invasive_prtrt == "YES" & sfr <=2.0 & 
         (daily_inotrope_cmyn == "YES"|daily_ecmo_prtrt == "YES" |daily_rrt_cmtrt == "YES") ~ 9,
       daily_invasive_prtrt == "YES" & (sfr <=2.0|daily_inotrope_cmyn == "YES" ) ~ 8,
@@ -134,7 +134,6 @@ limits <- data.frame( 'days_since_start' = c(200,200,0,0),
                       'day_of_discharge' = c(250,250,0,0))
 
 df <- squeeze(df, limits)
-head(df)
 
 ####################################### WRITE DATA: #######################################
 
@@ -142,4 +141,4 @@ head(df)
 write.csv(df,"/home/skerr/Data/ccp_subset_derived.csv", row.names = FALSE)
 
 # Write for Maaike
-write.csv(df,"df_20211402.csv")
+#write.csv(df,"df_20211402.csv")
