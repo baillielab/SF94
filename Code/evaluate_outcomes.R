@@ -4,6 +4,7 @@ library(data.table)
 library(tidyr)
 
 df_1<-fread("/home/u034/mcswets/df_20211402.csv", data.table = FALSE)
+head(df_1)
 df_1<-df_1[,c(2:86)]
 
 # start population (df_1) = 79843
@@ -102,6 +103,8 @@ basedd_who_8<-createDF("basedd", "severity_scale_ordinal",8)
 basedd0_who_8<-createDF("day0", "severity_scale_ordinal", 8)
 
 base_who_5<-createDF("base", "severity_scale_ordinal", 5)
+#using df_1 (without filters)
+df_1_base_sf94<-createDF("base", "sf94", 10)
 
 summary(base_sf94_10)
 summary(basedd_sf94_10)
@@ -472,7 +475,6 @@ severity_dif_2level<-severity_dif_2level %>%
       score_difference == -4 & 
         ((severity_scale_ordinal.y +2) >= final_who_score) ~ Days
       ))
-
 
 
 #function code for split violin plots
