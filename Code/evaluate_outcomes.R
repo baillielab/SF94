@@ -401,7 +401,7 @@ severity_difference<-severity_difference %>%
   filter(n()>=2) #17180 subjects
 severity_difference<-subset(severity_difference, !is.na(days_since_start)) #17180 subjects
 severity_difference<-subset(severity_difference, !is.na(severity_scale_ordinal)) #17180 subjects
-#calculate time it takes for a change of 2
+#calculate time it takes for a change of 1
 severity_dif_1level<-severity_difference %>%
   left_join(severity_difference, ("subjid")) %>%
   filter(severity_scale_ordinal.x != 10)%>% #some wrong entries where after death there is still a non-dead value
@@ -439,6 +439,28 @@ head(severity_dif_1level)
 
 summary(severity_dif_1level$Days, na.rm = T)
 summary(severity_dif_2level$Days, na.rm = T)
+
+#calculate time it takes for a change of 2
+severity_dif_2level<-severity_difference %>%
+  left_join(severity_difference, ("subjid")) %>%
+  filter(severity_scale_ordinal.x != 10)%>% #some wrong entries where after death there is still a non-dead value
+  mutate(Days = (days_since_start.y - days_since_start.x)) %>% # creates all possible combinations (day 3- day 1 and day 1- day 3)
+  filter(Days>0)%>% #only keep if day y > day x (as this means 'forward' change)
+  mutate(score_difference= severity_scale_ordinal.y- severity_scale_ordinal.x) %>% #calculate the change in severity levels 
+  filter(score_difference <= -2) %>% # improvement >> score gets lower
+  group_by(subjid) %>%
+  slice(which.min(Days)) %>% #if multiple combination for a 1/2 level difference, take the smallest no of days
+  ungroup %>%
+  right_join(distinct(severity_difference["subjid"]), "subjid") # 17180 subjects
+
+#add both together
+severity_dif_2level<-left_join(severity_dif_2level, last_sev, by="subjid") #17180 subjects
+#only keep if value is the same as last value
+#if subject improves further- we don't want to lose them, so sev_scale_ord.y needs to be smaller than final score
+#sev_scale.y can also be the same as final score
+# if final score is higher than sev_score.y >> remove days value
+severity_dif_2level$severity_scale_ordinal.y<-as.numeric(severity_dif_2level$severity_scale_ordinal.y)
+severity_dif_2level$final_who_score<-as.numeric(severity_dif_2level$final_who_score)
 #for 2 levels difference
 severity_dif_2level<-severity_dif_2level %>% 
   mutate(
