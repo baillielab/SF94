@@ -18,7 +18,8 @@ library(readr)
 df<-fread("/home/skerr/Data/ccp_subset_clean.csv", data.table = FALSE, )
 
 #read for maaike
-#df <-fread("/home/u034/mcswets/df_20211402.csv")
+df <-fread("/home/u034/mcswets/df_20211402.csv")
+
 ####################################### FUNCTIONS THAT WILL BE USED: #######################################
 
 # This function squeezes variables.
@@ -141,4 +142,4 @@ df <- squeeze(df, limits)
 write.csv(df,"/home/skerr/Data/ccp_subset_derived.csv", row.names = FALSE)
 
 # Write for Maaike
-#write.csv(df,"df_20211402.csv")
+write.csv(df,"df_20211402.csv")
