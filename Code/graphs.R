@@ -1,0 +1,165 @@
+library(dplyr)
+library(ggplot2)
+library(data.table)
+library(tidyr)
+
+
+#----------------------------------- GRAPHS --------------------------------
+#split violin plot
+#data
+base_sf94_12<-createDF("base", "sf94", 12)
+#transform to long format 
+long_dfsf94_12<-gather(base_sf94_12, days_since_start, sf94, 2:14, factor_key=T)
+#removing rows without SF94 value
+long_dfsf94_12 <- subset(long_dfsf94_12, !is.na(sf94))
+#add 30 day mortality data
+long_dfsf94_12<-left_join(long_dfsf94_12, mortality, by="subjid")
+long_dfsf94_12 <- subset(long_dfsf94_12, !is.na(mortality_28))
+#change to character and set correct order
+long_dfsf94_12$mortality_28<-as.character(long_dfsf94_12$mortality_28)
+long_dfsf94_12$mortality_28<-factor(long_dfsf94_12$mortality_28,
+                                    levels=c("0","1"))
+long_dfsf94_12$days_since_start<-as.character(long_dfsf94_12$days_since_start)
+long_dfsf94_12$days_since_start<-factor(long_dfsf94_12$days_since_start,
+                                        levels=c("0","1","2","3","4","5",
+                                                 "6","7","8","9","10", "11", "12"))
+#function code for split violin plots
+GeomSplitViolin <- ggproto("GeomSplitViolin", GeomViolin, 
+                           draw_group = function(self, data, ..., draw_quantiles = NULL) {
+                             data <- transform(data, xminv = x - violinwidth * (x - xmin), xmaxv = x + violinwidth * (xmax - x))
+                             grp <- data[1, "group"]
+                             newdata <- plyr::arrange(transform(data, x = if (grp %% 2 == 1) xminv else xmaxv), if (grp %% 2 == 1) y else -y)
+                             newdata <- rbind(newdata[1, ], newdata, newdata[nrow(newdata), ], newdata[1, ])
+                             newdata[c(1, nrow(newdata) - 1, nrow(newdata)), "x"] <- round(newdata[1, "x"])
+                             
+                             if (length(draw_quantiles) > 0 & !scales::zero_range(range(data$y))) {
+                               stopifnot(all(draw_quantiles >= 0), all(draw_quantiles <=
+                                                                         1))
+                               quantiles <- ggplot2:::create_quantile_segment_frame(data, draw_quantiles)
+                               aesthetics <- data[rep(1, nrow(quantiles)), setdiff(names(data), c("x", "y")), drop = FALSE]
+                               aesthetics$alpha <- rep(1, nrow(quantiles))
+                               both <- cbind(quantiles, aesthetics)
+                               quantile_grob <- GeomPath$draw_panel(both, ...)
+                               ggplot2:::ggname("geom_split_violin", grid::grobTree(GeomPolygon$draw_panel(newdata, ...), quantile_grob))
+                             }
+                             else {
+                               ggplot2:::ggname("geom_split_violin", GeomPolygon$draw_panel(newdata, ...))
+                             }
+                           })
+
+geom_split_violin <- function(mapping = NULL, data = NULL, stat = "ydensity", position = "identity", ..., 
+                              draw_quantiles = NULL, trim = TRUE, scale = "area", na.rm = FALSE, 
+                              show.legend = NA, inherit.aes = TRUE) {
+  layer(data = data, mapping = mapping, stat = stat, geom = GeomSplitViolin, 
+        position = position, show.legend = show.legend, inherit.aes = inherit.aes, 
+        params = list(trim = trim, scale = scale, draw_quantiles = draw_quantiles, na.rm = na.rm, ...))
+}
+
+#split violin plot
+p1 <- ggplot(long_dfsf94_12, aes(x=days_since_start, y=sf94, fill=mortality_28)) +
+  geom_split_violin()+
+  coord_flip()+
+  xlab("Day")+
+  ylab("S/F94")+
+  ggtitle("")+
+  scale_fill_discrete(name="28-day outcome", labels=c("Discharged alive", "Death"))
+p1
+#non split violin (not decided yet which one to use out of p1 and p2)
+p2 <- ggplot(long_dfsf94_12, aes(x=days_since_start, y=sf94, fill=mortality_28)) +
+  geom_violin()+
+  xlab("Day")+
+  ylab("S/F94")+
+  ggtitle("")+
+  scale_fill_discrete(name="28-day outcome", labels= c("Discharged alive", "Death"))
+p2
+
+#time series SF94 for each day split by outcome
+timeseries_sf94<-ggplot(long_dfsf94_12, aes(x=days_since_start, y=sf94,
+                                            group=mortality_28, colour=mortality_28)) +
+  stat_summary(geom="line", fun=mean)+
+  ggtitle("Change in S/F94 over time, split by outcome")+
+  xlab("Day")+
+  ylab("S/F94")+
+  scale_color_discrete(name= "Outcome", labels=c("Discharged alive", "Death"))
+timeseries_sf94
+
+#OUTPUT
+#3 graphs
+
+#------------------------ TO RUN ------------------------------
+#Respiratory rate and SF9/4 function, including regression line (Sup figure 5)
+ggplot(df_1, aes(x=sf94, y=rr_vsorres)) +
+  geom_point()+
+  geom_smooth(method=lm)+
+  xlab("S/F94")+
+  ylab("Respiratory Rate")+
+  theme_bw()
+#title: rr_sf94_regression
+
+
+
+# figure 7A: effect size with alternative outcome in an unselected population
+# data = df_1
+# no filters used
+#take day 5 from who and sf data
+unselected_day5<-subset(df_1, days_since_start == 5)
+unselected_day5<-subset(unselected_day5, (!is.na(severity_scale_ordinal)))
+unselected_day5$severity_scale_ordinal<- paste("WHO level", unselected_day5$severity_scale_ordinal, sep = " ")
+unselected_day5$severity_scale_ordinal<-factor(unselected_day5$severity_scale_ordinal,
+                                               levels=c("WHO level 4","WHO level 5",
+                                                        "WHO level 6","WHO level 7",
+                                                        "WHO level 8","WHO level 9","WHO level 10"))
+sum(!is.na(unselected_day5$sf94)) # ADD THIS NUMBER TO THE GRAPH TITLE
+#violin plots (figure 7a)
+library(ggplot2)
+unselect_who5<-ggplot(unselected_day5,
+                      aes(x=severity_scale_ordinal, y=sf94, fill=severity_scale_ordinal ))
+unselect_who5+ geom_violin()+ #remove outliers
+  theme_bw()+
+  ggtitle("WHO ordinal severity scale for unselected subjects (N=XXXXX)")+ # ADD NUMBER OF SUBJECTS
+  scale_fill_brewer(palette = "Spectral")+
+  xlab("")+
+  ylab("S/F94 day5")+
+  theme(legend.position = "none",
+        plot.title = element_text (hjust = 0.5))+ #remove legend + center title
+  scale_x_discrete(labels=c("4 Hosp", "5 Ox", "6 CPAP", "7 IMV", "8 IMV S/F<2", "9 MOF", "10 Dead"))
+
+#make dataframe with SF94 day 0 and day 5 + outcome for violin plots (figure 7b+c)
+#for day 0 (unselected)
+unselected_day0<-subset(df_1, (days_since_admission == 0 & !is.na(outcome)))
+#violin plots
+#distribution of SF94 values on day 0 for unselected population
+unselected_outcome_0<-ggplot(unselected_day0,
+                             aes(x=outcome, y=sf94, fill=outcome ))
+sum(!is.na(unselected_day0$sf94)) #ADD THIS NUMBER TO THE TITLE
+unselected_outcome_0 + geom_violin()+ 
+  theme_bw()+
+  ggtitle("Unselected subjects (N=XXXXX)")+ # ADD NUMBER OF SUBJECTS
+  scale_fill_brewer(palette = "Spectral")+
+  xlab("")+
+  ylab("S/F94 day0")+
+  theme(legend.position = "none",
+        plot.title = element_text (hjust = 0.5)) #remove legend + center title
+
+#Same for day 5 (figure 7c)
+unselected_day5<-subset(df_1, (days_since_admission == 5 & !is.na(outcome)))
+#violin plots
+unselected_outcome_5<-ggplot(unselected_day5,
+                             aes(x=outcome, y=sf94, fill=outcome ))
+sum(!is.na(unselected_day5$sf94)) #ADD THIS NUMBER TO THE TITLE
+unselected_outcome_5 + geom_violin()+ 
+  theme_bw()+
+  ggtitle("Unselected subjects (N=XXXXX)")+ # ADD NUMBER OF SUBJECTS
+  scale_fill_brewer(palette = "Spectral")+
+  xlab("")+
+  ylab("S/F94 day5")+
+  theme(legend.position = "none",
+        plot.title = element_text (hjust = 0.5)) #remove legend + center title
+# --------------------- CODE TO WRITE -------------------------------
+#selected patient groups 7a-b-c
+  
+  
+
+
+
+
