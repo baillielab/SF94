@@ -8,18 +8,13 @@ library(rms)
 df_1<-fread("/home/skerr/Data/ccp_subset_derived.csv", data.table = FALSE )
 
 #df_1<-fread("/home/u034/mcswets/df_20211402.csv", data.table = FALSE)
-#head(df_1)
+#colnames(df_1)
 #df_1<-df_1[,c(2:86)]
 
-#import cleaned data
 
 subjects_to_include <- filter(df_1, ( fio2 >=0.22 & days_since_start %in% c(0,1,2)  & age_estimateyears >19 & age_estimateyears <76 ) )['subjid']
 subset1<-df_1[df_1$subjid %in% subjects_to_include$subjid,] 
 subset1 <- as.data.frame(subset1)
-
-length(unique(df_1$subjid))  
-length(unique(subset1$subjid)) 
-
 
 
 #OUTPUT
@@ -153,7 +148,7 @@ day8_who<-day8_who%>%
                 who_day5= "5")
 summary(day8_who$who_day5)
 summary(day8_who$who_day8)
-sd(day8_who$who_day8, na.rm = T)
+
 
 
 
@@ -294,8 +289,6 @@ write.csv(medianIQR,"/home/skerr/Git/SF94/Outputs/medianIQR.csv")
 
 
 
-
-
 #difference in SF94 between different WHO scale steps
 medians <- subset1 %>%
   group_by(severity_scale_ordinal)%>%
@@ -305,6 +298,17 @@ medians <- subset1 %>%
 # 7 median values
 write.csv(medians,"/home/skerr/Git/SF94/Outputs/medians.csv")
 
+#additional numbers:
+sum(!is.na(basedd_sf94_10['5']))
+sum(!is.na(basedd_sf94_10['8']))
+sum(!is.na(day8_who$who_day5))
+sum(!is.na(day8_who$who_day8))
+table(day8_who$who_day5)
+table(day8_who$who_day8)
+table(mort$mortality_28)
+sum(!is.na(mort$mortality_28))
+sum(!is.na(severity_dif_1level$Days))
+sum(!is.na(severity_dif_2level$Days))
 
 
 #----------------------------------- GRAPHS --------------------------------
