@@ -20,8 +20,15 @@ subset1 <- as.data.frame(subset1)
 length(unique(df_1$subjid))  
 length(unique(subset1$subjid)) 
 
+
+
 #OUTPUT
 #number of subjects before and after filters
+
+numberSubs <- data.frame( before_filter =  length(unique(df_1$subjid)) ,
+                          after_filter = length(unique(subset1$subjid))   )
+
+write.csv(numberSubs,"/home/skerr/Git/SF94/Outputs/numberSubs.csv")
 
 # variable should be either  'sf94' or 'severity_scale_ordinal'
 # group should be 'base' if you want to include everyone except those who died or were discharged
