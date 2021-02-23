@@ -308,21 +308,22 @@ notMissingV <- c(  sapply(basedd_sf94_10[c('5', '8')], function(x) sum(!is.na(x)
 
 notMissing <- data.frame(  variable =   c('sf94_day5', 'sf94_day8', 'who_day5', 'who_day8', 'severity_dif_1level',
                                           'severity_dif_1level', 'mortality_28'),
-                        value = notmissingV)
+                        value = notMissingV)
 
 write.csv(notMissing,"/home/skerr/Git/SF94/Outputs/notMissing.csv")
 
-MissingV <- c(  sapply(basedd_sf94_10[c('5', '8')], function(x) sum(is.na(x))),       
+
+missingV <- c(  sapply(basedd_sf94_10[c('5', '8')], function(x) sum(is.na(x))),       
                    sapply(day8_who[c('who_day5', 'who_day8')], function(x) sum(is.na(x))),
                    sum(is.na(severity_dif_1level$Days)), sum(is.na(severity_dif_2level$Days)),
                    sum(is.na(mort$mortality_28))
 )
 
-Missing <- data.frame(  variable =   c('sf94_day5', 'sf94_day8', 'who_day5', 'who_day8', 'severity_dif_1level',
+missing <- data.frame(  variable =   c('sf94_day5', 'sf94_day8', 'who_day5', 'who_day8', 'severity_dif_1level',
                                           'severity_dif_1level', 'mortality_28'),
                            value = missingV)
 
-write.csv(Missing,"/home/skerr/Git/SF94/Outputs/Missing.csv")
+write.csv(missing,"/home/skerr/Git/SF94/Outputs/missing.csv")
 
 
 whoTable <- rbind( table(day8_who$who_day5), table(day8_who$who_day8)   )
@@ -331,8 +332,61 @@ write.csv(whoTable,"/home/skerr/Git/SF94/Outputs/whoTable.csv")
 
 write.csv(table(mort$mortality_28),"/home/skerr/Git/SF94/Outputs/mort28Table.csv")
 
+<<<<<<< HEAD
 
 
+=======
+#----------------------------------- GRAPHS --------------------------------
+#split violin plot
+#data
+base_sf94_12<-createDF("base", "sf94", 12)
+#transform to long format 
+long_dfsf94_12<-gather(base_sf94_12, days_since_start, sf94, 2:14, factor_key=T)
+#removing rows without SF94 value
+long_dfsf94_12 <- subset(long_dfsf94_12, !is.na(sf94))
+#add 30 day mortality data
+long_dfsf94_12<-left_join(long_dfsf94_12, mortality, by="subjid")
+long_dfsf94_12 <- subset(long_dfsf94_12, !is.na(mortality_28))
+#change to character and set correct order
+long_dfsf94_12$mortality_28<-as.character(long_dfsf94_12$mortality_28)
+long_dfsf94_12$mortality_28<-factor(long_dfsf94_12$mortality_28,
+                                    levels=c("0","1"))
+long_dfsf94_12$days_since_start<-as.character(long_dfsf94_12$days_since_start)
+long_dfsf94_12$days_since_start<-factor(long_dfsf94_12$days_since_start,
+                                        levels=c("0","1","2","3","4","5",
+                                                 "6","7","8","9","10", "11", "12"))
+#function code for split violin plots
+GeomSplitViolin <- ggproto("GeomSplitViolin", GeomViolin, 
+                           draw_group = function(self, data, ..., draw_quantiles = NULL) {
+                             data <- transform(data, xminv = x - violinwidth * (x - xmin), xmaxv = x + violinwidth * (xmax - x))
+                             grp <- data[1, "group"]
+                             newdata <- plyr::arrange(transform(data, x = if (grp %% 2 == 1) xminv else xmaxv), if (grp %% 2 == 1) y else -y)
+                             newdata <- rbind(newdata[1, ], newdata, newdata[nrow(newdata), ], newdata[1, ])
+                             newdata[c(1, nrow(newdata) - 1, nrow(newdata)), "x"] <- round(newdata[1, "x"])
+                             
+                             if (length(draw_quantiles) > 0 & !scales::zero_range(range(data$y))) {
+                               stopifnot(all(draw_quantiles >= 0), all(draw_quantiles <=
+                                                                         1))
+                               quantiles <- ggplot2:::create_quantile_segment_frame(data, draw_quantiles)
+                               aesthetics <- data[rep(1, nrow(quantiles)), setdiff(names(data), c("x", "y")), drop = FALSE]
+                               aesthetics$alpha <- rep(1, nrow(quantiles))
+                               both <- cbind(quantiles, aesthetics)
+                               quantile_grob <- GeomPath$draw_panel(both, ...)
+                               ggplot2:::ggname("geom_split_violin", grid::grobTree(GeomPolygon$draw_panel(newdata, ...), quantile_grob))
+                             }
+                             else {
+                               ggplot2:::ggname("geom_split_violin", GeomPolygon$draw_panel(newdata, ...))
+                             }
+                           })
+
+geom_split_violin <- function(mapping = NULL, data = NULL, stat = "ydensity", position = "identity", ..., 
+                              draw_quantiles = NULL, trim = TRUE, scale = "area", na.rm = FALSE, 
+                              show.legend = NA, inherit.aes = TRUE) {
+  layer(data = data, mapping = mapping, stat = stat, geom = GeomSplitViolin, 
+        position = position, show.legend = show.legend, inherit.aes = inherit.aes, 
+        params = list(trim = trim, scale = scale, draw_quantiles = draw_quantiles, na.rm = na.rm, ...))
+}
+>>>>>>> 55d7eebcd26601c14cef2616feaa2f563506f670
 
 
 #=============================================================================================#
