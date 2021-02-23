@@ -332,6 +332,7 @@ write.csv(whoTable,"/home/skerr/Git/SF94/Outputs/whoTable.csv")
 
 write.csv(table(mort$mortality_28),"/home/skerr/Git/SF94/Outputs/mort28Table.csv")
 
+
 #----------------------------------- GRAPHS --------------------------------
 #split violin plot
 #data
