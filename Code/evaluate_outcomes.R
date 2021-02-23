@@ -299,16 +299,26 @@ medians <- subset1 %>%
 write.csv(medians,"/home/skerr/Git/SF94/Outputs/medians.csv")
 
 #additional numbers:
-sum(!is.na(basedd_sf94_10['5']))
-sum(!is.na(basedd_sf94_10['8']))
-sum(!is.na(day8_who$who_day5))
-sum(!is.na(day8_who$who_day8))
-table(day8_who$who_day5)
-table(day8_who$who_day8)
-table(mort$mortality_28)
-sum(!is.na(mort$mortality_28))
-sum(!is.na(severity_dif_1level$Days))
-sum(!is.na(severity_dif_2level$Days))
+
+notMissingV <- c(  sapply(basedd_sf94_10[c('5', '8')], function(x) sum(!is.na(x))),       
+    sapply(day8_who[c('who_day5', 'who_day8')], function(x) sum(!is.na(x))),
+    sum(!is.na(severity_dif_1level$Days)), sum(!is.na(severity_dif_2level$Days)),
+    sum(!is.na(mort$mortality_28))
+)
+
+notMissing <- data.frame(  variable =   c('sf94_day5', 'sf94_day8', 'who_day5', 'who_day8', 'severity_dif_1level',
+                                          'severity_dif_1level', 'mortality_28'),
+                        value = missingV)
+
+write.csv(notMissing,"/home/skerr/Git/SF94/Outputs/notMissing.csv")
+
+
+whoTable <- rbind( table(day8_who$who_day5), table(day8_who$who_day8)   )
+
+write.csv(whoTable,"/home/skerr/Git/SF94/Outputs/whoTable.csv")
+
+write.csv(table(mort$mortality_28),"/home/skerr/Git/SF94/Outputs/mort28Table.csv")
+
 
 
 #----------------------------------- GRAPHS --------------------------------
