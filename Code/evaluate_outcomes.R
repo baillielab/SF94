@@ -4,6 +4,9 @@ library(data.table)
 library(tidyr)
 library(rms)
 
+
+df_1<-fread("/home/skerr/Data/ccp_subset_derived.csv", data.table = FALSE )
+
 #df_1<-fread("/home/u034/mcswets/df_20211402.csv", data.table = FALSE)
 #head(df_1)
 #df_1<-df_1[,c(2:86)]
@@ -36,7 +39,6 @@ createDF <- function(group, variable, time){
     df <- filter(subset1[ c('subjid', 'days_since_start', variable ) ], days_since_start <= time & !(subjid %in% dropID)  ) 
   } 
   
-  
   derived <-  df  %>%  mutate(rn= row_number()) %>% spread (days_since_start, variable) %>% select(-rn)
   
   newCols <- as.character( setdiff( 0:time,  setdiff( colnames(derived), 'subjid' ) ) )
@@ -45,13 +47,10 @@ createDF <- function(group, variable, time){
   
   derived <- derived[ c( 'subjid', as.character(0:time))  ]
   
-  
   if(group == 'basedd' | group == 'day0' ){
-    
     censorDeath <- filter( subset1,  death== "YES"  & day_of_death < time    )[c('subjid', 'day_of_death')]
-    
+  
     censorDischarge <- filter( subset1,  discharge== "YES"  & day_of_discharge < time    )[c('subjid', 'day_of_discharge')]
-    
     
     if(variable == 'sf94'){
       deathValue <- 0.5
@@ -62,7 +61,6 @@ createDF <- function(group, variable, time){
     }
     
     for( i in as.numeric(rownames(censorDeath))   ){
-      
       row <- which( derived['subjid']  ==  censorDeath[i, 'subjid']  )
       
       cols <- as.character( (censorDeath[i, 'day_of_death'] +1):time  )
@@ -77,14 +75,9 @@ createDF <- function(group, variable, time){
       cols <- as.character( (censorDischarge[i, 'day_of_discharge']+1):time  )
       
       derived[ row ,  cols  ] <- dischargeValue
-     
-    }
-    
+     }
   }
-  return(derived)
-  
-  
-  
+return(derived)
 }
 
 #if error message try detaching plyr:
@@ -92,14 +85,17 @@ createDF <- function(group, variable, time){
 
 #summary 
 basedd_sf94_10<-createDF("basedd", "sf94", 10)
-summary(basedd_sf94_10)
-sapply(basedd_sf94_10, sd, na.rm=T)
 
 #OUTPUT:
 #for day 5 and day 8: mean and SD
+meanSD <- as.data.frame( rbind(sapply(basedd_sf94_10[c('5','8')], mean, na.rm=T),  
+                               sapply(basedd_sf94_10[c('5','8')], sd, na.rm=T)) )
+
+rownames(meanSD) <- c('mean', 'SD')
+
+write.csv(meanSD,"/home/skerr/Git/SF94/Outputs/meanSD.csv")
 
 #correlation
-library(data.table)
 #Correlation subsets: same subjects for different days
 #keep only 1 row for each subject
 f <- function(x) {
@@ -124,8 +120,15 @@ y <-  correlation_subset_08[,2]
 z <-  correlation_subset_08[,10]
 cor(y,z)
 
+
 #OUTPUT
 # correlation value for day 0/5 and for day 0/8
+corrs <- as.data.frame(rbind( cor(w,x), cor(y,z)  ))
+
+rownames(corrs) <- c('day 0/5', 'day 0/8')
+
+write.csv(corrs,"/home/skerr/Git/SF94/Outputs/corrs.csv")
+
 
 
 #Summary of WHO values on day 5 and 8
@@ -145,18 +148,24 @@ summary(day8_who$who_day5)
 summary(day8_who$who_day8)
 sd(day8_who$who_day8, na.rm = T)
 
+
+
 #OUTPUT
 # Median + IQR for WHO for day 5 and day 8
+
+
 
 #mortality at 28 days
 mort<-subset1 %>%
   group_by(subjid)%>%
   count(mortality_28)
-sum(mort$mortality_28 == 1, na.rm = T)/ sum(!is.na(mort$mortality_28))
+
+mort28 <- sum(mort$mortality_28 == 1, na.rm = T)/ sum(!is.na(mort$mortality_28))
 
 #OUTPUT
 #percentage of subjects who died in the first 28 days
 
+write.csv(mort28,"/home/skerr/Git/SF94/Outputs/mort28.csv")
 
 #find time it takes for a certain change in WHO level (2 or 1)
 #subset dataframe (same dataframe as used before, so with the age and supplementary oxygen filters)
@@ -217,8 +226,14 @@ severity_dif_1level<-data.frame(severity_dif_1level)
 
 summary(severity_dif_1level$Days, na.rm = T)
 
+
+
 #OUTPUT
 #median + IQR for 1 level difference
+
+
+
+
 
 #calculate time it takes for a change of 2
 severity_dif_2level<-severity_difference %>%
@@ -259,18 +274,30 @@ summary(severity_dif_2level$Days, na.rm = T)
 #OUTPUT
 #median + IQR for 2 levels difference
 
-#sorry I know this is repeating.... 
+medianIQR <- as.data.frame(rbind(summary(day8_who$who_day5),  summary(day8_who$who_day8)))
+
+medianIQR <- rbind(medianIQR, summary(severity_dif_1level$Days, na.rm = T))
+
+medianIQR <- rbind(medianIQR, summary(severity_dif_2level$Days, na.rm = T))
+
+rownames( medianIQR) <- c('who_day5', 'who_day8', 'who 1 level difference', 'who 2 level difference')
+
+write.csv(medianIQR,"/home/skerr/Git/SF94/Outputs/medianIQR.csv")
+
+
+
+
+
+
 #difference in SF94 between different WHO scale steps
-summary(subset1$sf94[subset1$severity_scale_ordinal == 4])
-summary(subset1$sf94[subset1$severity_scale_ordinal == 5])
-summary(subset1$sf94[subset1$severity_scale_ordinal == 6])
-summary(subset1$sf94[subset1$severity_scale_ordinal == 7])
-summary(subset1$sf94[subset1$severity_scale_ordinal == 8])
-summary(subset1$sf94[subset1$severity_scale_ordinal == 9])
-summary(subset1$sf94[subset1$severity_scale_ordinal == 10])
+medians <- subset1 %>%
+  group_by(severity_scale_ordinal)%>%
+  summarise_at("sf94", median, na.rm=T)
 
 #OUTPUT
 # 7 median values
+write.csv(medians,"/home/skerr/Git/SF94/Outputs/medians.csv")
+
 
 
 #----------------------------------- GRAPHS --------------------------------
