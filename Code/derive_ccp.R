@@ -37,7 +37,7 @@ squeeze<- function(df, limits){
 
 ####################################### ADD DERIVED VARIABLES: #######################################
 
-# Add variable that is True if they died, False otherwise
+# Add variable that is YES if they died, NO otherwise
 # and similarly for if they were discharged
 
 df <- mutate(df, death = case_when( dsterm == 'Death' ~ 'YES',

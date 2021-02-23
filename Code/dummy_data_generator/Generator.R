@@ -246,13 +246,13 @@ predMat4 <- template
 Imputation4 <- mice(notDead2 ,m=1,maxit=200, predictorMatrix = predMat4, method = method4)
 
 
-pdf( paste( root, 'stevenkerr/Git/SF94/Code/dummy_df_generator/Imputation4.pdf', sep= "") )
+pdf('/home/skerr/Git/SF94/Code/dummy_data_generator/Imputation4.pdf')
 
 densityplot(Imputation4, notDead2 ~ fio2 + sao2)
 
 dev.off()
 
-
+freqTab(Imputation4)
 
 notDead3 <- complete(Imputation4)
 
@@ -261,6 +261,11 @@ notDead3 <- complete(Imputation4)
 
 simulated_ccp <- rbind( filter(dead4, str_sub(subjid ,1, 9) == 'Simulated' ), 
                         filter(notDead3, str_sub(subjid ,1, 9) == 'Simulated' ))
+
+#testVars <- setdiff(constVars, c('subjid', 'clinical_frailty', 'day_of_death') )
+#
+#nrow( distinct( simulated_ccp[ ,testVars ]) )
+#nrow(setdiff(distinct( simulated_ccp[ ,testVars ]), distinct( sample[ ,  testVars ])) )
 
 
 simulated_ccp$sfr<- simulated_ccp$sao2/simulated_ccp$fio2
@@ -289,12 +294,11 @@ simulated_ccp <- mutate(simulated_ccp, day8_mortality = case_when(day_of_death <
 simulated_ccp <- mutate(simulated_ccp, day28_mortality = case_when(day_of_death <= 28 ~ "YES",
                                                                                  TRUE ~ 'NO' ))
 
+simulated_ccp['age_estimateyears'] <- lapply( simulated_ccp['age_estimateyears'], as.integer  )
+
 ####################################### WRITE DATA: #######################################
 
 # Write on argosafe
-write.csv(df,"/home/skerr/Data/ccp_subset_simulated.csv", row.names = FALSE)
-
-
-
+write.csv(simulated_ccp ,"/home/skerr/Data/ccp_subset_simulated.csv", row.names = FALSE)
 
 
