@@ -62,6 +62,7 @@ p1 <- ggplot(long_dfsf94_12, aes(x=days_since_start, y=sf94, fill=mortality_28))
   xlab("Day")+
   ylab("S/F94")+
   ggtitle("")+
+  theme_bw()+
   scale_fill_discrete(name="28-day outcome", labels=c("Discharged alive", "Death"))
 p1
 #non split violin (not decided yet which one to use out of p1 and p2)
@@ -70,6 +71,7 @@ p2 <- ggplot(long_dfsf94_12, aes(x=days_since_start, y=sf94, fill=mortality_28))
   xlab("Day")+
   ylab("S/F94")+
   ggtitle("")+
+  theme_bw()+
   scale_fill_discrete(name="28-day outcome", labels= c("Discharged alive", "Death"))
 p2
 
@@ -80,6 +82,7 @@ timeseries_sf94<-ggplot(long_dfsf94_12, aes(x=days_since_start, y=sf94,
   ggtitle("Change in S/F94 over time, split by outcome")+
   xlab("Day")+
   ylab("S/F94")+
+  theme_bw()+
   scale_color_discrete(name= "Outcome", labels=c("Discharged alive", "Death"))
 timeseries_sf94
 
