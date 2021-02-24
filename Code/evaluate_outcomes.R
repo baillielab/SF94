@@ -171,7 +171,7 @@ write.csv(mort28,"/home/skerr/Git/SF94/Outputs/mort28.csv")
 
 #find time it takes for a certain change in WHO level (2 or 1)
 #subset dataframe (same dataframe as used before, so with the age and supplementary oxygen filters)
-severity_difference<-subset1 
+severity_difference<-subset1
 #>10.000 subjects with no WHO value on day of discharge, set those to level 4 (day of death all have a value)
 severity_difference$severity_scale_ordinal<- ifelse(is.na(severity_difference$severity_scale_ordinal) &
                                                       !is.na(severity_difference$day_of_discharge), 4, 
@@ -179,9 +179,12 @@ severity_difference$severity_scale_ordinal<- ifelse(is.na(severity_difference$se
 #make new variable for last who level available
 last_sev<-severity_difference %>%
   group_by(subjid)%>%
+  filter(days_since_start <29)%>% #end of follow up
   filter(!is.na(severity_scale_ordinal))%>%
-  dplyr::mutate(final_who_score= dplyr::last((severity_scale_ordinal)))%>%
-  slice(which.min(final_who_score))
+  arrange(days_since_start)%>%
+  slice(n())%>% #keep last day in study (<29)
+  dplyr::rename(final_who_score =severity_scale_ordinal) #give more useful name
+last_sev<-data.frame(last_sev)
 last_sev<-last_sev[,c("subjid","final_who_score")]
 #make subset of data
 severity_difference<-severity_difference[,c("subjid","days_since_start","severity_scale_ordinal")]
