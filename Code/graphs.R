@@ -106,12 +106,13 @@ who_sf_5$severity_scale_ordinal<-factor(who_sf_5$severity_scale_ordinal,
                                                levels=c("WHO level 4","WHO level 5",
                                                         "WHO level 6","WHO level 7",
                                                         "WHO level 8","WHO level 9","WHO level 10"))
-sum(!is.na(who_sf_5$sf94)) # ADD THIS NUMBER TO THE GRAPH TITLE
+title_who5<-as.character(sum(!is.na(who_sf_5$sf94))) 
+title_who5<-paste("WHO ordinal severity scale and S/F94 (N=", title_who5, ")", sep = "")
 who_sf_5plot<-ggplot(who_sf_5,
                       aes(x=severity_scale_ordinal, y=sf94, fill=severity_scale_ordinal ))
 who_sf_5plot+ geom_violin()+ #remove outliers
   theme_bw()+
-  ggtitle("WHO ordinal severity scale and S/F94 (N=XXXXX)")+ # ADD NUMBER OF SUBJECTS
+  ggtitle(title_who5)+ 
   scale_fill_brewer(palette = "Spectral")+
   xlab("")+
   ylab("S/F94 day5")+
@@ -126,10 +127,11 @@ sfmort_day0<-subset(subset1, (days_since_admission == 0 & !is.na(outcome)))
 #distribution of SF94 values on day 0 for unselected population
 sfmort_day0plot<-ggplot(sfmort_day0,
                              aes(x=outcome, y=sf94, fill=outcome ))
-sum(!is.na(sfmort_day0$sf94)) #ADD THIS NUMBER TO THE TITLE
+title_0<-as.character(sum(!is.na(sfmort_day0$sf94))) 
+title_0<-paste("(N=", title_0, ")", sep = "")
 sfmort_day0plot + geom_violin()+ 
   theme_bw()+
-  ggtitle("N=XXXXX")+ # ADD NUMBER OF SUBJECTS
+  ggtitle(title_0)+
   scale_fill_brewer(palette = "Spectral")+
   xlab("")+
   ylab("S/F94 day0")+
@@ -142,10 +144,11 @@ sfmort_day5<-subset(subset1, (days_since_admission == 5 & !is.na(outcome)))
 #distribution of SF94 values on day 5 for unselected population
 sfmort_day5plot<-ggplot(sfmort_day5,
                         aes(x=outcome, y=sf94, fill=outcome ))
-sum(!is.na(sfmort_day5$sf94)) #ADD THIS NUMBER TO THE TITLE
+title_5<-as.character(sum(!is.na(sfmort_day5$sf94))) 
+title_5<-paste("(N=", title_5, ")", sep = "")
 sfmort_day5plot + geom_violin()+ 
   theme_bw()+
-  ggtitle("N=XXXXX")+ # ADD NUMBER OF SUBJECTS
+  ggtitle(title_5)+ 
   scale_fill_brewer(palette = "Spectral")+
   xlab("")+
   ylab("S/F94 day5")+
@@ -156,20 +159,21 @@ sfmort_day5plot + geom_violin()+
 # data = df_1
 # no filters used
 #take day 5 from who and sf data
-unselected_day5<-subset(df_1, days_since_start == 5)
-unselected_day5<-subset(unselected_day5, (!is.na(severity_scale_ordinal)))
-unselected_day5$severity_scale_ordinal<- paste("WHO level", unselected_day5$severity_scale_ordinal, sep = " ")
-unselected_day5$severity_scale_ordinal<-factor(unselected_day5$severity_scale_ordinal,
+unselectedwho_day5<-subset(df_1, days_since_start == 5)
+unselectedwho_day5<-subset(unselected_day5, (!is.na(severity_scale_ordinal)))
+unselectedwho_day5$severity_scale_ordinal<- paste("WHO level", unselectedwho_day5$severity_scale_ordinal, sep = " ")
+unselectedwho_day5$severity_scale_ordinal<-factor(unselectedwho_day5$severity_scale_ordinal,
                                                levels=c("WHO level 4","WHO level 5",
                                                         "WHO level 6","WHO level 7",
                                                         "WHO level 8","WHO level 9","WHO level 10"))
-sum(!is.na(unselected_day5$sf94)) # ADD THIS NUMBER TO THE GRAPH TITLE
+title_un_who5<-as.character(sum(!is.na(unselectedwho_day5$sf94))) 
+title_un_who5<-paste("WHO ordinal severity scale for unselected subjects (N=", title_un_who5, ")", sep = "")
 #violin plots (figure 7a)
-unselect_who5<-ggplot(unselected_day5,
+unselect_who5<-ggplot(unselectedwho_day5,
                       aes(x=severity_scale_ordinal, y=sf94, fill=severity_scale_ordinal ))
 unselect_who5+ geom_violin()+ #remove outliers
   theme_bw()+
-  ggtitle("WHO ordinal severity scale for unselected subjects (N=XXXXX)")+ # ADD NUMBER OF SUBJECTS
+  ggtitle(title_un_who5)+ 
   scale_fill_brewer(palette = "Spectral")+
   xlab("")+
   ylab("S/F94 day5")+
@@ -184,10 +188,11 @@ unselected_day0<-subset(df_1, (days_since_admission == 0 & !is.na(outcome)))
 #distribution of SF94 values on day 0 for unselected population
 unselected_outcome_0<-ggplot(unselected_day0,
                              aes(x=outcome, y=sf94, fill=outcome ))
-sum(!is.na(unselected_day0$sf94)) #ADD THIS NUMBER TO THE TITLE
+title_un0<-as.character(sum(!is.na(unselected_day0$sf94))) 
+title_un0<-paste("Unselected subjects (N=", title_un0, ")", sep = "")
 unselected_outcome_0 + geom_violin()+ 
   theme_bw()+
-  ggtitle("Unselected subjects (N=XXXXX)")+ # ADD NUMBER OF SUBJECTS
+  ggtitle(title_un0)+ 
   scale_fill_brewer(palette = "Spectral")+
   xlab("")+
   ylab("S/F94 day0")+
@@ -199,19 +204,16 @@ unselected_day5<-subset(df_1, (days_since_admission == 5 & !is.na(outcome)))
 #violin plots
 unselected_outcome_5<-ggplot(unselected_day5,
                              aes(x=outcome, y=sf94, fill=outcome ))
-sum(!is.na(unselected_day5$sf94)) #ADD THIS NUMBER TO THE TITLE
+title_un5<-as.character(sum(!is.na(unselected_day5$sf94))) 
+title_un5<-paste("Unselected subjects (N=", title_un5, ")", sep = "")
 unselected_outcome_5 + geom_violin()+ 
   theme_bw()+
-  ggtitle("Unselected subjects (N=XXXXX)")+ # ADD NUMBER OF SUBJECTS
+  ggtitle(title_un5)+ 
   scale_fill_brewer(palette = "Spectral")+
   xlab("")+
   ylab("S/F94 day5")+
   theme(legend.position = "none",
         plot.title = element_text (hjust = 0.5)) #remove legend + center title
-# --------------------- CODE TO WRITE -------------------------------
-#selected patient groups 7a-b-c
-  
-  
 
 
 
