@@ -18,9 +18,32 @@ library(readr)
 df<-fread("/home/skerr/Data/ccp_subset_clean.csv", data.table = FALSE, )
 
 #read for maaike
-df <-fread("/home/u034/mcswets/df_20211402.csv")
+#df <-fread("/home/u034/mcswets/df_20211402.csv")
 
 ####################################### FUNCTIONS THAT WILL BE USED: #######################################
+
+# This function add a column for the minimum time for a sustained improvement in severity_scale_ordinal of diff.
+# Here, 'sustained' means that their final who score is no bigger that it was at the end of the period of improvment.
+addWhoTimeToImprove <- function(df, diff, finalDay){
+  
+  subSet <- df[,c("subjid","days_since_start","severity_scale_ordinal")]
+  
+  subSet <-subSet %>% group_by(subjid) %>% filter(n()>=2)
+  
+  subSet <- filter(subSet,  !is.na("days_since_start") & !is.na(severity_scale_ordinal) )
+  
+  output <-subSet %>%
+    left_join(subSet, ("subjid")) %>%
+    mutate(Days = (days_since_start.y - days_since_start.x)) %>% # creates all possible combinations 
+    filter(Days>0)%>% #only keep if day y > day x (as this means 'forward' change)
+    mutate(score_difference= severity_scale_ordinal.y- severity_scale_ordinal.x) %>% #calculate the change in severity levels 
+    filter(score_difference <= -diff ) %>% left_join(distinct( df[c('subjid', 'final_who_score')] )  ) %>%
+    filter(final_who_score < severity_scale_ordinal.x) %>% slice(which.min(Days)) %>% select(subjid, Days) %>% right_join(df) 
+  
+  colnames(output)[ colnames(output) == 'Days'  ] <- paste( 'who_days_to_improve', diff, sep='')
+  
+  return(output)
+}
 
 # This function squeezes variables.
 # Values between hard limits and soft limits get set to the soft limit.
@@ -44,7 +67,7 @@ df <- mutate(df, death = case_when( dsterm == 'Death' ~ 'YES',
                                     !is.na(dsterm) ~ 'NO')   )
 
 df <- mutate(df, discharge = case_when( dsterm == 'Discharged alive' | dsterm == 'Transfer to other facility'  ~ 'YES',
-                                    !is.na(dsterm) ~ 'NO')   )
+                                        !is.na(dsterm) ~ 'NO')   )
 
 # Add columns for days since admission, days since symptoms
 df$days_since_admission <-  df$daily_dsstdat - df$hostdat
@@ -70,6 +93,21 @@ df <- mutate(df, day_of_death = case_when( death == 'YES' ~  dsstdtc - first_stu
 
 df <- mutate(df, day_of_discharge = case_when( discharge == 'YES' ~  dsstdtc - first_study_day ))
 
+############################# CLEAN TIME VARIABLES: ###################################
+
+limits <- data.frame( 'days_since_start' = c(200,200,0,0),
+                      'days_since_admission' = c(200, 200, 0, 0),  
+                      'days_since_symptoms' = c(200, 200, -30, -30),
+                      'day_of_death' = c(250,250,0,0),
+                      'day_of_discharge' = c(250,250,0,0))
+
+df <- squeeze(df, limits)
+
+#Remove any rows where days_since_start > day_of_death. 
+df <- filter(df,  is.na(day_of_death) | is.na(days_since_start) |  day_of_death >= days_since_start )
+
+######################### ADD MORE DERIVED VARIABLES ########################################
+
 # Add clean sao2, fio2 variables
 df['sao2'] <- df['daily_sao2_lborres']/100
 
@@ -79,11 +117,11 @@ df <- mutate(df, fio2 = case_when(  !is.na(daily_fio2_lborres) ~ daily_fio2_lbor
 
 # Add diabetes and liver disease variable
 df <- mutate(df, diabetes = case_when(diabetes_type_mhyn == 2 | diabetes_type_mhyn == 1 
-                                        | diabetescom_mhyn == 'YES' | diabetes_mhyn == 'YES' ~ 'YES',
-                                          diabetes_type_mhyn == 'NO' | diabetescom_mhyn == 'NO' | diabetes_mhyn == 'NO' ~ 'NO')   )
+                                      | diabetescom_mhyn == 'YES' | diabetes_mhyn == 'YES' ~ 'YES',
+                                      diabetes_type_mhyn == 'NO' | diabetescom_mhyn == 'NO' | diabetes_mhyn == 'NO' ~ 'NO')   )
 
 df <- mutate(df, liver = case_when( modliv == 'YES' | mildliver == 'YES' ~ 'YES',
-                                        modliv == 'NO' | mildliver == 'NO' ~ 'NO')    )               
+                                    modliv == 'NO' | mildliver == 'NO' ~ 'NO')    )               
 
 #Create SF value and SF94 value
 df$sfr<- df$sao2/df$fio2
@@ -103,7 +141,8 @@ df<-df %>%
       fio2 >= 0.41 ~ 6,
       fio2 >= 0.22 & fio2 <=0.40 ~ 5,
       daily_nasaloxy_cmtrt == "YES" ~ 5,
-      fio2 == 0.21 ~ 4))
+      fio2 == 0.21 ~ 4,
+      days_since_start == day_of_discharge ~ 4) )
 
 # Add death or discharage outcome variable
 df<-df %>% 
@@ -123,18 +162,16 @@ df<-df %>%
 df<-df %>% 
   mutate(
     mortality_4 = case_when(
-       day_of_death <5 ~ 1,
-       day_of_discharge<5 ~ 0))
+      day_of_death <5 ~ 1,
+      day_of_discharge<5 ~ 0))
 
-############################# CLEAN DERIVED VARIABLES: ###################################
+#make new variable for last who level available before day 28
+df <- df %>% filter( days_since_start <= 28 ) %>% group_by(subjid)%>%
+  arrange(desc( days_since_start )) %>% mutate(final_who_score = first(severity_scale_ordinal))
 
-limits <- data.frame( 'days_since_start' = c(200,200,0,0),
-                      'days_since_admission' = c(200, 200, -30, -30),  
-                      'days_since_symptoms' = c(200, 200, -30, -30),
-                      'day_of_death' = c(250,250,0,0),
-                      'day_of_discharge' = c(250,250,0,0))
-
-df <- squeeze(df, limits)
+# add who time to improve 1 and 2.
+df <- addWhoTimeToImprove(df, 1)
+df <- addWhoTimeToImprove(df, 2)
 
 ####################################### WRITE DATA: #######################################
 
@@ -142,4 +179,4 @@ df <- squeeze(df, limits)
 write.csv(df,"/home/skerr/Data/ccp_subset_derived.csv", row.names = FALSE)
 
 # Write for Maaike
-write.csv(df,"df_20211402.csv")
+#write.csv(df,"df_20211402.csv")

@@ -4,13 +4,11 @@ library(data.table)
 library(tidyr)
 library(rms)
 
-
 df_1<-fread("/home/skerr/Data/ccp_subset_derived.csv", data.table = FALSE )
 
 #df_1<-fread("/home/u034/mcswets/df_20211402.csv", data.table = FALSE)
 #colnames(df_1)
 #df_1<-df_1[,c(2:86)]
-
 
 subjects_to_include <- filter(df_1, ( fio2 >=0.22 & days_since_start %in% c(0,1,2)  & age_estimateyears >19 & age_estimateyears <76 ) )['subjid']
 subset1<-df_1[df_1$subjid %in% subjects_to_include$subjid,] 
@@ -31,17 +29,17 @@ write.csv(numberSubs,"/home/skerr/Git/SF94/Outputs/numberSubs.csv")
 # 'day0' if you want to exclude people who died or were discharged on day_since_admission == 0
 # Output is a table that you can query for summary statistics.
 
-createDF <- function(group, variable, time){
+createDF <- function(df, group, variable, time){
   
   if( group == 'base' |  group == 'basedd' ) { 
-    df <- filter( subset1[ c('subjid', 'days_since_start', variable ) ] , days_since_start <= time  )
+    df2 <- filter( df[ c('subjid', 'days_since_start', variable ) ] , days_since_start <= time  )
   } else if (group == 'day0') {
-    dropID <- subset1[   (subset1[ 'day_of_death' ] == 0 |  subset1['day_of_discharge'] == 0) %in% TRUE, 'subjid']
+    dropID <- df[   (df[ 'day_of_death' ] == 0 |  subset1['day_of_discharge'] == 0) %in% TRUE, 'subjid']
     
-    df <- filter(subset1[ c('subjid', 'days_since_start', variable ) ], days_since_start <= time & !(subjid %in% dropID)  ) 
+    df2 <- filter(df[ c('subjid', 'days_since_start', variable ) ], days_since_start <= time & !(subjid %in% dropID)  ) 
   } 
   
-  derived <-  df  %>%  mutate(rn= row_number()) %>% spread (days_since_start, variable) %>% select(-rn)
+  derived <-  df2  %>%  mutate(rn= row_number()) %>% spread (days_since_start, variable) %>% select(-rn)
   
   newCols <- as.character( setdiff( 0:time,  setdiff( colnames(derived), 'subjid' ) ) )
   
@@ -50,9 +48,9 @@ createDF <- function(group, variable, time){
   derived <- derived[ c( 'subjid', as.character(0:time))  ]
   
   if(group == 'basedd' | group == 'day0' ){
-    censorDeath <- filter( subset1,  death== "YES"  & day_of_death < time    )[c('subjid', 'day_of_death')]
-  
-    censorDischarge <- filter( subset1,  discharge== "YES"  & day_of_discharge < time    )[c('subjid', 'day_of_discharge')]
+    censorDeath <- filter( df,  death== "YES"  & day_of_death < time    )[c('subjid', 'day_of_death')]
+    
+    censorDischarge <- filter( df,  discharge== "YES"  & day_of_discharge < time    )[c('subjid', 'day_of_discharge')]
     
     if(variable == 'sf94'){
       deathValue <- 0.5
@@ -77,16 +75,16 @@ createDF <- function(group, variable, time){
       cols <- as.character( (censorDischarge[i, 'day_of_discharge']+1):time  )
       
       derived[ row ,  cols  ] <- dischargeValue
-     }
+    }
   }
-return(derived)
+  return(derived)
 }
 
 #if error message try detaching plyr:
 #detach("package:plyr", unload=T) 
 
 #summary 
-basedd_sf94_10<-createDF("basedd", "sf94", 10)
+basedd_sf94_10<-createDF(subset1, "basedd", "sf94", 10)
 
 #OUTPUT:
 #for day 5 and day 8: mean and SD
@@ -135,7 +133,7 @@ write.csv(corrs,"/home/skerr/Git/SF94/Outputs/corrs.csv")
 
 #Summary of WHO values on day 5 and 8
 #data
-basedd_who_8<-createDF("basedd", "severity_scale_ordinal",8)
+basedd_who_8<-createDF(subset1, "basedd", "severity_scale_ordinal",8)
 #take only subject ID, day 5 and day 8
 day8_who<-basedd_who_8[,c(1,7,10)]
 #summarise rows
@@ -151,12 +149,6 @@ summary(day8_who$who_day8)
 
 
 
-
-#OUTPUT
-# Median + IQR for WHO for day 5 and day 8
-
-
-
 #mortality at 28 days
 mort<-subset1 %>%
   group_by(subjid)%>%
@@ -169,126 +161,27 @@ mort28 <- sum(mort$mortality_28 == 1, na.rm = T)/ sum(!is.na(mort$mortality_28))
 
 write.csv(mort28,"/home/skerr/Git/SF94/Outputs/mort28.csv")
 
-#find time it takes for a certain change in WHO level (2 or 1)
-#subset dataframe (same dataframe as used before, so with the age and supplementary oxygen filters)
-severity_difference<-subset1
-#>10.000 subjects with no WHO value on day of discharge, set those to level 4 (day of death all have a value)
-severity_difference$severity_scale_ordinal<- ifelse(is.na(severity_difference$severity_scale_ordinal) &
-                                                      !is.na(severity_difference$day_of_discharge), 4, 
-                                                    severity_difference$severity_scale_ordinal)
-#make new variable for last who level available
-last_sev<-severity_difference %>%
-  group_by(subjid)%>%
-  filter(days_since_start <29)%>% #end of follow up
-  filter(!is.na(severity_scale_ordinal))%>%
-  arrange(days_since_start)%>%
-  slice(n())%>% #keep last day in study (<29)
-  dplyr::rename(final_who_score =severity_scale_ordinal) #give more useful name
-last_sev<-data.frame(last_sev)
-last_sev<-last_sev[,c("subjid","final_who_score")]
-#make subset of data
-severity_difference<-severity_difference[,c("subjid","days_since_start","severity_scale_ordinal")]
-#only select subjects with >1 measurement, remove rows with missing days and severity score
-severity_difference<-severity_difference %>%
-  group_by(subjid)%>%
-  filter(n()>=2)
-severity_difference<-subset(severity_difference, !is.na(days_since_start)) 
-severity_difference<-subset(severity_difference, !is.na(severity_scale_ordinal)) 
-#calculate time it takes for a change of 1
-severity_dif_1level<-severity_difference %>%
-  left_join(severity_difference, ("subjid")) %>%
-  filter(severity_scale_ordinal.x != 10)%>% #some wrong entries where after death there is still a non-dead value
-  mutate(Days = (days_since_start.y - days_since_start.x)) %>% # creates all possible combinations (day 3- day 1 and day 1- day 3)
-  filter(Days>0)%>% #only keep if day y > day x (as this means 'forward' change)
-  mutate(score_difference= severity_scale_ordinal.y- severity_scale_ordinal.x) %>% #calculate the change in severity levels 
-  filter(score_difference <= -1) %>% # improvement >> score gets lower
-  group_by(subjid) %>%
-  slice(which.min(Days)) %>% #if multiple combination for a 1/2 level difference, take the smallest no of days
-  ungroup %>%
-  right_join(distinct(severity_difference["subjid"]), "subjid") 
 
-#add both together
-severity_dif_1level<-left_join(severity_dif_1level, last_sev, by="subjid") 
-#only keep if value is the same as last value
-#if subject improves further- we don't want to lose them, so sev_scale_ord.y needs to be smaller than final score
-#sev_scale.y can also be the same as final score
-# if final score is higher than sev_score.y >> remove days value
-severity_dif_1level$severity_scale_ordinal.y<-as.numeric(severity_dif_1level$severity_scale_ordinal.y)
-severity_dif_1level$final_who_score<-as.numeric(severity_dif_1level$final_who_score)
-severity_dif_1level<-severity_dif_1level %>% 
-  mutate(
-    Days = case_when(
-      score_difference == -1 & 
-        (severity_scale_ordinal.y >= final_who_score) ~ Days,
-      score_difference == -2 & #if difference was 2 points and someone still has 1 point improvement at end, don't exclude
-        ((severity_scale_ordinal.y +1) >= final_who_score) ~ Days,
-      score_difference == -3 & 
-        ((severity_scale_ordinal.y +2) >= final_who_score) ~ Days,
-      score_difference == -4 & 
-        ((severity_scale_ordinal.y +3) >= final_who_score) ~ Days
-    ))
-severity_dif_1level<-data.frame(severity_dif_1level)
-
-summary(severity_dif_1level$Days, na.rm = T)
-
-
+#OUTPUT
+# Median + IQR for WHO for day 5 and day 8
 
 #OUTPUT
 #median + IQR for 1 level difference
 
-
-
-
-
-#calculate time it takes for a change of 2
-severity_dif_2level<-severity_difference %>%
-  left_join(severity_difference, ("subjid")) %>%
-  filter(severity_scale_ordinal.x != 10)%>% #some wrong entries where after death there is still a non-dead value
-  mutate(Days = (days_since_start.y - days_since_start.x)) %>% # creates all possible combinations (day 3- day 1 and day 1- day 3)
-  filter(Days>0)%>% #only keep if day y > day x (as this means 'forward' change)
-  mutate(score_difference= severity_scale_ordinal.y- severity_scale_ordinal.x) %>% #calculate the change in severity levels 
-  filter(score_difference <= -2) %>% # improvement >> score gets lower
-  group_by(subjid) %>%
-  slice(which.min(Days)) %>% #if multiple combination for a 1/2 level difference, take the smallest no of days
-  ungroup %>%
-  right_join(distinct(severity_difference["subjid"]), "subjid") 
-
-#add both together
-severity_dif_2level<-left_join(severity_dif_2level, last_sev, by="subjid") 
-#only keep if value is the same as last value
-#if subject improves further- we don't want to lose them, so sev_scale_ord.y needs to be smaller than final score
-#sev_scale.y can also be the same as final score
-# if final score is higher than sev_score.y >> remove days value
-severity_dif_2level$severity_scale_ordinal.y<-as.numeric(severity_dif_2level$severity_scale_ordinal.y)
-severity_dif_2level$final_who_score<-as.numeric(severity_dif_2level$final_who_score)
-#for 2 levels difference
-severity_dif_2level<-severity_dif_2level %>% 
-  mutate(
-    Days = case_when(
-      score_difference == -2 & 
-        (severity_scale_ordinal.y >= final_who_score) ~ Days,
-      score_difference == -3 & 
-        ((severity_scale_ordinal.y +1) >= final_who_score) ~ Days,
-      score_difference == -4 & 
-        ((severity_scale_ordinal.y +2) >= final_who_score) ~ Days
-    ))
-severity_dif_2level<-data.frame(severity_dif_2level)
-
-summary(severity_dif_2level$Days, na.rm = T)
-
 #OUTPUT
 #median + IQR for 2 levels difference
 
-medianIQR <- as.data.frame(rbind(summary(day8_who$who_day5),  summary(day8_who$who_day8)))
+subset1Dist <- distinct( subset1[c('subjid', 'who_days_to_improve1')])
 
-medianIQR <- rbind(medianIQR, summary(severity_dif_1level$Days, na.rm = T))
+medianIQR <- as.data.frame(rbind(summary(day8_who$who_day5), summary(day8_who$who_day8)))
 
-medianIQR <- rbind(medianIQR, summary(severity_dif_2level$Days, na.rm = T))
+medianIQR <- rbind(medianIQR, summary(subset1Dist$who_days_to_improve1 , na.rm = T) )
+
+medianIQR <- rbind(medianIQR, summary(subset1Dist$who_days_to_improve2 , na.rm = T) )
 
 rownames( medianIQR) <- c('who_day5', 'who_day8', 'who 1 level difference', 'who 2 level difference')
 
 write.csv(medianIQR,"/home/skerr/Git/SF94/Outputs/medianIQR.csv")
-
 
 
 
@@ -304,27 +197,29 @@ write.csv(medians,"/home/skerr/Git/SF94/Outputs/medians.csv")
 #additional numbers:
 
 notMissingV <- c(  sapply(basedd_sf94_10[c('5', '8')], function(x) sum(!is.na(x))),       
-    sapply(day8_who[c('who_day5', 'who_day8')], function(x) sum(!is.na(x))),
-    sum(!is.na(severity_dif_1level$Days)), sum(!is.na(severity_dif_2level$Days)),
-    sum(!is.na(mort$mortality_28))
+                   sapply(day8_who[c('who_day5', 'who_day8')], function(x) sum(!is.na(x))),
+                   sum(!is.na( subset1Dist$who_days_to_improve1 )), 
+                   sum(!is.na( subset1Dist$who_days_to_improve2 )),
+                   sum(!is.na(mort$mortality_28))
 )
 
 notMissing <- data.frame(  variable =   c('sf94_day5', 'sf94_day8', 'who_day5', 'who_day8', 'severity_dif_1level',
                                           'severity_dif_1level', 'mortality_28'),
-                        value = notMissingV)
+                           value = notMissingV)
 
 write.csv(notMissing,"/home/skerr/Git/SF94/Outputs/notMissing.csv")
 
 
 missingV <- c(  sapply(basedd_sf94_10[c('5', '8')], function(x) sum(is.na(x))),       
-                   sapply(day8_who[c('who_day5', 'who_day8')], function(x) sum(is.na(x))),
-                   sum(is.na(severity_dif_1level$Days)), sum(is.na(severity_dif_2level$Days)),
-                   sum(is.na(mort$mortality_28))
+                sapply(day8_who[c('who_day5', 'who_day8')], function(x) sum(is.na(x))),
+                sum(is.na( subset1Dist$who_days_to_improve1 )), 
+                sum(is.na( subset1Dist$who_days_to_improve2 )),
+                sum(is.na(mort$mortality_28))
 )
 
-missing <- data.frame(  variable =   c('sf94_day5', 'sf94_day8', 'who_day5', 'who_day8', 'severity_dif_1level',
-                                          'severity_dif_1level', 'mortality_28'),
-                           value = missingV)
+missing <- data.frame(  variable =   c('sf94_day5', 'sf94_day8', 'who_day5', 'who_day8', 'who_days_to_improve1',
+                                       'who_days_to_improve2', 'mortality_28'),
+                        value = missingV)
 
 write.csv(missing,"/home/skerr/Git/SF94/Outputs/missing.csv")
 
@@ -335,14 +230,18 @@ write.csv(whoTable,"/home/skerr/Git/SF94/Outputs/whoTable.csv")
 
 write.csv(table(mort$mortality_28),"/home/skerr/Git/SF94/Outputs/mort28Table.csv")
 
-<<<<<<< HEAD
+
+#make small dataframe for 28-day mortality and outcome
+mortality<-df_1[,c("subjid","mortality_28")]
+mortality<-mortality%>%
+  group_by(subjid)%>%
+  summarise_all(funs(f))
 
 
-=======
 #----------------------------------- GRAPHS --------------------------------
 #split violin plot
 #data
-base_sf94_12<-createDF("base", "sf94", 12)
+base_sf94_12<-createDF(subset1, "base", "sf94", 12)
 #transform to long format 
 long_dfsf94_12<-gather(base_sf94_12, days_since_start, sf94, 2:14, factor_key=T)
 #removing rows without SF94 value
@@ -389,8 +288,6 @@ geom_split_violin <- function(mapping = NULL, data = NULL, stat = "ydensity", po
         position = position, show.legend = show.legend, inherit.aes = inherit.aes, 
         params = list(trim = trim, scale = scale, draw_quantiles = draw_quantiles, na.rm = na.rm, ...))
 }
->>>>>>> 55d7eebcd26601c14cef2616feaa2f563506f670
-
 
 #=============================================================================================#
 
@@ -401,8 +298,8 @@ geom_split_violin <- function(mapping = NULL, data = NULL, stat = "ydensity", po
 #Data imputation based on total number of deaths
 #ANALYSIS DONE WITH DF_1 DATA, SO NO AGE OR RESP SUPPORT FILTERS. START = ±79000 SUBJECTS
 #using df_1 (without filters)
-subset1<-df_1
-df_1_base_sf94<-createDF("base", "sf94", 10)
+#subset1<-df_1
+df_1_base_sf94<-createDF(df_1, "base", "sf94", 10)
 
 #regression model D5 SF94 and mortality
 #with sf94 values regression
@@ -411,11 +308,11 @@ day05<-day05%>%
   dplyr::rename(sf94_day5= "5", sf94_day0= "0")
 
 #calculate what number of subjects needs to be added to get correct proportion
-dead5<-length(unique(subset1$subjid[(subset1$day_of_death <5)])) #number of subjects that died before day 5
-alive5<-length(unique(subset1$subjid[(subset1$day_of_discharge <5)])) #number of subjects that went home before day 5
-available5<-sum((!is.na(subset1$sf94) & subset1$days_since_start == 5), na.rm=T) 
-percdead5<-dead5/length(unique(subset1$subjid)) #% that died before day from total subjects
-percalive5<-alive5/length(unique(subset1$subjid))# % that went home before day 5 from total subjects
+dead5<-length(unique(df_1$subjid[(df_1$day_of_death <5)])) #number of subjects that died before day 5
+alive5<-length(unique(df_1$subjid[(df_1$day_of_discharge <5)])) #number of subjects that went home before day 5
+available5<-sum((!is.na(df_1$sf94) & df_1$days_since_start == 5), na.rm=T) 
+percdead5<-dead5/length(unique(df_1$subjid)) #% that died before day from total subjects
+percalive5<-alive5/length(unique(df_1$subjid))# % that went home before day 5 from total subjects
 percavailable5<- (1-percdead5- percalive5)# % of available values
 dead_to_add<-(percdead5*available5)/percavailable5 #number of 0.5 values to add to variable
 alive_to_add<-(percalive5*available5)/percavailable5 #number of 4.76 values to add to variable
@@ -435,11 +332,7 @@ sf94_day5_P<-data.frame(sf94_day5_P)
 day05_P<-cbind(day05_P, sf94_day5_P)
 day05_P<-data.frame(day05_P)
 
-#make small dataframe for 28-day mortality and outcome
-mortality<-df_1[,c("subjid","mortality_28")]
-mortality<-mortality%>%
-  group_by(subjid)%>%
-  summarise_all(funs(f))
+
 #join both together
 regresson_df_P<-left_join(day05_P, mortality, by="subjid")
 
@@ -460,7 +353,7 @@ options(datadist='ddist')
 detach(regresson_df_P)
 #Then fit models (splines using 4 knots here)
 linear_model_P <- lrm(mortality_28 ~ sf94_day0 + sf94_day5_P, regresson_df_P, x=TRUE, y=TRUE)
-univariate_model<-lrm(mortality_28 ~ sf94_day0, regresson_df, x=TRUE, y=TRUE)
+univariate_model<-lrm(mortality_28 ~ sf94_day0, regresson_df_P, x=TRUE, y=TRUE)
 #Visualise using exp scale
 plot_associations_linear_exp_P <- ggplot(Predict(linear_model_P, fun=plogis), sepdiscrete='vertical',
                                          ylab= "Risk of 28-day mortality")
@@ -486,4 +379,3 @@ linear_model_glm_P  %>% tbl_regression(exponentiate=T, intercept= T)
 
 #OUTPUT
 #HTML code
-

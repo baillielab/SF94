@@ -24,20 +24,20 @@ dateVars <- c( "dsstdat", "cestdat", "hostdat", "daily_dsstdat", "dsstdtc")
 
 #Variables that should be constant in the data
 constVars <- c("sex", "age_estimateyears", "hypertension_mhyn", "chrincard", "chronicpul_mhyn", "asthma_mhyn", "renal_mhyn",             
-                  "modliv", "mildliver", "chronicneu_mhyn", "malignantneo_mhyn", "chronichaemo_mhyn", "obesity_mhyn",           
-                  "diabetes_type_mhyn", "diabetescom_mhyn", "diabetes_mhyn", "rheumatologic_mhyn" , "dementia_mhyn",           
-                  "malnutrition_mhyn", "smoking_mhyn", "other_mhyn", "ethnicity","clinical_frailty", "oxygen_cmoccur",
-                  "oxygen_proccur", "oxygenhf_cmoccur", "noninvasive_proccur", "invasive_proccur", "dsterm", "dsstdtcyn",
-                  "smoking_mhyn_2levels", "any_invasive", "onset2admission" )
+               "modliv", "mildliver", "chronicneu_mhyn", "malignantneo_mhyn", "chronichaemo_mhyn", "obesity_mhyn",           
+               "diabetes_type_mhyn", "diabetescom_mhyn", "diabetes_mhyn", "rheumatologic_mhyn" , "dementia_mhyn",           
+               "malnutrition_mhyn", "smoking_mhyn", "other_mhyn", "ethnicity","clinical_frailty", "oxygen_cmoccur",
+               "oxygen_proccur", "oxygenhf_cmoccur", "noninvasive_proccur", "invasive_proccur", "dsterm", "dsstdtcyn",
+               "smoking_mhyn_2levels", "any_invasive", "onset2admission" )
 
 # Variables that need not be constant in the data
 nonConstVars <- c("rr_vsorres", "oxy_vsorres", "oxy_vsorresu","daily_temp_vsorres", "daily_temp_vsorresu", "daily_fio2_lborres", 
-                     "daily_fio2b_lborres", "daily_fio2c_lborres", "daily_sao2_lborres", "daily_gcs_vsorres", "systolic_vsorres", 
-                     "diastolic_vsorres", "daily_meanart_vsorres", "daily_urine_lborres", "daily_noninvasive_prtrt",
-                     "daily_invasive_prtrt", "daily_nasaloxy_cmtrt", "daily_ecmo_prtrt", "daily_rrt_cmtrt",
-                     "daily_inotrope_cmyn", "infiltrates_faorres", "daily_bun_lborres", "daily_bun_lborresu",    
-                     "daily_creat_lborres", "daily_creat_lborresu", "daily_crp_lborres", "daily_crp_lborresu",     
-                     "hodur")
+                  "daily_fio2b_lborres", "daily_fio2c_lborres", "daily_sao2_lborres", "daily_gcs_vsorres", "systolic_vsorres", 
+                  "diastolic_vsorres", "daily_meanart_vsorres", "daily_urine_lborres", "daily_noninvasive_prtrt",
+                  "daily_invasive_prtrt", "daily_nasaloxy_cmtrt", "daily_ecmo_prtrt", "daily_rrt_cmtrt",
+                  "daily_inotrope_cmyn", "infiltrates_faorres", "daily_bun_lborres", "daily_bun_lborresu",    
+                  "daily_creat_lborres", "daily_creat_lborresu", "daily_crp_lborres", "daily_crp_lborresu",     
+                  "hodur")
 
 # All variables
 allVars <- c("subjid", dateVars, constVars, nonConstVars) 
@@ -92,14 +92,14 @@ cleanPercent <- function(df, cols){
                                             . >100 & . <= 1000  ~ ./10,
                                             . >1000 & . <= 10000 ~ ./100,
                                             . >10000 & . <= 100000 ~ ./1000 )   )
-return(df)  
+  return(df)  
 }
 
 # Clean variables that take values in unit interval
 cleanInt1 <- function(df, cols){
   df <- df %>%  mutate_at(cols, ~case_when( . >=0 & . <= 1   ~ . ,
                                             . >1 & . <= 100   ~ ./100 )   )
-return(df)  
+  return(df)  
 }
 
 # This function squeezes variables.
@@ -112,7 +112,7 @@ squeeze<- function(df, limits){
     df[var][ df[var] >= limits[4, var]  &   df[, var]< limits[3, var] ] <- limits[3, var]
   }
   
-return(df)  
+  return(df)  
 }
 
 # Find the mode of a vector. If there are multiple, return the first that appears.
@@ -123,9 +123,9 @@ Mode <- function(x) {
   if( length(x) == 0 ){
     return(NA)
   } else{
-  ux <- unique(x)
-  return( ux[which.max(tabulate(match(x, ux))) ] )
-}
+    ux <- unique(x)
+    return( ux[which.max(tabulate(match(x, ux))) ] )
+  }
 }
 
 ####################################### GENERAL REPLACEMENTS: #######################################
@@ -165,27 +165,27 @@ df['daily_fio2b_lborres'] <- lapply(df['daily_fio2b_lborres'], as.numeric )
 #BUN: measured as mg/dL and mmol/L, convert mg/dL to mmol/L
 #to convert from mg/dl to mmol/L for BUN: mg/dL x 0.357
 df$daily_bun_lborres<-ifelse(df$daily_bun_lborresu == "mg/dL", 
-                               (df$daily_bun_lborres * 0.357),
-                               df$daily_bun_lborres)
+                             (df$daily_bun_lborres * 0.357),
+                             df$daily_bun_lborres)
 
 df['daily_bun_lborresu'][ !is.na( df['daily_bun_lborresu'])  ] <- 'mmol/L'
 
 #creatinin measured as mg/dl or umol/L 
 #to convert from mg/dl to umol/L, multiply by 88.4
 df$daily_creat_lborres<-ifelse(df$daily_creat_lborresu == "mg/dl", 
-                                 (df$daily_creat_lborres * 88.4),
-                                 df$daily_creat_lborres)
+                               (df$daily_creat_lborres * 88.4),
+                               df$daily_creat_lborres)
 
 df['daily_creat_lborresu'][ !is.na( df['daily_creat_lborresu'])  ] <- 'umol/L'
 
 
 #crp measured in 3 ways: mg/dL, mg/L (majority) and ug/ml. mg/L=ug/ml
 df$daily_crp_lborres<-ifelse(df$daily_crp_lborresu == "mg/dL",
-                               (df$daily_crp_lborres * 10), df$daily_crp_lborres)
+                             (df$daily_crp_lborres * 10), df$daily_crp_lborres)
 
 df['daily_crp_lborresu'][ !is.na( df['daily_crp_lborresu'])  ] <- 'ug/ml'
-  
-  
+
+
 # Celsius = (Farrenheit - 32) *5/9
 df$daily_temp_vsorres<-ifelse(df$daily_temp_vsorresu == "°F",
                               (df$daily_temp_vsorres - 32) * 5/9, df$daily_temp_vsorres)
@@ -246,7 +246,7 @@ df <- squeeze(df, limits)
 # Otherwise set to NA
 
 df <- mutate_at(df, dateVars,  ~case_when(    year(.) %in% c(2020, 2021) ~ . ,
-  year(.) %in% c(2002, 2030, 3030) ~ as.Date( paste( '2020', str_sub(. ,-6,-1), sep=""), format = '%Y-%m-%d') ))
+                                              year(.) %in% c(2002, 2030, 3030) ~ as.Date( paste( '2020', str_sub(. ,-6,-1), sep=""), format = '%Y-%m-%d') ))
 
 # For each subjid, take dates of admission, symptoms, etc as the earliest recorded
 # For binary variables that are constant, take them to be 'YES' if they are ever 'YES' for a given subjid.
@@ -259,7 +259,7 @@ df <- mutate_at(df, dateVars,  ~case_when(    year(.) %in% c(2020, 2021) ~ . ,
 df <- df %>% group_by(subjid) %>% mutate_at( c('dsstdat', 'hostdat', 'cestdat', 'dsstdtc'), min, na.rm = TRUE )
 
 df <- df %>% group_by(subjid) %>% mutate_at(intersect(binaryVars, constVars),  ~case_when( any(. == 'YES') ~ 'YES',
-                                                                              any(. == 'NO', na.rm = TRUE) ~ 'NO') )
+                                                                                           any(. == 'NO', na.rm = TRUE) ~ 'NO') )
 
 df <- df %>% group_by(subjid) %>% mutate_at( setdiff( constVars, union(binaryVars, otherCatVars) ), mean, na.rm = TRUE )
 
@@ -275,6 +275,11 @@ df <- df %>% group_by(subjid, daily_dsstdat) %>% mutate_at( setdiff(nonConstVars
 
 # Taking means leaves NaN values. Make them NA. 
 df[is.na(df)] <- NA
+
+# NOTE: In future, may wish to add additional cleaning for time variables.
+# In particular, it should be the case that ddstdtc, dsstdat, daily_dsstdat >= hostdat
+# and dsstdat, daily_dsstdat >= dsstdat
+# In our analysis this cleaning isn't required, but it may be needed for other analyses.
 
 ################################ REMOVE UNINFORMATIVE ROWS: ###################################
 
@@ -292,4 +297,3 @@ df <- df %>% filter_at( c('daily_dsstdat', setdiff(nonConstVars, unitVars) ), an
 
 # Write on argosafe
 write.csv(df,"/home/skerr/Data/ccp_subset_clean.csv", row.names = FALSE)
-
