@@ -7,13 +7,13 @@ library(tidyr)
 #----------------------------------- GRAPHS --------------------------------
 #split violin plot
 #data
-base_sf94_12<-createDF("base", "sf94", 12)
+base_sf94_12<-createDF(subset1, "base", "sf94", 12)
 #transform to long format 
 long_dfsf94_12<-gather(base_sf94_12, days_since_start, sf94, 2:14, factor_key=T)
 #removing rows without SF94 value
 long_dfsf94_12 <- subset(long_dfsf94_12, !is.na(sf94))
 #add 30 day mortality data
-long_dfsf94_12<-left_join(long_dfsf94_12, mortality_28, by="subjid")
+long_dfsf94_12<-left_join(long_dfsf94_12, mort, by="subjid")
 long_dfsf94_12 <- subset(long_dfsf94_12, !is.na(mortality_28))
 #change to character and set correct order
 long_dfsf94_12$mortality_28<-as.character(long_dfsf94_12$mortality_28)

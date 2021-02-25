@@ -1,8 +1,8 @@
 "","variable","value"
-"1","sf94_day5",64522
+"1","sf94_day5",64482
 "2","sf94_day8",48820
-"3","who_day5",18686
-"4","who_day8",14194
-"5","severity_dif_1level",13790
-"6","severity_dif_1level",21730
-"7","mortality_28",6496
+"3","who_day5",17960
+"4","who_day8",13604
+"5","who_days_to_improve1",22766
+"6","who_days_to_improve2",0
+"7","mortality_28",6561
