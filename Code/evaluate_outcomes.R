@@ -353,6 +353,7 @@ options(datadist='ddist')
 detach(regresson_df_P)
 #Then fit models (splines using 4 knots here)
 linear_model_P <- lrm(mortality_28 ~ sf94_day0 + sf94_day5_P, regresson_df_P, x=TRUE, y=TRUE)
+linear_uni_model<-lrm(mortality_28 ~ sf94_day5_P, regresson_df_P, x=TRUE, y=TRUE)
 univariate_model<-lrm(mortality_28 ~ sf94_day0, regresson_df_P, x=TRUE, y=TRUE)
 #Visualise using exp scale
 plot_associations_linear_exp_P <- ggplot(Predict(linear_model_P, fun=plogis), sepdiscrete='vertical',
@@ -363,11 +364,33 @@ plot_linear_exp_p<-plot_associations_linear_exp_P + labs(title= "Relationship be
 plot_linear_exp_p$data$.predictor.<-factor(plot_linear_exp_p$data$.predictor., labels= c("Day 0 S/F94",
                                                                                          "Day 5 S/F94"))
 plot_linear_exp_p + facet_grid(.~ .predictor., labeller = label_value)
-
+linear_uni_model
 #univariable model
 plot_linear_uni<-ggplot(Predict(univariate_model))
 plot_linear_exp_uni<-ggplot(Predict(univariate_model, fun=plogis), ylab= "Risk of 28-day mortality")
 plot_linear_exp_uni
+
+
+
+#effect size
+mort1<-0.25 #baseline mortality
+oddsmort1<-1/((1-mort1)/mort1) #to odds
+intercept<-as.numeric(coef(linear_uni_model)[1])
+coefbaseline<-as.numeric(coef(linear_uni_model)[2])
+#baseline SF
+# y = intercept + x1+b1 >> (y-intercept)/b1 = x1 = SF94 'at baseline'
+#y = logoddsmort1
+logoddsmort1<-log(oddsmort1)
+baselinesf94<-(logoddsmort1-intercept)/coefbaseline
+
+mortdifference<-0.05
+
+mort2<-mort1-mortdifference
+oddsmort2<-1/((1-mort2)/mort2) #from probability to odds
+logoddsmort2<-log(oddsmort2) #y in regression equation
+newsf94<-(logoddsmort2-intercept)/coefbaseline #regression equation
+sf94_difference<-newsf94-baselinesf94
+sf94_difference
 
 #OUTPUT 
 #2 graphs

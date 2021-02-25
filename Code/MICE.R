@@ -1,3 +1,16 @@
+# 4 day mortality variable
+df_1<-df_1 %>% 
+  mutate(
+    mortality_5 = case_when(
+      day_of_death <6 ~ 1,
+      day_of_discharge<6 ~ 0))
+mort5<-df_1 %>%
+  group_by(subjid)%>%
+  count(mortality_5)
+table(mort5$mortality_5)
+sum(mort5$mortality_5 == 1, na.rm = T)/ sum(!is.na(mort5$mortality_5))
+mort28 <- sum(mort$mortality_28 == 1, na.rm = T)/ sum(!is.na(mort$mortality_28))
+
 #MICE multiple imputation
 #https://www.analyticsvidhya.com/blog/2016/03/tutorial-powerful-packages-imputing-missing-values/
 library(mice)
