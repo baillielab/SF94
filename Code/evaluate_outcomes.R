@@ -382,25 +382,26 @@ coefday5<-as.numeric(coef(linear_model_P)[3])
 linear_uni_model
 intercept<-as.numeric(coef(linear_uni_model)[1]) #uninvariate model D5 only
 coefday5<-as.numeric(coef(linear_uni_model)[2])
-mort1<-0.25 #baseline mortality
+mort1<-0.35 #baseline mortality
 oddsmort1<-1/((1-mort1)/mort1) #to odds
 logoddsmort1<-log(oddsmort1) # y = intercept + x1b1 +x2b2 >> (y-intercept- x1b1)/b2 = x2 = SF94 'at baseline'D5
 baselinesf94<-(logoddsmort1-intercept)/coefday5 #y = logoddsmort
 baselinesf94
 
 #calculate SF94 difference from baseline with various mortality reductions
-abseffect_size<- function(mortdifference, mort1, baselinesf94) {
+abseffect_size<- function(mortdifference) {
   mort2<-mort1-mortdifference
   oddsmort2<-1/((1-mort2)/mort2) #from probability to odds
-  logoddsmort2<-log(oddsmort2) #y in regression equation
+  logoddsmort2<-log(oddsmort2) #y in regression equation (logodds)
   newsf94<-(logoddsmort2-intercept)/coefday5 #regression equation
   sf94_difference<-newsf94-baselinesf94
   return(sf94_difference)
 }
 absolute_mort_reduction<-c(0.05,0.06,0.07,0.08,0.09,0.1,0.11,0.12,0.13,0.14,0.15)
-sf94_25<-abseffect_size(absolute_mort_reduction, 0.25, 3.18)
-sf94_30<-abseffect_size(absolute_mort_reduction, 0.30, 2.92)
-sf94_35<-abseffect_size(absolute_mort_reduction, 0.35, 2.69)
+sf94_25<-abseffect_size(absolute_mort_reduction)
+sf94_30<-abseffect_size(absolute_mort_reduction)
+sf94_35<-abseffect_size(absolute_mort_reduction)
+
 
 #make a graph
 library(data.table)
@@ -412,7 +413,6 @@ effectsize_graph<-data.frame(absolute_mort_dif=rep(absolute_mort_reduction,3),
                              baseline_mort=rep(c("0.25","0.30","0.35"), each = 11))
 effectsize_graph<-cbind(effectsize_graph, sf94_dif)
 effectsize_graph
-
 
 graph_effectsize<-ggplot(effectsize_graph, aes(x=absolute_mort_dif, y=sf94_dif, group=baseline_mort,
                                                colour=baseline_mort))
@@ -481,6 +481,7 @@ relgraph_effectsize + geom_line()+
 #OUTPUT
 #3 
 
+
 # Steven's suggestion
 # elements of baseline are ( probability of death, SF94 day 0, SF94 day 5 )
 # elements of coef are (intercept, coefficient of SF94 day 0, coefficient of SF94 day 5) from the logistic model.
@@ -490,21 +491,25 @@ linear_uni_model
 #25: 3.18=baselineSF94
 #30: 2.92
 #35: 2.69
-baseline <- c(0.35, 0, 2.69)
+baseline <- c(0.30, 0, baselinesf94)
 coef <- c(1.9782, 0, -0.9672) 
-
+baseline
 mortSF <- function(baseline, coef){
-  f2 <- function(deltaSF){
+  f1 <- function(deltaSF){
     a <- log( (baseline[1] - deltaSF)/( 1-baseline[1]  + deltaSF)) - coef[1] - coef[2]*baseline[2] - coef[3]*baseline[3]
     return( a/coef[3]  )
-   }
- return(f2) 
+  }
+  return(f1) 
 }
 
-f2 <- mortSF(baseline, coef)
-
-
-curve(f, from=0.05, to=0.15, xlab="Absolute mortality difference", ylab="Difference in SF94", ylim=c(0,1.5), col="Red")
+f1 <- mortSF(baseline, coef)
+f(absolute_mort_reduction)
+ticksx<-c(0.05,0.06,0.07,0.08,0.09,0.1,0.11,0.12,0.13,0.14,0.15)
+ticksy<-c(0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5)
+curve(f, from=0.05, to=0.15, xlab="Absolute mortality difference",
+      ylab="Difference in SF94", ylim=c(0,1.5), col="Red", xaxt="n")
+axis(1, at=ticksx)
+axis(2, at=ticksy)
 curve(f1, from=0.05, to=0.15, xlab="Absolute mortality difference", ylab="Difference in SF94", col="blue", add = T)
 curve(f2, from=0.05, to=0.15, xlab="Absolute mortality difference", ylab="Difference in SF94",col="green", add = T)
 legend("topleft", legend = c("25% mortality", "30% mortality", "35% mortality"),
@@ -512,7 +517,6 @@ legend("topleft", legend = c("25% mortality", "30% mortality", "35% mortality"),
        fill= c("red", "blue", "green"),
        title="Baseline mortality")
 rpng.off()
-
 
 #numbers on the regression analysis
 library(gtsummary)
