@@ -476,6 +476,27 @@ relgraph_effectsize + geom_line()+
 #OUTPUT
 #3 
 
+# Steven's suggestion
+# elements of baseline are ( probability of death, SF94 day 0, SF94 day 5 )
+# elements of coef are (intercept, coefficient of SF94 day 0, coefficient of SF94 day 5) from the logistic model.
+# mortSF is a function that itself creates a function. Tell mortSF baseline and coef, and it outputs a function
+# that gives the relationship between change in SF94 day5, and change in probability of death
+baseline <- c(0.25, 1, 1)
+coef <- c(1, 0.3, -1) 
+
+mortSF <- function(baseline, coef){
+  f <- function(deltaSF){
+    a <- log( (baseline[1] - deltaSF)/( 1-baseline[1]  + deltaSF)) - coef[1] - coef[2]*baseline[2] - coef[3]*baseline[3]
+    return( a/coef[3]  )
+   }
+ return(f) 
+}
+
+f <- mortSF(baseline, coef)
+
+curve(f, from=0, to=0.15, xlab="x", ylab="y")
+
+
 
 #numbers on the regression analysis
 library(gtsummary)
