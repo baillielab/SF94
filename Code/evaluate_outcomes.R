@@ -386,7 +386,7 @@ baselinesf94<-(logoddsmort1-intercept- coefday0)/coefday5 #y = logoddsmort
 baselinesf94
 
 #calculate SF94 difference from baseline with various mortality reductions
-effect_size<- function(mortdifference) {
+abseffect_size<- function(mortdifference) {
   mort2<-mort1-mortdifference
   oddsmort2<-1/((1-mort2)/mort2) #from probability to odds
   logoddsmort2<-log(oddsmort2) #y in regression equation
@@ -395,15 +395,15 @@ effect_size<- function(mortdifference) {
   return(sf94_difference)
 }
 absolute_mort_reduction<-c(0.05,0.06,0.07,0.08,0.09,0.1,0.11,0.12,0.13,0.14,0.15)
-sf94_30<-effect_size(absolute_mort_reduction)
+sf94_30<-abseffect_size(absolute_mort_reduction)
 
+#make a graph
 library(data.table)
 sf94_dif<-data.frame(sf94_25, sf94_30, sf94_35)
 sf94_dif<- data.frame(sf94_dif= c(sf94_dif[,"sf94_25"], sf94_dif[,"sf94_30"],sf94_dif[,"sf94_35"]))
 sf94_dif
-#make a graph
 effectsize_graph<-data.frame(absolute_mort_dif=rep(absolute_mort_reduction,3),
-                              baseline_sf94=rep(c(2.59,2.37,2.16), each = 11),
+                             baseline_sf94=rep(c(2.59,2.37,2.16), each = 11),
                              baseline_mort=rep(c("0.25","0.30","0.35"), each = 11))
 effectsize_graph<-cbind(effectsize_graph, sf94_dif)
 effectsize_graph
@@ -414,6 +414,64 @@ graph_effectsize<-ggplot(effectsize_graph, aes(x=absolute_mort_dif, y=sf94_dif, 
 graph_effectsize + geom_line()+
   xlab("absolute mortality difference") +
   ylab("Difference in SF94")
+
+#relative risk reductions
+# (controlmort- experimentalgroupmort)/ controlmort = RRR
+# RRR = 12.5-20%
+# Controlmort= 25%, 30% or 35%
+rrr_list<-c(0.12,0.13,0.14,0.15,0.16,0.17,0.18,0.19,0.20)
+mort2_25<- function(rrr) {
+  expmort<-(rrr * 0.25) - 0.25
+  expmort<--expmort
+  return(expmort)
+}
+mort2_25_rrr<-mort2_25(rrr_list)
+
+mort2_30<- function(rrr) {
+  expmort<-(rrr * 0.30) - 0.30
+  expmort<--expmort
+  return(expmort)
+}
+mort2_30_rrr<-mort2_30(rrr_list)
+
+mort2_35<- function(rrr) {
+  expmort<-(rrr * 0.35) - 0.35
+  expmort<--expmort
+  return(expmort)
+}
+mort2_35_rrr<-mort2_35(rrr_list)
+
+relativeeffect_size<- function(mort2, baselinesf94) {
+  oddsmort2<-1/((1-mort2)/mort2) #from probability to odds
+  logoddsmort2<-log(oddsmort2) #y in regression equation
+  newsf94<-(logoddsmort2-intercept- coefday0)/coefday5 #regression equation
+  sf94_difference<-newsf94-baselinesf94
+  return(sf94_difference)
+}
+
+sf94_rel25<-relativeeffect_size(mort2_25_rrr,2.59)
+sf94_rel30<-relativeeffect_size(mort2_30_rrr,2.37)
+sf94_rel35<-relativeeffect_size(mort2_35_rrr,2.16)
+
+#make a graph
+library(data.table)
+relsf94_dif<-data.frame(sf94_rel25, sf94_rel30, sf94_rel35)
+relsf94_dif<- data.frame(sf94_dif= c(relsf94_dif[,"sf94_rel25"],
+                                     relsf94_dif[,"sf94_rel30"],
+                                     relsf94_dif[,"sf94_rel35"]))
+relsf94_dif
+releffectsize_graph<-data.frame(relative_mort_red=rep(rrr_list,3),
+                             baseline_mort=rep(c("0.25","0.30","0.35"), each = 9))
+releffectsize_graph<-cbind(releffectsize_graph, relsf94_dif)
+releffectsize_graph
+#grahp
+relgraph_effectsize<-ggplot(releffectsize_graph, 
+                            aes(x=relative_mort_red, y=sf94_dif, group=baseline_mort,
+                                               colour=baseline_mort))
+relgraph_effectsize + geom_line()+
+  xlab("Relative reduction in mortality") +
+  ylab("Difference in SF94")
+
 
 #OUTPUT
 #3 
