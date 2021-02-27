@@ -384,6 +384,9 @@ intercept<-as.numeric(coef(linear_uni_model)[1]) #uninvariate model D5 only
 coefday5<-as.numeric(coef(linear_uni_model)[2])
 
 #calculate SF94 difference from baseline with various mortality reductions
+
+##input data: subset 1 + filters?? check before running on complete data on safehaven/argoshare
+
 abseffect_size<- function(mortdifference, mort1) {
   logoddsmort1<-log(1/((1-mort1)/mort1))
   baselinesf94<-(logoddsmort1-intercept)/coefday5
