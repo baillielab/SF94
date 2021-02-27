@@ -403,6 +403,22 @@ sf94_30<-abseffect_size(absolute_mort_reduction)
 sf94_35<-abseffect_size(absolute_mort_reduction)
 
 
+#OLD NOT WORKING CODE
+#calculate SF94 difference from baseline with various mortality reductions
+abseffect_size<- function(mortdifference, mort1, baselinesf94) {
+  mort2<-mort1-mortdifference
+  oddsmort2<-1/((1-mort2)/mort2) #from probability to odds
+  logoddsmort2<-log(oddsmort2) #y in regression equation (logodds)
+  newsf94<-(logoddsmort2-intercept)/coefday5 #regression equation
+  sf94_difference<-newsf94-baselinesf94
+  return(sf94_difference)
+}
+absolute_mort_reduction<-c(0.05,0.06,0.07,0.08,0.09,0.1,0.11,0.12,0.13,0.14,0.15)
+sf94_25<-abseffect_size(absolute_mort_reduction,0.25,3.18)
+sf94_30<-abseffect_size(absolute_mort_reduction,0.30,2.92)
+sf94_35<-abseffect_size(absolute_mort_reduction,0.35,2.69)
+#-----
+
 #make a graph
 library(data.table)
 sf94_dif<-data.frame(sf94_25, sf94_30, sf94_35)
