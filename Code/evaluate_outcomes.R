@@ -382,53 +382,30 @@ coefday5<-as.numeric(coef(linear_model_P)[3])
 linear_uni_model
 intercept<-as.numeric(coef(linear_uni_model)[1]) #uninvariate model D5 only
 coefday5<-as.numeric(coef(linear_uni_model)[2])
-mort1<-0.35 #baseline mortality
-oddsmort1<-1/((1-mort1)/mort1) #to odds
-logoddsmort1<-log(oddsmort1) # y = intercept + x1b1 +x2b2 >> (y-intercept- x1b1)/b2 = x2 = SF94 'at baseline'D5
-baselinesf94<-(logoddsmort1-intercept)/coefday5 #y = logoddsmort
-baselinesf94
 
 #calculate SF94 difference from baseline with various mortality reductions
-abseffect_size<- function(mortdifference) {
+abseffect_size<- function(mortdifference, mort1) {
+  logoddsmort1<-log(1/((1-mort1)/mort1))
+  baselinesf94<-(logoddsmort1-intercept)/coefday5
   mort2<-mort1-mortdifference
-  oddsmort2<-1/((1-mort2)/mort2) #from probability to odds
-  logoddsmort2<-log(oddsmort2) #y in regression equation (logodds)
+  logoddsmort2<-log(1/((1-mort2)/mort2)) #from probability to odds
   newsf94<-(logoddsmort2-intercept)/coefday5 #regression equation
   sf94_difference<-newsf94-baselinesf94
   return(sf94_difference)
 }
-absolute_mort_reduction<-c(0.05,0.06,0.07,0.08,0.09,0.1,0.11,0.12,0.13,0.14,0.15)
-sf94_25<-abseffect_size(absolute_mort_reduction)
-sf94_30<-abseffect_size(absolute_mort_reduction)
-sf94_35<-abseffect_size(absolute_mort_reduction)
 
-
-#OLD NOT WORKING CODE
-#calculate SF94 difference from baseline with various mortality reductions
-abseffect_size<- function(mortdifference, mort1, baselinesf94) {
-  mort2<-mort1-mortdifference
-  oddsmort2<-1/((1-mort2)/mort2) #from probability to odds
-  logoddsmort2<-log(oddsmort2) #y in regression equation (logodds)
-  newsf94<-(logoddsmort2-intercept)/coefday5 #regression equation
-  sf94_difference<-newsf94-baselinesf94
-  return(sf94_difference)
-}
 absolute_mort_reduction<-c(0.05,0.06,0.07,0.08,0.09,0.1,0.11,0.12,0.13,0.14,0.15)
-sf94_25<-abseffect_size(absolute_mort_reduction,0.25,3.18)
-sf94_30<-abseffect_size(absolute_mort_reduction,0.30,2.92)
-sf94_35<-abseffect_size(absolute_mort_reduction,0.35,2.69)
-#-----
+sf94_25<-abseffect_size(absolute_mort_reduction,0.25)
+sf94_30<-abseffect_size(absolute_mort_reduction,0.30)
+sf94_35<-abseffect_size(absolute_mort_reduction,0.35)
 
 #make a graph
 library(data.table)
 sf94_dif<-data.frame(sf94_25, sf94_30, sf94_35)
 sf94_dif<- data.frame(sf94_dif= c(sf94_dif[,"sf94_25"], sf94_dif[,"sf94_30"],sf94_dif[,"sf94_35"]))
-sf94_dif
 effectsize_graph<-data.frame(absolute_mort_dif=rep(absolute_mort_reduction,3),
-                             baseline_sf94=rep(c(3.18,2.92,2.69), each = 11),
                              baseline_mort=rep(c("0.25","0.30","0.35"), each = 11))
 effectsize_graph<-cbind(effectsize_graph, sf94_dif)
-effectsize_graph
 
 graph_effectsize<-ggplot(effectsize_graph, aes(x=absolute_mort_dif, y=sf94_dif, group=baseline_mort,
                                                colour=baseline_mort))
@@ -438,15 +415,14 @@ graph_effectsize + geom_line()+
 
 #relative risk reductions
 # (controlmort- experimentalgroupmort)/ controlmort = RRR
-# RRR = 12.5-20%
-# Controlmort= 25%, 30% or 35%
-rrr_list<-c(0.12,0.13,0.14,0.15,0.16,0.17,0.18,0.19,0.20)
+rrr_list<-c(0.12,0.13,0.14,0.15,0.16,0.17,0.18,0.19,0.20) #range of RRR of interest
+#for 3 different baseline mortalities
 mort2_25<- function(rrr) {
   expmort<-(rrr * 0.25) - 0.25
   expmort<--expmort
   return(expmort)
 }
-mort2_25_rrr<-mort2_25(rrr_list)
+mort2_25_rrr<-mort2_25(rrr_list) #output is a list of mortalities in the experimental group
 
 mort2_30<- function(rrr) {
   expmort<-(rrr * 0.30) - 0.30
@@ -462,17 +438,17 @@ mort2_35<- function(rrr) {
 }
 mort2_35_rrr<-mort2_35(rrr_list)
 
-relativeeffect_size<- function(mort2, baselinesf94) {
-  oddsmort2<-1/((1-mort2)/mort2) #from probability to odds
-  logoddsmort2<-log(oddsmort2) #y in regression equation
-  newsf94<-(logoddsmort2-intercept- coefday0)/coefday5 #regression equation
+relativeeffect_size<- function(mort2, mort1) {
+  logoddsmort1<-log(1/((1-mort1)/mort1))
+  baselinesf94<-(logoddsmort1-intercept)/coefday5
+  logoddsmort2<-log(1/((1-mort2)/mort2)) #from probability to odds
+  newsf94<-(logoddsmort2-intercept)/coefday5 #regression equation
   sf94_difference<-newsf94-baselinesf94
   return(sf94_difference)
 }
-
-sf94_rel25<-relativeeffect_size(mort2_25_rrr,2.59)
-sf94_rel30<-relativeeffect_size(mort2_30_rrr,2.37)
-sf94_rel35<-relativeeffect_size(mort2_35_rrr,2.16)
+sf94_rel25<-relativeeffect_size(mort2_25_rrr,0.25)
+sf94_rel30<-relativeeffect_size(mort2_30_rrr,0.30)
+sf94_rel35<-relativeeffect_size(mort2_35_rrr,0.35)
 
 #make a graph
 library(data.table)
@@ -480,15 +456,12 @@ relsf94_dif<-data.frame(sf94_rel25, sf94_rel30, sf94_rel35)
 relsf94_dif<- data.frame(sf94_dif= c(relsf94_dif[,"sf94_rel25"],
                                      relsf94_dif[,"sf94_rel30"],
                                      relsf94_dif[,"sf94_rel35"]))
-relsf94_dif
 releffectsize_graph<-data.frame(relative_mort_red=rep(rrr_list,3),
                              baseline_mort=rep(c("0.25","0.30","0.35"), each = 9))
 releffectsize_graph<-cbind(releffectsize_graph, relsf94_dif)
-releffectsize_graph
 #grahp
 relgraph_effectsize<-ggplot(releffectsize_graph, 
-                            aes(x=relative_mort_red, y=sf94_dif, group=baseline_mort,
-                                               colour=baseline_mort))
+                            aes(x=relative_mort_red, y=sf94_dif, group=baseline_mort, colour=baseline_mort))
 relgraph_effectsize + geom_line()+
   xlab("Relative reduction in mortality") +
   ylab("Difference in SF94")
@@ -504,10 +477,13 @@ relgraph_effectsize + geom_line()+
 # mortSF is a function that itself creates a function. Tell mortSF baseline and coef, and it outputs a function
 # that gives the relationship between change in SF94 day5, and change in probability of death
 linear_uni_model
-#25: 3.18=baselineSF94
-#30: 2.92
-#35: 2.69
-baseline <- c(0.30, 0, baselinesf94)
+#calculate baseline SF94
+mort1<-0.35 #baseline mortality
+oddsmort1<-1/((1-mort1)/mort1) #to odds
+logoddsmort1<-log(oddsmort1) # y = intercept + x1b1 +x2b2 >> (y-intercept- x1b1)/b2 = x2 = SF94 'at baseline'D5
+baselinesf94<-(logoddsmort1-intercept)/coefday5 #y = logoddsmort
+baselinesf94
+baseline <- c(0.30, 0, 3,18)
 coef <- c(1.9782, 0, -0.9672) 
 baseline
 mortSF <- function(baseline, coef){
