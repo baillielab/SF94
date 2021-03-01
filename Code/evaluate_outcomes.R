@@ -394,20 +394,68 @@ plot_linear_exp_uni
 #OUTPUT 
 #2 graphs
 
+
+### input data: regression_df_P (cleaned, with proportional deaths on D5 + D8 and matching outcome)
+#apply filter (age + resp support) on data for regression analysis, as this is for power calculation
+subjects_to_include <- filter(df_1, ( fio2 >=0.22 & days_since_start %in% c(0,1,2)  & age_estimateyears >19 & age_estimateyears <76 ) )['subjid']
+filter_regression_analysis<-regresson_df_P[regresson_df_P$subjid %in% subjects_to_include$subjid,] 
+filter_regression_analysis <- as.data.frame(filter_regression_analysis)
+
+#First need to set data distribution for rms functions
+attach(filter_regression_analysis)
+ddist <- datadist(sf94_day0, sf94_day5_P, sf94_day8_P, mortality_28)
+options(datadist='ddist')
+detach(filter_regression_analysis)
+#Then fit models (splines using 4 knots here)
+linear_uni_model<-lrm(mortality_28 ~ sf94_day5_P, filter_regression_analysis, x=TRUE, y=TRUE)
+linear_uni_model_D8<-lrm(mortality_28 ~ sf94_day8_P, filter_regression_analysis, x=TRUE, y=TRUE)
+
+# save intercept and coefficient for day 5
+intercept5<-as.numeric(coef(linear_uni_model)[1]) #uninvariate model D5 only
+coefday5<-as.numeric(coef(linear_uni_model)[2])
+
+absolute_mortdif<-function(mort1) {
+  logoddsmort1<-log(1/((1-mort1)/mort1))
+  baselinesf94<-(logoddsmort1-intercept5)/coefday5
+  sf94_2<-baselinesf94+0.5
+  logoddsmort2<-intercept5+ (coefday5 * sf94_2)
+  mort2OR<-exp(logoddsmort2) #to odds ratio
+  mort2<-mort2OR/ (1 +mort2OR)
+  mortdif<-mort1-mort2
+  return(baselinesf94)
+}
+list_baseline_mort<-c(0.25,0.30,0.35)
+D5_sf94_effectsize<-absolute_mortdif(list_baseline_mort)
+
+write.csv(D5_sf94_effectsize,"/home/skerr/Git/SF94/Outputs/D5_sf94_effectsize.csv")
+
+#day 8
+interceptD8<-as.numeric(coef(linear_uni_model_D8)[1]) #uninvariate model D5 only
+coefday8<-as.numeric(coef(linear_uni_model_D8)[2])
+
+absolute_mortdifD8<-function(mort1) {
+  logoddsmort1<-log(1/((1-mort1)/mort1))
+  baselinesf94<-(logoddsmort1-interceptD8)/coefdayD8
+  sf94_2<-baselinesf94+0.5
+  logoddsmort2<-interceptD8+ (coefdayD8 * sf94_2)
+  mort2OR<-exp(logoddsmort2) #to odds ratio
+  mort2<-mort2OR/ (1 +mort2OR)
+  mortdif<-mort1-mort2
+  return(baselinesf94)
+}
+list_baseline_mort<-c(0.25,0.30,0.35)
+D8_sf94_effectsize<-absolute_mortdifD8(list_baseline_mort)
+
+write.csv(D8_sf94_effectsize,"/home/skerr/Git/SF94/Outputs/D8_sf94_effectsize.csv")
+
 #effect size
-#function to calculate SF94 at baseline for various baseline mortality proportions
-intercept<-as.numeric(coef(linear_model_P)[1])
-coefday0<-as.numeric(coef(linear_model_P)[2])
-coefday5<-as.numeric(coef(linear_model_P)[3]) 
+
 
 linear_uni_model
 intercept<-as.numeric(coef(linear_uni_model)[1]) #uninvariate model D5 only
 coefday5<-as.numeric(coef(linear_uni_model)[2])
 
 #calculate SF94 difference from baseline with various mortality reductions
-
-##input data: subset 1 + filters?? check before running on complete data on safehaven/argoshare
-
 abseffect_size<- function(mortdifference, mort1) {
   logoddsmort1<-log(1/((1-mort1)/mort1))
   baselinesf94<-(logoddsmort1-intercept)/coefday5
@@ -588,3 +636,14 @@ linear_model_glm_P  %>% tbl_regression(exponentiate=T, intercept= T)
 
 #OUTPUT
 #HTML code
+
+#Effect size proportional odds logistic regression for WHO scale
+library(MASS)
+head(df_1)
+who_d5<-polr(severity_scale_ordinal)
+
+#logrank test for difference in mortality
+library(survival)
+survdiff(Surv(days_since_start, mortality_28)~ sex, data=subset1)
+head(subset1)
+?survdiff
