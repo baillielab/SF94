@@ -303,9 +303,9 @@ df_1_base_sf94<-createDF(df_1, "base", "sf94", 10)
 
 #regression model D5 SF94 and mortality
 #with sf94 values regression
-day05<-df_1_base_sf94[,c(1,2,7)] #select subjid, day 0 and day 5
+day05<-df_1_base_sf94[,c(1,2,7,10)] #select subjid, day 0 and day 5 and day 8
 day05<-day05%>%
-  dplyr::rename(sf94_day5= "5", sf94_day0= "0")
+  dplyr::rename(sf94_day5= "5", sf94_day0= "0", sf94_day8= "8")
 
 #calculate what number of subjects needs to be added to get correct proportion
 dead5<-length(unique(df_1$subjid[(df_1$day_of_death <5)])) #number of subjects that died before day 5
@@ -314,46 +314,67 @@ available5<-sum((!is.na(df_1$sf94) & df_1$days_since_start == 5), na.rm=T)
 percdead5<-dead5/length(unique(df_1$subjid)) #% that died before day from total subjects
 percalive5<-alive5/length(unique(df_1$subjid))# % that went home before day 5 from total subjects
 percavailable5<- (1-percdead5- percalive5)# % of available values
-dead_to_add<-(percdead5*available5)/percavailable5 #number of 0.5 values to add to variable
-alive_to_add<-(percalive5*available5)/percavailable5 #number of 4.76 values to add to variable
+dead_to_add5<-(percdead5*available5)/percavailable5 #number of 0.5 values to add to variable
+alive_to_add5<-(percalive5*available5)/percavailable5 #number of 4.76 values to add to variable
 
 day05_P<-day05 #for proportional deaths
-day05_P<-day05_P%>% #keep 1 entry/subject
-  group_by(subjid) %>% 
-  summarise_all(funs(f))
+day05_P<-setDT(day05_P)[, lapply(.SD, na.omit), by=subjid] #keep 1 entry/subject
+day05_P<-data.frame(day05_P)
 set.seed(1234)
 sf94_day5_P<-day05_P$sf94_day5 #add day 5 to a separate df
 rows_to_replace<-which(is.na(sf94_day5_P))
-sf94_day5_P[sample(rows_to_replace, dead_to_add)]<- 0.5
+sf94_day5_P[sample(rows_to_replace, dead_to_add5)]<- 0.5
 rows_to_replace<-which(is.na(sf94_day5_P))
-sf94_day5_P[sample(rows_to_replace, alive_to_add)]<- 4.76
+sf94_day5_P[sample(rows_to_replace, alive_to_add5)]<- 4.76
 
 sf94_day5_P<-data.frame(sf94_day5_P)
 day05_P<-cbind(day05_P, sf94_day5_P)
 day05_P<-data.frame(day05_P)
 
+#same for day 8
+dead8<-length(unique(df_1$subjid[(df_1$day_of_death <8)])) #number of subjects that died before day 8
+alive8<-length(unique(df_1$subjid[(df_1$day_of_discharge <8)])) #number of subjects that went home before day 8
+available8<-sum((!is.na(df_1$sf94) & df_1$days_since_start == 8), na.rm=T) 
+percdead8<-dead8/length(unique(df_1$subjid)) #% that died before day from total subjects
+percalive8<-alive8/length(unique(df_1$subjid))# % that went home before day 5 from total subjects
+percavailable8<- (1-percdead8- percalive8)# % of available values
+dead_to_add8<-(percdead8*available8)/percavailable8 #number of 0.5 values to add to variable
+alive_to_add8<-(percalive8*available8)/percavailable8 #number of 4.76 values to add to variable
+
+day08_P<-day05_P #for proportional deaths day 8 
+set.seed(1234)
+sf94_day8_P<-day08_P$sf94_day8 #add day 8 to a separate df
+rows_to_replace<-which(is.na(sf94_day8_P))
+sf94_day8_P[sample(rows_to_replace, dead_to_add8)]<- 0.5
+rows_to_replace<-which(is.na(sf94_day8_P))
+sf94_day8_P[sample(rows_to_replace, alive_to_add8)]<- 4.76
+
+sf94_day8_P<-data.frame(sf94_day8_P)
+day05_P<-cbind(day05_P, sf94_day8_P)
+day05_P<-data.frame(day05_P)
+
 
 #join both together
 regresson_df_P<-left_join(day05_P, mortality, by="subjid")
-
-rm(sf94_day5_P) #remove from global environment
+head(regresson_df_P)
+rm(sf94_day5_P,sf94_day8_P) #remove from global environment
 
 #use proportionally added outcome values, take subject ID and day 5 SF94_P values (from DF_1, so not using filters)
 regresson_df_P <-data.frame(regresson_df_P)
 regresson_df_P<-regresson_df_P %>% #change mortality to match proportionally added values
   mutate(
     mortality_28 = case_when(
-      sf94_day5_P == 4.760 & is.na(sf94_day5) ~ 0,sf94_day5_P == 0.5 & is.na(sf94_day5) ~ 1,TRUE ~ as.numeric(mortality_28)))
-regresson_df_P<-subset(regresson_df_P, (!is.na(sf94_day5_P)&!is.na(sf94_day0) & !is.na(mortality_28))) #6248 unique subjects, 1 row/subject
+      sf94_day5_P == 4.760 |sf94_day8_P == 4.760  ~ 0, sf94_day5_P == 0.5 |sf94_day8_P == 0.5 ~ 1,TRUE ~ as.numeric(mortality_28)))
 
 #First need to set data distribution for rms functions
 attach(regresson_df_P)
-ddist <- datadist(sf94_day0, sf94_day5_P, mortality_28)
+ddist <- datadist(sf94_day0, sf94_day5_P, sf94_day8_P, mortality_28)
 options(datadist='ddist')
 detach(regresson_df_P)
 #Then fit models (splines using 4 knots here)
 linear_model_P <- lrm(mortality_28 ~ sf94_day0 + sf94_day5_P, regresson_df_P, x=TRUE, y=TRUE)
 linear_uni_model<-lrm(mortality_28 ~ sf94_day5_P, regresson_df_P, x=TRUE, y=TRUE)
+linear_uni_model_D8<-lrm(mortality_28 ~ sf94_day8_P, regresson_df_P, x=TRUE, y=TRUE)
 univariate_model<-lrm(mortality_28 ~ sf94_day0, regresson_df_P, x=TRUE, y=TRUE)
 #Visualise using exp scale
 plot_associations_linear_exp_P <- ggplot(Predict(linear_model_P, fun=plogis), sepdiscrete='vertical',
@@ -373,59 +394,148 @@ plot_linear_exp_uni
 #OUTPUT 
 #2 graphs
 
-#effect size
-#function to calculate SF94 at baseline for various baseline mortality proportions
-intercept<-as.numeric(coef(linear_model_P)[1])
-coefday0<-as.numeric(coef(linear_model_P)[2])
-coefday5<-as.numeric(coef(linear_model_P)[3]) 
 
-mort1<-0.30 #baseline mortality
-oddsmort1<-1/((1-mort1)/mort1) #to odds
-logoddsmort1<-log(oddsmort1) # y = intercept + x1b1 +x2b2 >> (y-intercept- x1b1)/b2 = x2 = SF94 'at baseline'D5
-baselinesf94<-(logoddsmort1-intercept- coefday0)/coefday5 #y = logoddsmort
-baselinesf94
+### input data: regression_df_P (cleaned, with proportional deaths on D5 + D8 and matching outcome)
+#apply filter (age + resp support) on data for regression analysis, as this is for power calculation
+subjects_to_include <- filter(df_1, ( fio2 >=0.22 & days_since_start %in% c(0,1,2)  & age_estimateyears >19 & age_estimateyears <76 ) )['subjid']
+filter_regression_analysis<-regresson_df_P[regresson_df_P$subjid %in% subjects_to_include$subjid,] 
+filter_regression_analysis <- as.data.frame(filter_regression_analysis)
+
+#First need to set data distribution for rms functions
+attach(filter_regression_analysis)
+ddist <- datadist(sf94_day0, sf94_day5_P, sf94_day8_P, mortality_28)
+options(datadist='ddist')
+detach(filter_regression_analysis)
+#Then fit models (splines using 4 knots here)
+linear_uni_model<-lrm(mortality_28 ~ sf94_day5_P, filter_regression_analysis, x=TRUE, y=TRUE)
+linear_uni_model_D8<-lrm(mortality_28 ~ sf94_day8_P, filter_regression_analysis, x=TRUE, y=TRUE)
+
+# save intercept and coefficient for day 5
+intercept5<-as.numeric(coef(linear_uni_model)[1]) #uninvariate model D5 only
+coefday5<-as.numeric(coef(linear_uni_model)[2])
+
+absolute_mortdif<-function(mort1) {
+  logoddsmort1<-log(1/((1-mort1)/mort1))
+  baselinesf94<-(logoddsmort1-intercept5)/coefday5
+  sf94_2<-baselinesf94+0.5
+  logoddsmort2<-intercept5+ (coefday5 * sf94_2)
+  mort2OR<-exp(logoddsmort2) #to odds ratio
+  mort2<-mort2OR/ (1 +mort2OR)
+  mortdif<-mort1-mort2
+  return(baselinesf94)
+}
+list_baseline_mort<-c(0.25,0.30,0.35)
+D5_sf94_effectsize<-absolute_mortdif(list_baseline_mort)
+
+write.csv(D5_sf94_effectsize,"/home/skerr/Git/SF94/Outputs/D5_sf94_effectsize.csv")
+
+#day 8
+interceptD8<-as.numeric(coef(linear_uni_model_D8)[1]) #uninvariate model D5 only
+coefday8<-as.numeric(coef(linear_uni_model_D8)[2])
+
+absolute_mortdifD8<-function(mort1) {
+  logoddsmort1<-log(1/((1-mort1)/mort1))
+  baselinesf94<-(logoddsmort1-interceptD8)/coefdayD8
+  sf94_2<-baselinesf94+0.5
+  logoddsmort2<-interceptD8+ (coefdayD8 * sf94_2)
+  mort2OR<-exp(logoddsmort2) #to odds ratio
+  mort2<-mort2OR/ (1 +mort2OR)
+  mortdif<-mort1-mort2
+  return(baselinesf94)
+}
+list_baseline_mort<-c(0.25,0.30,0.35)
+D8_sf94_effectsize<-absolute_mortdifD8(list_baseline_mort)
+
+write.csv(D8_sf94_effectsize,"/home/skerr/Git/SF94/Outputs/D8_sf94_effectsize.csv")
+
+#effect size
+
+
+linear_uni_model
+intercept<-as.numeric(coef(linear_uni_model)[1]) #uninvariate model D5 only
+coefday5<-as.numeric(coef(linear_uni_model)[2])
 
 #calculate SF94 difference from baseline with various mortality reductions
-abseffect_size<- function(mortdifference) {
+abseffect_size<- function(mortdifference, mort1) {
+  logoddsmort1<-log(1/((1-mort1)/mort1))
+  baselinesf94<-(logoddsmort1-intercept)/coefday5
   mort2<-mort1-mortdifference
-  oddsmort2<-1/((1-mort2)/mort2) #from probability to odds
-  logoddsmort2<-log(oddsmort2) #y in regression equation
-  newsf94<-(logoddsmort2-intercept- coefday0)/coefday5 #regression equation
+  logoddsmort2<-log(1/((1-mort2)/mort2)) #from probability to odds
+  newsf94<-(logoddsmort2-intercept)/coefday5 #regression equation
   sf94_difference<-newsf94-baselinesf94
   return(sf94_difference)
 }
+
 absolute_mort_reduction<-c(0.05,0.06,0.07,0.08,0.09,0.1,0.11,0.12,0.13,0.14,0.15)
-sf94_30<-abseffect_size(absolute_mort_reduction)
+sf94_25<-abseffect_size(absolute_mort_reduction,0.25)
+sf94_30<-abseffect_size(absolute_mort_reduction,0.30)
+sf94_35<-abseffect_size(absolute_mort_reduction,0.35)
 
 #make a graph
-library(data.table)
 sf94_dif<-data.frame(sf94_25, sf94_30, sf94_35)
 sf94_dif<- data.frame(sf94_dif= c(sf94_dif[,"sf94_25"], sf94_dif[,"sf94_30"],sf94_dif[,"sf94_35"]))
-sf94_dif
 effectsize_graph<-data.frame(absolute_mort_dif=rep(absolute_mort_reduction,3),
-                             baseline_sf94=rep(c(2.59,2.37,2.16), each = 11),
                              baseline_mort=rep(c("0.25","0.30","0.35"), each = 11))
 effectsize_graph<-cbind(effectsize_graph, sf94_dif)
-effectsize_graph
-
 
 graph_effectsize<-ggplot(effectsize_graph, aes(x=absolute_mort_dif, y=sf94_dif, group=baseline_mort,
                                                colour=baseline_mort))
 graph_effectsize + geom_line()+
-  xlab("absolute mortality difference") +
-  ylab("Difference in SF94")
+  xlab("Absolute mortality difference") +
+  ylab("Difference in SF94")+
+  ggtitle("Effectsize day 5")+
+  scale_colour_discrete(name="Baseline mortality", labels=c("25%", "30%", "35%"))
+
+#DAY 8
+interceptD8<-as.numeric(coef(linear_uni_model_D8)[1]) #uninvariate model D5 only
+coefday8<-as.numeric(coef(linear_uni_model_D8)[2])
+
+#calculate SF94 difference from baseline with various mortality reductions
+
+##input data: subset 1 + filters?? check before running on complete data on safehaven/argoshare
+
+abseffect_size_D8<- function(mortdifference, mort1) {
+  logoddsmort1<-log(1/((1-mort1)/mort1))
+  baselinesf94<-(logoddsmort1-intercept)/coefday8
+  mort2<-mort1-mortdifference
+  logoddsmort2<-log(1/((1-mort2)/mort2)) #from probability to odds
+  newsf94<-(logoddsmort2-intercept)/coefday8 #regression equation
+  sf94_difference<-newsf94-baselinesf94
+  return(sf94_difference)
+}
+
+absolute_mort_reduction<-c(0.05,0.06,0.07,0.08,0.09,0.1,0.11,0.12,0.13,0.14,0.15)
+sf94_25_D8<-abseffect_size_D8(absolute_mort_reduction,0.25)
+sf94_30_D8<-abseffect_size_D8(absolute_mort_reduction,0.30)
+sf94_35_D8<-abseffect_size_D8(absolute_mort_reduction,0.35)
+
+#make a graph
+sf94_dif_D8<-data.frame(sf94_25_D8, sf94_30_D8, sf94_35_D8)
+sf94_dif_D8<- data.frame(sf94_dif_D8= c(sf94_dif_D8[,"sf94_25_D8"], sf94_dif_D8[,"sf94_30_D8"],
+                                     sf94_dif_D8[,"sf94_35_D8"]))
+effectsize_graph_D8<-data.frame(absolute_mort_dif_D8=rep(absolute_mort_reduction,3),
+                             baseline_mort_D8=rep(c("0.25","0.30","0.35"), each = 11))
+effectsize_graph_D8<-cbind(effectsize_graph_D8, sf94_dif_D8)
+
+graph_effectsize_D8<-ggplot(effectsize_graph_D8, aes(x=absolute_mort_dif_D8, 
+                                                     y=sf94_dif_D8, group=baseline_mort_D8,
+                                               colour=baseline_mort_D8))
+graph_effectsize_D8 + geom_line()+
+  xlab("Absolute mortality difference") +
+  ylab("Difference in SF94")+
+  ggtitle("Effectsize day 8")+
+  scale_colour_discrete(name="Baseline mortality", labels=c("25%", "30%", "35%"))
 
 #relative risk reductions
 # (controlmort- experimentalgroupmort)/ controlmort = RRR
-# RRR = 12.5-20%
-# Controlmort= 25%, 30% or 35%
-rrr_list<-c(0.12,0.13,0.14,0.15,0.16,0.17,0.18,0.19,0.20)
+rrr_list<-c(0.12,0.13,0.14,0.15,0.16,0.17,0.18,0.19,0.20) #range of RRR of interest
+#for 3 different baseline mortalities
 mort2_25<- function(rrr) {
   expmort<-(rrr * 0.25) - 0.25
   expmort<--expmort
   return(expmort)
 }
-mort2_25_rrr<-mort2_25(rrr_list)
+mort2_25_rrr<-mort2_25(rrr_list) #output is a list of mortalities in the experimental group
 
 mort2_30<- function(rrr) {
   expmort<-(rrr * 0.30) - 0.30
@@ -441,17 +551,17 @@ mort2_35<- function(rrr) {
 }
 mort2_35_rrr<-mort2_35(rrr_list)
 
-relativeeffect_size<- function(mort2, baselinesf94) {
-  oddsmort2<-1/((1-mort2)/mort2) #from probability to odds
-  logoddsmort2<-log(oddsmort2) #y in regression equation
-  newsf94<-(logoddsmort2-intercept- coefday0)/coefday5 #regression equation
+relativeeffect_size<- function(mort2, mort1) {
+  logoddsmort1<-log(1/((1-mort1)/mort1))
+  baselinesf94<-(logoddsmort1-intercept)/coefday5
+  logoddsmort2<-log(1/((1-mort2)/mort2)) #from probability to odds
+  newsf94<-(logoddsmort2-intercept)/coefday5 #regression equation
   sf94_difference<-newsf94-baselinesf94
   return(sf94_difference)
 }
-
-sf94_rel25<-relativeeffect_size(mort2_25_rrr,2.59)
-sf94_rel30<-relativeeffect_size(mort2_30_rrr,2.37)
-sf94_rel35<-relativeeffect_size(mort2_35_rrr,2.16)
+sf94_rel25<-relativeeffect_size(mort2_25_rrr,0.25)
+sf94_rel30<-relativeeffect_size(mort2_30_rrr,0.30)
+sf94_rel35<-relativeeffect_size(mort2_35_rrr,0.35)
 
 #make a graph
 library(data.table)
@@ -459,15 +569,12 @@ relsf94_dif<-data.frame(sf94_rel25, sf94_rel30, sf94_rel35)
 relsf94_dif<- data.frame(sf94_dif= c(relsf94_dif[,"sf94_rel25"],
                                      relsf94_dif[,"sf94_rel30"],
                                      relsf94_dif[,"sf94_rel35"]))
-relsf94_dif
 releffectsize_graph<-data.frame(relative_mort_red=rep(rrr_list,3),
                              baseline_mort=rep(c("0.25","0.30","0.35"), each = 9))
 releffectsize_graph<-cbind(releffectsize_graph, relsf94_dif)
-releffectsize_graph
 #grahp
 relgraph_effectsize<-ggplot(releffectsize_graph, 
-                            aes(x=relative_mort_red, y=sf94_dif, group=baseline_mort,
-                                               colour=baseline_mort))
+                            aes(x=relative_mort_red, y=sf94_dif, group=baseline_mort, colour=baseline_mort))
 relgraph_effectsize + geom_line()+
   xlab("Relative reduction in mortality") +
   ylab("Difference in SF94")
@@ -476,27 +583,51 @@ relgraph_effectsize + geom_line()+
 #OUTPUT
 #3 
 
+
 # Steven's suggestion
 # elements of baseline are ( probability of death, SF94 day 0, SF94 day 5 )
 # elements of coef are (intercept, coefficient of SF94 day 0, coefficient of SF94 day 5) from the logistic model.
 # mortSF is a function that itself creates a function. Tell mortSF baseline and coef, and it outputs a function
 # that gives the relationship between change in SF94 day5, and change in probability of death
-baseline <- c(0.25, 1, 1)
-coef <- c(1, 0.3, -1) 
+linear_uni_model
+intercept<-1.6342
+coefday5<--0.8731
+#calculate baseline SF94
+mort1<-0.25 #baseline mortality
+logoddsmort1<-log(1/((1-mort1)/mort1)) #to odds
+ # y = intercept + x1b1 +x2b2 >> (y-intercept- x1b1)/b2 = x2 = SF94 'at baseline'D5
+baselinesf94<-(logoddsmort1-intercept)/coefday5 #y = logoddsmort
+baselinesf94
+#mort 25% > baseline SF94 = 3.130011
+#mort 30% > baseline SF94 = 2.842169
+#mort 35% > baseline SF94 = 2.580734
 
+baseline <- c(0.35, 0, 2.580734)
+coef <- c(1.6342, 0, -0.8731) 
 mortSF <- function(baseline, coef){
-  f <- function(deltaSF){
+  f2 <- function(deltaSF){
     a <- log( (baseline[1] - deltaSF)/( 1-baseline[1]  + deltaSF)) - coef[1] - coef[2]*baseline[2] - coef[3]*baseline[3]
     return( a/coef[3]  )
-   }
- return(f) 
+  }
+  return(f2) 
 }
 
-f <- mortSF(baseline, coef)
-
-curve(f, from=0, to=0.15, xlab="x", ylab="y")
+f2 <- mortSF(baseline, coef)
 
 
+ticksx<-c(0.05,0.06,0.07,0.08,0.09,0.1,0.11,0.12,0.13,0.14,0.15)
+ticksy<-c(0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5)
+curve(f, from=0.05, to=0.15, xlab="Absolute mortality difference",
+      ylab="Difference in SF94", ylim=c(0,1.5), col="Red", xaxt="n")
+axis(1, at=ticksx)
+axis(2, at=ticksy)
+curve(f1, from=0.05, to=0.15, xlab="Absolute mortality difference", ylab="Difference in SF94", col="blue", add = T)
+curve(f2, from=0.05, to=0.15, xlab="Absolute mortality difference", ylab="Difference in SF94",col="green", add = T)
+legend("topleft", legend = c("25% mortality", "30% mortality", "35% mortality"),
+       text.col = ("black"),
+       fill= c("red", "blue", "green"),
+       title="Baseline mortality")
+rpng.off()
 
 #numbers on the regression analysis
 library(gtsummary)
@@ -505,3 +636,14 @@ linear_model_glm_P  %>% tbl_regression(exponentiate=T, intercept= T)
 
 #OUTPUT
 #HTML code
+
+#Effect size proportional odds logistic regression for WHO scale
+library(MASS)
+head(df_1)
+who_d5<-polr(severity_scale_ordinal)
+
+#logrank test for difference in mortality
+library(survival)
+survdiff(Surv(days_since_start, mortality_28)~ sex, data=subset1)
+head(subset1)
+?survdiff
