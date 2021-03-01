@@ -32,7 +32,7 @@ addWhoTimeToImprove <- function(df, diff, finalDay){
   
   subSet <- filter(subSet,  !is.na("days_since_start") & !is.na(severity_scale_ordinal) )
   
-  output <-subSet %>%
+  output <-subSet %>% filter(days_since_start <= finalDay)  %>%
     left_join(subSet, ("subjid")) %>%
     mutate(Days = (days_since_start.y - days_since_start.x)) %>% # creates all possible combinations 
     filter(Days>0)%>% #only keep if day y > day x (as this means 'forward' change)
@@ -141,7 +141,7 @@ df<-df %>%
       fio2 >= 0.41 ~ 6,
       fio2 >= 0.22 & fio2 <=0.40 ~ 5,
       daily_nasaloxy_cmtrt == "YES" ~ 5,
-      fio2 == 0.21 ~ 4,
+      fio2 >= 0.21 $ fio2 < 0.22 ~ 4,
       days_since_start == day_of_discharge ~ 4) )
 
 # Add death or discharage outcome variable
@@ -170,8 +170,8 @@ df <- df %>% filter( days_since_start <= 28 ) %>% group_by(subjid)%>%
   arrange(desc( days_since_start )) %>% mutate(final_who_score = first(severity_scale_ordinal))
 
 # add who time to improve 1 and 2.
-df <- addWhoTimeToImprove(df, 1)
-df <- addWhoTimeToImprove(df, 2)
+df <- addWhoTimeToImprove(df, 1, 28)
+df <- addWhoTimeToImprove(df, 2, 28)
 
 ####################################### WRITE DATA: #######################################
 
