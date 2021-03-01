@@ -171,7 +171,7 @@ write.csv(mort28,"/home/skerr/Git/SF94/Outputs/mort28.csv")
 #OUTPUT
 #median + IQR for 2 levels difference
 
-subset1Dist <- distinct( subset1[c('subjid', 'who_days_to_improve1')])
+subset1Dist <- distinct( subset1[c('subjid', 'who_days_to_improve1', 'who_days_to_improve2')])
 
 medianIQR <- as.data.frame(rbind(summary(day8_who$who_day5), summary(day8_who$who_day8)))
 
@@ -204,7 +204,7 @@ notMissingV <- c(  sapply(basedd_sf94_10[c('5', '8')], function(x) sum(!is.na(x)
 )
 
 notMissing <- data.frame(  variable =   c('sf94_day5', 'sf94_day8', 'who_day5', 'who_day8', 'severity_dif_1level',
-                                          'severity_dif_1level', 'mortality_28'),
+                                          'severity_dif_2level', 'mortality_28'),
                            value = notMissingV)
 
 write.csv(notMissing,"/home/skerr/Git/SF94/Outputs/notMissing.csv")

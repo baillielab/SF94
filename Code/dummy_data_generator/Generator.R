@@ -25,7 +25,8 @@ library(stringr)
 # Variables that are constant over study period
 constVars <- c('subjid', 'sex', 'age_estimateyears','day_of_death', 'death', 'chrincard',
                'hypertension_mhyn', 'chronicpul_mhyn', 'renal_mhyn', 'chronicneu_mhyn', 'malignantneo_mhyn', 
-              'chronichaemo_mhyn', 'obesity_mhyn', 'dementia_mhyn', 'clinical_frailty', 'diabetes', 'liver')
+              'chronichaemo_mhyn', 'obesity_mhyn', 'dementia_mhyn', 'clinical_frailty', 'diabetes', 'liver',
+              'who_days_to_improve1', 'who_days_to_improve2')
 
 #Variables that are not constant over study period
 nonConstVars <- c('days_since_start', 'fio2', 'sao2','daily_invasive_prtrt', 'daily_noninvasive_prtrt',
@@ -46,15 +47,16 @@ df<- fread("/home/skerr/Data/ccp_subset_derived.csv", select = allVars, data.tab
 
 # Take a sample
 sample <- sample_n(df, 30000)              
+#sample <- df
 
 ############################# FUNCTIONS ######################################### 
 
 # freqTab prints frequency tables for the imputations and the real df against each other for the categorical variables
 # to allow comparison.
-freqTab <- function(Imputation){
+freqTab <- function(df, Imputation, Vars){
   
-  for (var in catVars){
-    real <- table(fulldf[var])
+  for (var in Vars){
+    real <- table(df[var])
     
     nlevels <- length(real)
     
@@ -69,7 +71,7 @@ freqTab <- function(Imputation){
       
       freqTable[, m] <- tab / sum(tab)
       
-      freqTable[, 'real'] <- table(fulldf[var]) / sum( table(fulldf[var]) )
+      freqTable[, 'real'] <- real / sum( real )
       }
     print(var)
     print(freqTable)
@@ -77,7 +79,7 @@ freqTab <- function(Imputation){
 }
 
 # This function is used to set the method option in mice manually. 
-createMethod <- function(impExclude){
+createMethod <- function(df, impExclude){
   
   method <- as.data.frame( sapply(df, nlevels) )
   
@@ -144,7 +146,7 @@ fulldf[catVars] <- lapply(fulldf[catVars], factor )
 ################################ IMPUTE CONSTANT VARIABLES: #######################################
 
 # Variables that will not be imputed in first imputation
-impExclude <- c(nonConstVars, 'subjid', 'day_of_death')
+impExclude1 <- c(nonConstVars, 'subjid', 'day_of_death', 'who_days_to_improve1', 'who_days_to_improve2')
 
 # Create a 'template' preditor matrix.
 # I only use the first row of df, which will throw warnings. Just a quick way to get a matrix with the
@@ -156,40 +158,40 @@ diag(template) <- 0
 template[,'subjid'] <- 0
 
 # Impute sex, age, death and comorbidities, 
-method <- createMethod(impExclude)
+method1 <- createMethod(fulldf, impExclude1)
 
-predMat <- template
-predMat[, impExclude] <- 0
+predMat1 <- template
+predMat1[, impExclude1] <- 0
 
-Imputation <- mice(fulldf ,m=1, maxit=200, predictorMatrix = predMat, method = method)
+Imputation1 <- mice(fulldf ,m=1, maxit=200, predictorMatrix = predMat1, method = method1)
 
 # Look at results of Imputation
 
-pdf('/home/skerr/Git/SF94/Code/dummy_data_generator/Imputation.pdf') 
+pdf('/home/skerr/Git/SF94/Code/dummy_data_generator/Imputation1.pdf') 
 
-densityplot(Imputation, fulldf ~ age_estimateyears)
+densityplot(Imputation1, fulldf ~ age_estimateyears)
 
 dev.off()
 
-freqTab(Imputation)
+freqTab(fulldf, Imputation1, catVars)
 
 # Set fulldf equal to the complete imputation
-fulldf1 <- complete(Imputation)
+fulldf <- complete(Imputation1)
 
 #Separate out those who have death == YES from those that don't
-dead <- filter( fulldf1, death == 'YES' )
+dead <- filter( fulldf, death == 'YES' )
 
-notDead <- filter( fulldf1, death != 'YES' )
+notDead <- filter( fulldf, death != 'YES' )
 
 ############################### IMPUTE THE DEAD: ###############################################
 
 # Impute day of death amongst those who died
 impExclude2 <- setdiff(allVars, 'day_of_death')
 
-method2 <- createMethod(impExclude2)
+method2 <- createMethod(dead, impExclude2)
 
 predMat2 <- template
-predMat2[, nonConstVars] <- 0
+predMat2[, c(nonConstVars, 'who_days_to_improve1', 'who_days_to_improve2'  )] <- 0
 
 Imputation2 <- mice(dead ,m=1, maxit=200, predictorMatrix = predMat2, method = method2)
 
@@ -204,74 +206,72 @@ dev.off()
 
 # Set dead2 equal to complete result of Imputation2.
 # Add rows for differetnt values of days_since_start
-dead2 <- complete(Imputation2)
+dead <- complete(Imputation2)
 
-dead3 <- addRows(dead2)
+dead <- addRows(dead)
 
 
 # Impute non constant variables amongst those who died
-impExclude3 <- c(constVars, 'days_since_start', 'subjid')
+impExclude3 <- c(constVars, 'days_since_start')
 
-method3 <- createMethod(impExclude3)
+method3 <- createMethod(dead, impExclude3)
 
 predMat3 <- template
 
-Imputation3 <- mice(dead3,m=1, maxit=200, predictorMatrix = predMat3, method = method3)
+predMat3[, c('who_days_to_improve1', 'who_days_to_improve2')] <- 0
+
+Imputation3 <- mice(dead,m=1, maxit=200, predictorMatrix = predMat3, method = method3)
 
 
 # Look at results of Imputation
 
 pdf('/home/skerr/Git/SF94/Code/dummy_data_generator/Imputation3.pdf') 
 
-densityplot(Imputation3, dead3 ~ fio2 + sao2)
+densityplot(Imputation3, dead ~ fio2 + sao2)
 
 dev.off()
 
-freqTab(Imputation3)
+freqTab(dead, Imputation3, catVars)
 
-dead4 <- complete(Imputation3)
+dead <- complete(Imputation3)
 
 
 ############################ IMPUTE THE LIVING: ##########################################
 
-notDead2 <- addRows(notDead)
+notDead <- addRows(notDead)
 
 
 impExclude4 <- c(constVars, 'days_since_start')
 
-method4 <- createMethod(impExclude4)
+method4 <- createMethod(notDead, impExclude4)
 
 predMat4 <- template
 
-Imputation4 <- mice(notDead2 ,m=1,maxit=200, predictorMatrix = predMat4, method = method4)
+predMat4[, c('who_days_to_improve1', 'who_days_to_improve2')] <- 0
+
+Imputation4 <- mice(notDead ,m=1,maxit=200, predictorMatrix = predMat4, method = method4)
 
 
 pdf('/home/skerr/Git/SF94/Code/dummy_data_generator/Imputation4.pdf')
 
-densityplot(Imputation4, notDead2 ~ fio2 + sao2)
+densityplot(Imputation4, notDead ~ fio2 + sao2)
 
 dev.off()
 
-freqTab(Imputation4)
+freqTab(notDead, Imputation4, catVars)
 
-notDead3 <- complete(Imputation4)
+notDead <- complete(Imputation4)
 
 
 ##################################### COMBINE AND ADD DERIVED VARIABLES ################################
 
-simulated_ccp <- rbind( filter(dead4, str_sub(subjid ,1, 9) == 'Simulated' ), 
-                        filter(notDead3, str_sub(subjid ,1, 9) == 'Simulated' ))
+fulldf <- rbind(dead, notDead)
 
-#testVars <- setdiff(constVars, c('subjid', 'clinical_frailty', 'day_of_death') )
-#
-#nrow( distinct( simulated_ccp[ ,testVars ]) )
-#nrow(setdiff(distinct( simulated_ccp[ ,testVars ]), distinct( sample[ ,  testVars ])) )
+# Add sfr
+fulldf$sfr<- fulldf$sao2/fulldf$fio2
 
-
-simulated_ccp$sfr<- simulated_ccp$sao2/simulated_ccp$fio2
-
-simulated_ccp<-simulated_ccp %>% 
-  mutate(
+# Add who ordinal severity scale
+fulldf<- mutate( fulldf,
     severity_scale_ordinal = case_when(
       day_of_death == days_since_start ~ 10,
       daily_invasive_prtrt == "YES" & sfr <=2.0 & 
@@ -282,7 +282,168 @@ simulated_ccp<-simulated_ccp %>%
       fio2 >= 0.41 ~ 6,
       fio2 >= 0.22 & fio2 <=0.40 ~ 5,
       daily_nasaloxy_cmtrt == "YES" ~ 5,
-      fio2 == 0.21 ~ 4))
+      fio2 >=0.21 & fio2 < 0.22 ~ 4))
+
+# Add whether they improved by 1 and 2 who levels
+fulldf <- mutate(fulldf,  whoImprovement1 = case_when(  !is.na(who_days_to_improve1) ~ 'YES',
+                                                          str_sub(subjid ,1, 9) != 'Simulated' ~ 'NO' ))    
+
+fulldf <- mutate(fulldf,  whoImprovement2 = case_when(  !is.na(who_days_to_improve2) ~ 'YES',
+                                                          str_sub(subjid ,1, 9) != 'Simulated' ~ 'NO' )) 
+
+# mice needs categorical varaiables to be factors
+fulldf[c('whoImprovement1', 'whoImprovement2' )] <- lapply(fulldf[c('whoImprovement1', 'whoImprovement2' )], factor)
+
+# simDay0 includes all non-simulated entiries, and simulated day 0 entries
+simDay0 <- filter(fulldf, (str_sub(subjid ,1, 9) == 'Simulated' & days_since_start == 0) 
+                        | !(str_sub(subjid ,1, 9) == 'Simulated') )
+
+# simRest contains the rest of fulldf2
+simRest <- filter(fulldf, str_sub(subjid ,1, 9) == 'Simulated' & days_since_start != 0)
+
+######################## IMPUTE whoImprovement1 and whoImprovement2 ############################
+
+dead28 <- filter(simDay0, day_of_death <=28)
+
+notDead28 <- filter(simDay0, is.na(day_of_death) | day_of_death >28 )
+
+# Create a 'template' predictor matrix.
+# I only use the first row of simDay0, which will throw warnings. Just a quick way to get a matrix with the
+# requisite rows and columns.
+template2 <- quickpred(notDead28[1,], mincor = -1)
+
+template2[,] <- 1
+diag(template2) <- 0
+template2[,'subjid'] <- 0
+
+# Impute whoImprovement2
+impExclude5 <-  c(allVars, 'severity_scale_ordinal', 'sfr', 'whoImprovement1')
+
+method5 <- createMethod(notDead28, impExclude5)
+
+predMat5 <- template2
+
+predMat5[, c('day_of_death', 'who_days_to_improve1', 'who_days_to_improve2', 'whoImprovement1')] <- 0
+
+Imputation5 <- mice(notDead28 ,m=1,maxit=200, predictorMatrix = predMat5, method = method5)
+
+
+freqTab(notDead28, Imputation5, 'whoImprovement2')
+
+
+
+notDead28 <- complete(Imputation5)
+
+# Whenever there is a 2 level improvement, there is a one level improvement
+notDead28[ notDead28['whoImprovement2'] == 'YES', ]['whoImprovement1'] <- 'YES'
+
+
+
+# Impute whoImprovement1
+impExclude6 <-  c(allVars, 'severity_scale_ordinal', 'sfr', 'whoImprovement2')
+
+method6 <- createMethod(fulldf, impExclude6)
+
+predMat6 <- template2
+
+predMat6[, c('day_of_death', 'who_days_to_improve1', 'who_days_to_improve2')] <- 0
+
+Imputation6 <- mice(notDead28 ,m=1,maxit=200, predictorMatrix = predMat6, method = method6)
+
+
+freqTab(notDead28, Imputation6, 'whoImprovement1')
+
+
+notDead28 <- complete(Imputation6)
+
+
+##################### IMPUTE who_days_to_improve2 and  who_days_to_improve1 #####################
+
+# Split by who had a 1 level improvement and who didn't.
+who2 <- filter(notDead28, whoImprovement2== 'YES')
+
+who1 <- filter(notDead28, whoImprovement2== 'NO' & whoImprovement1== 'YES')
+
+notwho <- filter(notDead28, whoImprovement1== 'NO')
+
+# Impute who_days_to_improve1 for those whom whoImprovement1 is YES and  whoImprovement2 is NO
+impExclude7 <-  setdiff(colnames(who1), 'who_days_to_improve1')
+
+method7 <- createMethod(who1, impExclude7)
+
+predMat7 <- template2
+
+predMat7[, c('day_of_death', 'who_days_to_improve2')] <- 0
+
+Imputation7 <- mice(who1 ,m=1,maxit=200, predictorMatrix = predMat7, method = method7)
+
+
+
+pdf('/home/skerr/Git/SF94/Code/dummy_data_generator/Imputation7.pdf')
+
+densityplot(Imputation7, who1 ~ who_days_to_improve1)
+
+dev.off()
+
+
+who1 <- complete(Imputation7)
+
+
+
+
+who2['who12diff'] <- who2['who_days_to_improve2'] - who2['who_days_to_improve1']
+
+# Create a 'template' predictor matrix.
+template3 <- quickpred(who2[1,], mincor = -1)
+
+template3[,] <- 1
+diag(template3) <- 0
+template3[,'subjid'] <- 0
+
+# Impute who_days_to_improve1 and who12diff  for those whom whoImprovement2 is YES
+impExclude8 <-  setdiff(colnames(who2), c('who_days_to_improve1', 'who12diff') )
+
+method8 <- createMethod(who2, impExclude8)
+
+predMat8 <- template3
+
+predMat8[, c('day_of_death', 'who_days_to_improve2')] <- 0
+
+Imputation8 <- mice(who2 ,m=1,maxit=200, predictorMatrix = predMat8, method = method8)
+
+
+
+pdf('/home/skerr/Git/SF94/Code/dummy_data_generator/Imputation7.pdf')
+
+densityplot(Imputation8, who2 ~ who_days_to_improve1 + who12diff)
+
+dev.off()
+
+
+who2 <- complete(Imputation8)
+
+who2['who_days_to_improve2'] <- who2['who_days_to_improve1'] + who2['who12diff']
+
+who2$who12diff <- NULL
+
+
+
+fulldf<- rbind(notwho, who1)
+fulldf <- rbind(fulldf, who2)
+
+fulldf <- rbind(fulldf, dead28)
+
+fulldf <- rbind(fulldf, simRest)
+
+#Separate out simulated and 'real' data
+real_ccp <- filter(fulldf, str_sub(subjid ,1, 9) != 'Simulated')
+
+simulated_ccp <- filter(fulldf, str_sub(subjid ,1, 9) == 'Simulated')
+
+simulated_ccp[c('whoImprovement1', 'whoImprovement2')] <- NULL
+
+# Fill values for who_days_to_improve1 and who_days_to_improve2
+simulated_ccp <- simulated_ccp %>% group_by(subjid) %>% fill( c('who_days_to_improve1','who_days_to_improve2'), .direction = 'downup')
 
 # Add mortality variable for days 5,8,28
 simulated_ccp <- mutate(simulated_ccp, day5_mortality = case_when(day_of_death <= 5 ~ "YES",
