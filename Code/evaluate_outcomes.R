@@ -640,7 +640,7 @@ linear_model_glm_P  %>% tbl_regression(exponentiate=T, intercept= T)
 library(MASS)
 effectsize_who5<-subset1 #make subset to practice
 who_on_d5<-subset(effectsize_who5, days_since_start == 5)
-head(subset1[,c(1,75,84,88)],25)
+
 who_d5<-polr(final_who_score ~ )
 df<-as.data.frame(df)
 
