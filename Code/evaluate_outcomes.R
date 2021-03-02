@@ -417,12 +417,12 @@ coefday5<-as.numeric(coef(linear_uni_model)[2])
 absolute_mortdif<-function(mort1) {
   logoddsmort1<-log(1/((1-mort1)/mort1))
   baselinesf94<-(logoddsmort1-intercept5)/coefday5
-  sf94_2<-baselinesf94-0.5
+  sf94_2<-baselinesf94+0.5
   logoddsmort2<-intercept5+ (coefday5 * sf94_2)
   mort2OR<-exp(logoddsmort2) #to odds ratio
   mort2<-mort2OR/ (1 +mort2OR)
   mortdif<-mort1-mort2
-  return(baselinesf94)
+  return(mortdif)
 }
 list_baseline_mort<-c(0.25,0.30,0.35)
 D5_sf94_effectsize<-absolute_mortdif(list_baseline_mort)
@@ -432,14 +432,7 @@ write.csv(D5_sf94_effectsize,"/home/skerr/Git/SF94/Outputs/D5_sf94_effectsize.cs
 #day 8
 interceptD8<-as.numeric(coef(linear_uni_model_D8)[1]) #uninvariate model D5 only
 coefday8<-as.numeric(coef(linear_uni_model_D8)[2])
-mort1<-0.25
-logoddsmort1<-log(1/((1-mort1)/mort1))
-baselinesf94<-(logoddsmort1-interceptD8)/coefday8
-sf94_2<-baselinesf94+0.5
-logoddsmort2<-interceptD8+ (coefday8 * sf94_2)
-mort2OR<-exp(logoddsmort2) #to odds ratio
-mort2<-mort2OR/ (1 +mort2OR)
-mortdif<-mort1-mort2
+
 absolute_mortdifD8<-function(mort1) {
   logoddsmort1<-log(1/((1-mort1)/mort1))
   baselinesf94<-(logoddsmort1-interceptD8)/coefday8
@@ -448,7 +441,7 @@ absolute_mortdifD8<-function(mort1) {
   mort2OR<-exp(logoddsmort2) #to odds ratio
   mort2<-mort2OR/ (1 +mort2OR)
   mortdif<-mort1-mort2
-  return(baselinesf94)
+  return(mortdif)
 }
 list_baseline_mort<-c(0.25,0.30,0.35)
 D8_sf94_effectsize<-absolute_mortdifD8(list_baseline_mort)
