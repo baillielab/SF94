@@ -7,8 +7,7 @@ library(rms)
 df_1<-fread("/home/skerr/Data/ccp_subset_derived.csv", data.table = FALSE )
 
 #df_1<-fread("/home/u034/mcswets/df_20211402.csv", data.table = FALSE)
-#colnames(df_1)
-#df_1<-df_1[,c(2:86)]
+#df_1<-df_1[,c(2:89)]
 
 subjects_to_include <- filter(df_1, ( fio2 >=0.22 & days_since_start %in% c(0,1,2)  & age_estimateyears >19 & age_estimateyears <76 ) )['subjid']
 subset1<-df_1[df_1$subjid %in% subjects_to_include$subjid,] 
@@ -639,9 +638,15 @@ linear_model_glm_P  %>% tbl_regression(exponentiate=T, intercept= T)
 
 #Effect size proportional odds logistic regression for WHO scale
 library(MASS)
-head(df_1)
-who_d5<-polr(severity_scale_ordinal)
+effectsize_who5<-subset1 #make subset to practice
+who_on_d5<-subset(effectsize_who5, days_since_start == 5)
+head(subset1[,c(1,75,84,88)],25)
+who_d5<-polr(final_who_score ~ )
+df<-as.data.frame(df)
 
+table(df_1$mortality_28)
+colnames(subset1)
+sum(is.na(df_1$mortality_28))
 #logrank test for difference in mortality
 library(survival)
 survdiff(Surv(days_since_start, mortality_28)~ sex, data=subset1)
