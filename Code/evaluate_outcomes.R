@@ -435,9 +435,9 @@ coefday8<-as.numeric(coef(linear_uni_model_D8)[2])
 
 absolute_mortdifD8<-function(mort1) {
   logoddsmort1<-log(1/((1-mort1)/mort1))
-  baselinesf94<-(logoddsmort1-interceptD8)/coefdayD8
+  baselinesf94<-(logoddsmort1-interceptD8)/coefday8
   sf94_2<-baselinesf94+0.5
-  logoddsmort2<-interceptD8+ (coefdayD8 * sf94_2)
+  logoddsmort2<-interceptD8+ (coefday8 * sf94_2)
   mort2OR<-exp(logoddsmort2) #to odds ratio
   mort2<-mort2OR/ (1 +mort2OR)
   mortdif<-mort1-mort2
