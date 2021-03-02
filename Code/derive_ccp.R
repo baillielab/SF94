@@ -141,7 +141,7 @@ df<-df %>%
       fio2 >= 0.41 ~ 6,
       fio2 >= 0.22 & fio2 <=0.40 ~ 5,
       daily_nasaloxy_cmtrt == "YES" ~ 5,
-      fio2 >= 0.21 $ fio2 < 0.22 ~ 4,
+      fio2 >= 0.21 & fio2 < 0.22 ~ 4,
       days_since_start == day_of_discharge ~ 4) )
 
 # Add death or discharage outcome variable
@@ -180,3 +180,9 @@ write.csv(df,"/home/skerr/Data/ccp_subset_derived.csv", row.names = FALSE)
 
 # Write for Maaike
 #write.csv(df,"df_20211402.csv")
+
+
+
+bob <- filter(simulated_ccp, death == 'NO' & is.na(who_days_to_improve1))
+bob2 <- filter(df, death == 'NO' & is.na(who_days_to_improve1))
+
