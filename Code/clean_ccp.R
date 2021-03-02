@@ -291,7 +291,7 @@ df <- distinct(df)
 df <- df %>% filter_at( c('daily_dsstdat', setdiff(nonConstVars, unitVars) ), any_vars(!is.na(.))) 
 
 ####################################### WRITE DATA: #######################################
-
+df<-data.frame(df)
 # Write for Maaike
 #write.csv(df,"df_20211402.csv")
 

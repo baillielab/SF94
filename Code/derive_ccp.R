@@ -173,6 +173,11 @@ df <- df %>% filter( days_since_start <= 28 ) %>% group_by(subjid)%>%
 df <- addWhoTimeToImprove(df, 1, 28)
 df <- addWhoTimeToImprove(df, 2, 28)
 
+df<- df %>%arrange(subjid,days_since_start)
+
+df<-data.frame(df)
+
+
 ####################################### WRITE DATA: #######################################
 
 # Write on argosafe
