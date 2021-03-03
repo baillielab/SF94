@@ -234,7 +234,7 @@ write.csv(table(mort$mortality_28),"/home/skerr/Git/SF94/Outputs/mort28Table.csv
 mortality<-df_1[,c("subjid","mortality_28")]
 mortality<-mortality%>%
   group_by(subjid)%>%
-  summarise_all(funs(f))
+  slice(which.min(mortality_28))
 
 
 #----------------------------------- GRAPHS --------------------------------
@@ -351,11 +351,15 @@ sf94_day8_P[sample(rows_to_replace, alive_to_add8)]<- 4.76
 sf94_day8_P<-data.frame(sf94_day8_P)
 day05_P<-cbind(day05_P, sf94_day8_P)
 day05_P<-data.frame(day05_P)
+day05_P$delta_SF94_05<-day05_P$sf94_day5_P - day05_P$sf94_day0 #calculate difference from day 0 to day 5
+day05_P$delta_SF94_08<-day05_P$sf94_day8_P - day05_P$sf94_day0 #same for D0-D8
 
+#create small df with the independent predictor variables (except sf94) and outcome variable
+predictor_variables<-df_1[,c("subjid", "sex", "age_estimateyears", "mortality_28")]
+predictor_variables<-predictor_variables %>% group_by(subjid)%>%slice(which.min(mortality_28))
 
 #join both together
-regresson_df_P<-left_join(day05_P, mortality, by="subjid")
-head(regresson_df_P)
+regresson_df_P<-left_join(day05_P,predictor_variables, by="subjid")
 rm(sf94_day5_P,sf94_day8_P) #remove from global environment
 
 #use proportionally added outcome values, take subject ID and day 5 SF94_P values (from DF_1, so not using filters)
@@ -410,7 +414,7 @@ linear_uni_model<-lrm(mortality_28 ~ sf94_day5_P, filter_regression_analysis, x=
 linear_uni_model_D8<-lrm(mortality_28 ~ sf94_day8_P, filter_regression_analysis, x=TRUE, y=TRUE)
 
 # save intercept and coefficient for day 5
-intercept5<-as.numeric(coef(linear_uni_model)[1]) #uninvariate model D5 only
+intercept5<-as.numeric(coef(linear_uni_model)[1]) 
 coefday5<-as.numeric(coef(linear_uni_model)[2])
 
 absolute_mortdif<-function(mort1) {
@@ -640,15 +644,66 @@ linear_model_glm_P  %>% tbl_regression(exponentiate=T, intercept= T)
 library(MASS)
 effectsize_who5<-subset1 #make subset to practice
 who_on_d5<-subset(effectsize_who5, days_since_start == 5)
+#who_d5<-polr(final_who_score ~ )
 
-who_d5<-polr(final_who_score ~ )
-df<-as.data.frame(df)
+#logistic regression model with mortality at day 28 as dependent variable 
+#and WHO at D5/D8 respectively as independent variable
+#regression model D5 SF94 and mortality
+#with sf94 values regression
+df_1_base_who_8<-createDF(df_1, "base", "severity_scale_ordinal",8)
+who_5_8<-df_1_base_who_8[,c(1,2,7,10)] #select subjid, day 0 and day 5 and day 8
+who_5_8<-who_5_8%>%
+  dplyr::rename(WHOD5= "5", WHOD0= "0", WHOD8= "8") #change to easier names
+#number of patients that died/went home before day 5 and 8 calculated earlier for SF94 effect size analysis
 
-table(df_1$mortality_28)
-colnames(subset1)
-sum(is.na(df_1$mortality_28))
-#logrank test for difference in mortality
-library(survival)
-survdiff(Surv(days_since_start, mortality_28)~ sex, data=subset1)
-head(subset1)
-?survdiff
+who_5_8P<-who_5_8 #for proportional deaths
+who_5_8P<-setDT(who_5_8P)[, lapply(.SD, na.omit), by=subjid] #keep 1 entry/subject
+who_5_8P<-data.frame(who_5_8P)
+set.seed(1234)
+who_5P<-who_5_8P$WHOD5 #add day 5 to a separate df
+rows_to_replace<-which(is.na(who_5P))
+who_5P[sample(rows_to_replace, dead_to_add5)]<- 10
+rows_to_replace<-which(is.na(who_5P))
+who_5P[sample(rows_to_replace, alive_to_add5)]<- 4
+who_5P<-data.frame(who_5P)
+who_5_8P<-cbind(who_5_8P, who_5P) #bind to original data
+who_5_8P<-data.frame(who_5_8P)
+#same for D8
+day08_P<-who_5_8P #for proportional deaths day 8 
+set.seed(1234)
+who_8P<-day08_P$WHOD8 #add day 8 to a separate df
+rows_to_replace<-which(is.na(who_8P))
+who_8P[sample(rows_to_replace, dead_to_add8)]<- 10
+rows_to_replace<-which(is.na(who_8P))
+who_8P[sample(rows_to_replace, alive_to_add8)]<- 4
+who_8P<-data.frame(who_8P)
+who_5_8P<-cbind(who_5_8P, who_8P)
+who_5_8P<-data.frame(who_5_8P)
+
+WHO_regression_P<-left_join(who_5_8P, mortality, by="subjid") #join both together
+rm(who_5P,who_8P) #remove from global environment
+#use proportionally added outcome values, take subject ID and day 5 SF94_P values 
+WHO_regression_P <-data.frame(WHO_regression_P)
+WHO_regression_P<-WHO_regression_P %>% #change mortality to match proportionally added values
+  mutate(
+    mortality_28 = case_when(
+      who_5P == 4 |who_8P == 4  ~ 0, who_5P == 10 |who_8P == 10 ~ 1,TRUE ~ as.numeric(mortality_28)))
+
+subjects_to_include <- filter(df_1, ( fio2 >=0.22 & days_since_start %in% c(0,1,2)  & age_estimateyears >19 & age_estimateyears <76 ) )['subjid']
+WHO_regression_P<-WHO_regression_P[WHO_regression_P$subjid %in% subjects_to_include$subjid,] 
+WHO_regression_P<- as.data.frame(WHO_regression_P)
+
+
+#First need to set data distribution for rms functions
+attach(WHO_regression_P)
+ddist <- datadist(WHOD0, as.factor(who_5P), as.factor(who_8P), mortality_28)
+options(datadist='ddist')
+detach(WHO_regression_P)
+#Then fit models
+WHO_model_D5<-lrm(mortality_28 ~ who_5P, WHO_regression_P, x=TRUE, y=TRUE)
+WHO_model_D8<-lrm(mortality_28 ~ who_8P, WHO_regression_P, x=TRUE, y=TRUE)
+
+WHO_model_D5
+intercept_WHO5<-as.numeric(coef(WHO_model_D5)[1]) #uninvariate model D5 only
+coef_WHO5<-as.numeric(coef(WHO_model_D5)[2])
+
