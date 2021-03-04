@@ -182,7 +182,3 @@ write.csv(df,"/home/skerr/Data/ccp_subset_derived.csv", row.names = FALSE)
 #write.csv(df,"df_20211402.csv")
 
 
-
-bob <- filter(simulated_ccp, death == 'NO' & is.na(who_days_to_improve1))
-bob2 <- filter(df, death == 'NO' & is.na(who_days_to_improve1))
-
