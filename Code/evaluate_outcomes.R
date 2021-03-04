@@ -409,6 +409,11 @@ time_to_improvement<-data.frame(time_to_improvement)
 #bind to rest of data
 regresson_df_P<-left_join(regresson_df_P, time_to_improvement, by="subjid")
 
+#apply age filter and supp oxygen filter
+subjects_to_include <- filter(df_1, ( fio2 >=0.22 & days_since_start %in% c(0,1,2)  & age_estimateyears >19 & age_estimateyears <76 ) )['subjid']
+regresson_df_P<-regresson_df_P[regresson_df_P$subjid %in% subjects_to_include$subjid,] 
+regresson_df_P <- as.data.frame(regresson_df_P)
+
 #First need to set data distribution for rms functions
 attach(regresson_df_P)
 ddist <- datadist(sf94_day0, delta_SF94_05,delta_SF94_08,sex, age_estimateyears, mortality_28,
