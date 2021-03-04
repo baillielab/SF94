@@ -392,13 +392,59 @@ regresson_df_P<-regresson_df_P %>% #change mortality to match proportionally add
 
 #add days to improvement variable
 time_to_improvement<-df_1[,c("subjid", "who_days_to_improve2", "who_days_to_improve1")]
-head(time_to_improvement)
-table(time_to_improvement$who_days_to_improve2)
+time_to_improvement<-time_to_improvement %>%
+  group_by(subjid)%>%
+  summarise_all(funs(f))
+time_to_improvement<-time_to_improvement %>%
+  mutate( #if there is a number, there is sustained improvement, so change to 1. If not, change to 0
+    sustained_1L_improvement= case_when(
+      !is.na(who_days_to_improve1) ~ 1, is.na(who_days_to_improve1) ~ 0 ))
+time_to_improvement<-time_to_improvement %>%
+  mutate( #if there is a number, there is sustained improvement, so change to 1. If not, change to 0
+    sustained_2L_improvement= case_when(
+      !is.na(who_days_to_improve2) ~ 1, is.na(who_days_to_improve2) ~ 0 ))
+time_to_improvement<-time_to_improvement[,c("subjid", "sustained_1L_improvement", "sustained_2L_improvement")]
+time_to_improvement<-data.frame(time_to_improvement)
+
+#bind to rest of data
+regresson_df_P<-left_join(regresson_df_P, time_to_improvement, by="subjid")
+
 #First need to set data distribution for rms functions
 attach(regresson_df_P)
-ddist <- datadist(sf94_day0, sf94_day5_P, sf94_day8_P, mortality_28)
+ddist <- datadist(sf94_day0, delta_SF94_05,delta_SF94_08,sex, age_estimateyears, mortality_28,
+                  sustained_1L_improvement, sustained_2L_improvement, WHOD5_P, WHOD8_P)
 options(datadist='ddist')
 detach(regresson_df_P)
+
+#Effect size proportional odds logistic regression for WHO scale
+# WHO D5/D8 as dependent variable
+#SF94 at D5/D8 respectively, age and sex as independent variable
+library(MASS)
+WHOD5_model<-polr(as.factor(WHOD5_P) ~ delta_SF94_05+ age_estimateyears+ sex, data = regresson_df_P, Hess=T)
+WHOD8_model<-polr(as.factor(WHOD8_P) ~ delta_SF94_08+ age_estimateyears+ sex, data = regresson_df_P, Hess=T)
+sum_WHO_D5<-summary(WHOD5_model)
+ci_5<-confint(WHOD5_model) #calculate confidence interval
+OR_D5_WHO<-exp(cbind(OR=coef(WHOD5_model),ci_5)) #calculate OR
+sum_WHO_D8<-summary(WHOD8_model)
+ci_8<-confint(WHOD8_model)
+OR_D8_WHO<-exp(cbind(OR=coef(WHOD8_model),ci_8))
+
+write.csv(sum_WHO_D5,"/home/skerr/Git/SF94/Outputs/sum_WHO_D5.csv")
+write.csv(sum_WHO_D8,"/home/skerr/Git/SF94/Outputs/sum_WHO_D8.csv")
+write.csv(OR_D5_WHO,"/home/skerr/Git/SF94/Outputs/OR_D5_WHO.csv")
+write.csv(OR_D8_WHO,"/home/skerr/Git/SF94/Outputs/OR_D8_WHO.csv")
+
+#WHO time to improvement
+sus_1L_D5<-lrm(sustained_1L_improvement ~ delta_SF94_05+ age_estimateyears+ sex, data = regresson_df_P)
+sus_1L_D8<-lrm(sustained_1L_improvement ~ delta_SF94_08+ age_estimateyears+ sex, data = regresson_df_P)
+sus_2L_D5<-lrm(sustained_2L_improvement ~ delta_SF94_05+ age_estimateyears+ sex, data = regresson_df_P)
+sus_2L_D8<-lrm(sustained_2L_improvement ~ delta_SF94_08+ age_estimateyears+ sex, data = regresson_df_P)
+
+write.csv(sus_1L_D5,"/home/skerr/Git/SF94/Outputs/sus_1L_D5.csv")
+write.csv(sus_1L_D8,"/home/skerr/Git/SF94/Outputs/sus_1L_D8.csv")
+write.csv(sus_2L_D5,"/home/skerr/Git/SF94/Outputs/sus_2L_D5.csv")
+write.csv(sus_2L_D8,"/home/skerr/Git/SF94/Outputs/sus_2L_D8.csv")
+
 #Then fit models (splines using 4 knots here)
 linear_model_P <- lrm(mortality_28 ~ sf94_day0 + sf94_day5_P, regresson_df_P, x=TRUE, y=TRUE)
 linear_uni_model<-lrm(mortality_28 ~ sf94_day5_P, regresson_df_P, x=TRUE, y=TRUE)
@@ -665,23 +711,3 @@ linear_model_glm_P  %>% tbl_regression(exponentiate=T, intercept= T)
 #HTML code
 
 
-#Effect size proportional odds logistic regression for WHO scale
-# WHO D5/D8 as dependent variable
-#SF94 at D5/D8 respectively, age and sex as independent variable
-library(MASS)
-WHOD5_model<-polr(as.factor(WHOD5_P) ~ delta_SF94_05+ age_estimateyears+ sex, data = regresson_df_P, Hess=T)
-WHOD8_model<-polr(as.factor(WHOD8_P) ~ delta_SF94_08+ age_estimateyears+ sex, data = regresson_df_P, Hess=T)
-sum_WHO_D5<-summary(WHOD5_model)
-ci_5<-confint(WHOD5_model) #calculate confidence interval
-OR_D5_WHO<-exp(cbind(OR=coef(WHOD5_model),ci_5)) #calculate OR
-sum_WHO_D8<-summary(WHOD8_model)
-ci_8<-confint(WHOD8_model)
-OR_D8_WHO<-exp(cbind(OR=coef(WHOD8_model),ci_8))
-
-write.csv(sum_WHO_D5,"/home/skerr/Git/SF94/Outputs/sum_WHO_D5.csv")
-write.csv(sum_WHO_D8,"/home/skerr/Git/SF94/Outputs/sum_WHO_D8.csv")
-write.csv(OR_D5_WHO,"/home/skerr/Git/SF94/Outputs/OR_D5_WHO.csv")
-write.csv(OR_D8_WHO,"/home/skerr/Git/SF94/Outputs/OR_D8_WHO.csv")
-
-#WHO time to improvement
-head(df_1)
