@@ -40,7 +40,7 @@ addWhoTimeToImprove <- function(df, diff, finalDay){
     filter(Days>0)%>% #only keep if day y > day x (as this means 'forward' change)
     mutate(score_difference= severity_scale_ordinal.y- severity_scale_ordinal.x) %>% #calculate the change in severity levels 
     filter(score_difference <= -diff ) %>% left_join(distinct( df[c('subjid', 'final_who_score')] )  ) %>%
-    filter(final_who_score < severity_scale_ordinal.x) %>% slice(which.min(Days)) %>% select(subjid, Days) %>% right_join(df) 
+    filter(final_who_score < severity_scale_ordinal.x) %>% slice(which.min(Days)) %>% dplyr::select(subjid, Days) %>% right_join(df) 
   
   colnames(output)[ colnames(output) == 'Days'  ] <- paste( 'who_days_to_improve', diff, sep='')
   
