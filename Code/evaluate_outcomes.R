@@ -342,7 +342,6 @@ alive_to_add8<-(percalive8*available8)/percavailable8 #number of 4.76 values to 
 
 day08_P<-day05_P #for proportional deaths day 8 
 set.seed(1234)
-
 day08_P$sf94_day8_P<-day08_P$sf94_day8 #make new column with proportional deaths, copy measured values D8
 rows_to_replace<-which(is.na(day08_P$sf94_day8) & is.na(day08_P$sf94_day5_P)) #replace if D5_P and D8 NA
 day08_P$sf94_day8_P[sample(rows_to_replace, dead_to_add8)]<- 0.5 #add dead patients
@@ -350,16 +349,15 @@ rows_to_replace<-which(is.na(day08_P$sf94_day8) & is.na(day08_P$sf94_day5_P))
 day08_P$sf94_day8_P[sample(rows_to_replace, alive_to_add8)]<- 4.76 #add discharged patients
 
 day08_P<-data.frame(day08_P)
-day05_P<-day08_P
-day05_P$delta_SF94_05<-day05_P$sf94_day5_P - day05_P$sf94_day0 #calculate difference from day 0 to day 5
-day05_P$delta_SF94_08<-day05_P$sf94_day8_P - day05_P$sf94_day0 #same for D0-D8
+day08_P$delta_SF94_05<-day08_P$sf94_day5_P - day08_P$sf94_day0 #calculate difference from day 0 to day 5
+day08_P$delta_SF94_08<-day08_P$sf94_day8_P - day08_P$sf94_day0 #same for D0-D8
 
 #create small df with the independent predictor variables (except sf94) and outcome variable
 predictor_variables<-df_1[,c("subjid", "sex", "age_estimateyears", "mortality_28")]
 predictor_variables<-predictor_variables %>% group_by(subjid)%>%slice(which.min(mortality_28))
 
 #join both together
-regresson_df_P<-left_join(day05_P,predictor_variables, by="subjid")
+regresson_df_P<-left_join(day08_P,predictor_variables, by="subjid")
 rm(sf94_day5_P,sf94_day8_P) #remove from global environment
 
 #use proportionally added outcome values, take subject ID and day 5 SF94_P values (from DF_1, so not using filters)
