@@ -18,7 +18,9 @@ library(readr)
 df<-fread("/home/skerr/Data/ccp_subset_clean.csv", data.table = FALSE, )
 
 #read for maaike
-#df <-fread("/home/u034/mcswets/df_20211402.csv")
+df <-fread("/home/u034/mcswets/df_20211402.csv")
+df <-fread("/home/u034/mcswets/df_20211402-backup.csv") #as in end of clean_ccp
+
 
 ####################################### FUNCTIONS THAT WILL BE USED: #######################################
 
@@ -38,7 +40,7 @@ addWhoTimeToImprove <- function(df, diff, finalDay){
     filter(Days>0)%>% #only keep if day y > day x (as this means 'forward' change)
     mutate(score_difference= severity_scale_ordinal.y- severity_scale_ordinal.x) %>% #calculate the change in severity levels 
     filter(score_difference <= -diff ) %>% left_join(distinct( df[c('subjid', 'final_who_score')] )  ) %>%
-    filter(final_who_score < severity_scale_ordinal.x) %>% slice(which.min(Days)) %>% select(subjid, Days) %>% right_join(df) 
+    filter(final_who_score < severity_scale_ordinal.x) %>% slice(which.min(Days)) %>% dplyr::select(subjid, Days) %>% right_join(df) 
   
   colnames(output)[ colnames(output) == 'Days'  ] <- paste( 'who_days_to_improve', diff, sep='')
   
@@ -62,6 +64,7 @@ squeeze<- function(df, limits){
 
 # Add variable that is YES if they died, NO otherwise
 # and similarly for if they were discharged
+df<-data.frame(df)
 
 df <- mutate(df, death = case_when( dsterm == 'Death' ~ 'YES',
                                     !is.na(dsterm) ~ 'NO')   )
@@ -166,12 +169,28 @@ df<-df %>%
       day_of_discharge<5 ~ 0))
 
 #make new variable for last who level available before day 28
-df <- df %>% filter( days_since_start <= 28 ) %>% group_by(subjid)%>%
-  arrange(desc( days_since_start )) %>% mutate(final_who_score = first(severity_scale_ordinal))
+final_who_value <- df %>% filter( days_since_start <= 28 ) %>% group_by(subjid)%>%  
+  arrange(desc( days_since_start )) %>%filter( !is.na(severity_scale_ordinal) ) %>% 
+  mutate(final_who_score = first(severity_scale_ordinal)) %>% slice(which.max(days_since_start))
+final_who_value<-final_who_value[,c("subjid", "final_who_score")]
+df<-left_join(df, final_who_value, by="subjid")
+#if subjects don't have a days_since_start on the day of death/ discharge, they don't have a 4 or 10 added
+#therefore, if they die/ go home before day 28, change their final value to 10 or 4
+df<-df %>% mutate(final_who_score=
+  case_when(
+    day_of_death<28 ~ 10,
+    day_of_discharge<28 ~ 4,
+    TRUE ~ as.numeric(final_who_score)
+  )
+)
 
 # add who time to improve 1 and 2.
 df <- addWhoTimeToImprove(df, 1, 28)
 df <- addWhoTimeToImprove(df, 2, 28)
+
+df<- df %>%arrange(subjid,days_since_start)
+
+df<-data.frame(df)
 
 ####################################### WRITE DATA: #######################################
 
@@ -179,6 +198,7 @@ df <- addWhoTimeToImprove(df, 2, 28)
 write.csv(df,"/home/skerr/Data/ccp_subset_derived.csv", row.names = FALSE)
 
 # Write for Maaike
+#df<-df[,c(1:3,5:89)]
 #write.csv(df,"df_20211402.csv")
 
 

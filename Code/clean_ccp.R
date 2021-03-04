@@ -291,9 +291,10 @@ df <- distinct(df)
 df <- df %>% filter_at( c('daily_dsstdat', setdiff(nonConstVars, unitVars) ), any_vars(!is.na(.))) 
 
 ####################################### WRITE DATA: #######################################
-
+df<-data.frame(df)
 # Write for Maaike
 #write.csv(df,"df_20211402.csv")
+#write.csv(df,"df_20211402-backup.csv")
 
 # Write on argosafe
 write.csv(df,"/home/skerr/Data/ccp_subset_clean.csv", row.names = FALSE)
