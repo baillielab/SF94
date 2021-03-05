@@ -432,10 +432,10 @@ sum_WHO_D8<-summary(WHOD8_model)
 ci_8<-confint(WHOD8_model)
 OR_D8_WHO<-exp(cbind(OR=coef(WHOD8_model),ci_8))
 
-write.csv(sum_WHO_D5,"/home/skerr/Git/SF94/Outputs/sum_WHO_D5.csv")
-write.csv(sum_WHO_D8,"/home/skerr/Git/SF94/Outputs/sum_WHO_D8.csv")
-write.csv(OR_D5_WHO,"/home/skerr/Git/SF94/Outputs/OR_D5_WHO.csv")
-write.csv(OR_D8_WHO,"/home/skerr/Git/SF94/Outputs/OR_D8_WHO.csv")
+write.rds(sum_WHO_D5,"/home/skerr/Git/SF94/Outputs/sum_WHO_D5.csv")
+write.rds(sum_WHO_D8,"/home/skerr/Git/SF94/Outputs/sum_WHO_D8.csv")
+write.rds(OR_D5_WHO,"/home/skerr/Git/SF94/Outputs/OR_D5_WHO.csv")
+write.rds(OR_D8_WHO,"/home/skerr/Git/SF94/Outputs/OR_D8_WHO.csv")
 
 #WHO time to improvement
 sus_1L_D5<-lrm(sustained_1L_improvement ~ delta_SF94_05+ age_estimateyears+ sex, data = regresson_df_P)
@@ -443,10 +443,10 @@ sus_1L_D8<-lrm(sustained_1L_improvement ~ delta_SF94_08+ age_estimateyears+ sex,
 sus_2L_D5<-lrm(sustained_2L_improvement ~ delta_SF94_05+ age_estimateyears+ sex, data = regresson_df_P)
 sus_2L_D8<-lrm(sustained_2L_improvement ~ delta_SF94_08+ age_estimateyears+ sex, data = regresson_df_P)
 
-write.csv(sus_1L_D5,"/home/skerr/Git/SF94/Outputs/sus_1L_D5.csv")
-write.csv(sus_1L_D8,"/home/skerr/Git/SF94/Outputs/sus_1L_D8.csv")
-write.csv(sus_2L_D5,"/home/skerr/Git/SF94/Outputs/sus_2L_D5.csv")
-write.csv(sus_2L_D8,"/home/skerr/Git/SF94/Outputs/sus_2L_D8.csv")
+write.rds(sus_1L_D5,"/home/skerr/Git/SF94/Outputs/sus_1L_D5.csv")
+write.rds(sus_1L_D8,"/home/skerr/Git/SF94/Outputs/sus_1L_D8.csv")
+write.rds(sus_2L_D5,"/home/skerr/Git/SF94/Outputs/sus_2L_D5.csv")
+write.rds(sus_2L_D8,"/home/skerr/Git/SF94/Outputs/sus_2L_D8.csv")
 
 #Then fit models (splines using 4 knots here)
 linear_model_P <- lrm(mortality_28 ~ sf94_day0 + sf94_day5_P, regresson_df_P, x=TRUE, y=TRUE)
