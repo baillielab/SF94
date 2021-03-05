@@ -443,11 +443,11 @@ sus_1L_D8<-lrm(sustained_1L_improvement ~ delta_SF94_08+ age_estimateyears+ sex,
 sus_2L_D5<-lrm(sustained_2L_improvement ~ delta_SF94_05+ age_estimateyears+ sex, data = regresson_df_P)
 sus_2L_D8<-lrm(sustained_2L_improvement ~ delta_SF94_08+ age_estimateyears+ sex, data = regresson_df_P)
 
-write.rds(sus_1L_D5,"/home/skerr/Git/SF94/Outputs/sus_1L_D5.csv")
-write.rds(sus_1L_D8,"/home/skerr/Git/SF94/Outputs/sus_1L_D8.csv")
-write.rds(sus_2L_D5,"/home/skerr/Git/SF94/Outputs/sus_2L_D5.csv")
-write.rds(sus_2L_D8,"/home/skerr/Git/SF94/Outputs/sus_2L_D8.csv")
-
+write.rds(sus_1L_D5,"/home/skerr/Git/SF94/Outputs/sus_1L_D5.rds")
+write.rds(sus_1L_D8,"/home/skerr/Git/SF94/Outputs/sus_1L_D8.rds")
+write.rds(sus_2L_D5,"/home/skerr/Git/SF94/Outputs/sus_2L_D5.rds")
+write.rds(sus_2L_D8,"/home/skerr/Git/SF94/Outputs/sus_2L_D8.rds")
+readRDS("/Users/Maaike/Downloads/sus_1L_D8.csv")
 #Then fit models (splines using 4 knots here)
 linear_model_P <- lrm(mortality_28 ~ sf94_day0 + sf94_day5_P, regresson_df_P, x=TRUE, y=TRUE)
 linear_uni_model<-lrm(mortality_28 ~ sf94_day5_P, regresson_df_P, x=TRUE, y=TRUE)
