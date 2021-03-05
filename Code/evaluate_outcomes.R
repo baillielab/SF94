@@ -438,10 +438,12 @@ sum_WHO_D8<-summary(WHOD8_model)
 ci_8<-confint(WHOD8_model)
 OR_D8_WHO<-exp(cbind(OR=coef(WHOD8_model),ci_8))
 
-write.rds(sum_WHO_D5,"/home/skerr/Git/SF94/Outputs/sum_WHO_D5.csv")
-write.rds(sum_WHO_D8,"/home/skerr/Git/SF94/Outputs/sum_WHO_D8.csv")
-write.rds(OR_D5_WHO,"/home/skerr/Git/SF94/Outputs/OR_D5_WHO.csv")
-write.rds(OR_D8_WHO,"/home/skerr/Git/SF94/Outputs/OR_D8_WHO.csv")
+library(dplyr)
+
+saveRDS(sum_WHO_D5,"/home/skerr/Git/SF94/Outputs/sum_WHO_D5.rds")
+saveRDS(sum_WHO_D8,"/home/skerr/Git/SF94/Outputs/sum_WHO_D8.rds")
+saveRDS(OR_D5_WHO,"/home/skerr/Git/SF94/Outputs/OR_D5_WHO.rds")
+saveRDS(OR_D8_WHO,"/home/skerr/Git/SF94/Outputs/OR_D8_WHO.rds")
 
 #WHO time to improvement
 sus_1L_D5<-lrm(sustained_1L_improvement ~ delta_SF94_05+ age_estimateyears+ sex, data = regresson_df_P)
@@ -449,10 +451,32 @@ sus_1L_D8<-lrm(sustained_1L_improvement ~ delta_SF94_08+ age_estimateyears+ sex,
 sus_2L_D5<-lrm(sustained_2L_improvement ~ delta_SF94_05+ age_estimateyears+ sex, data = regresson_df_P)
 sus_2L_D8<-lrm(sustained_2L_improvement ~ delta_SF94_08+ age_estimateyears+ sex, data = regresson_df_P)
 
+<<<<<<< HEAD
 write.rds(sus_1L_D5,"/home/skerr/Git/SF94/Outputs/sus_1L_D5.rds")
 write.rds(sus_1L_D8,"/home/skerr/Git/SF94/Outputs/sus_1L_D8.rds")
 write.rds(sus_2L_D5,"/home/skerr/Git/SF94/Outputs/sus_2L_D5.rds")
 write.rds(sus_2L_D8,"/home/skerr/Git/SF94/Outputs/sus_2L_D8.rds")
+=======
+saveRDS(sus_1L_D5,"/home/skerr/Git/SF94/Outputs/sus_1L_D5.rds")
+saveRDS(sus_1L_D8,"/home/skerr/Git/SF94/Outputs/sus_1L_D8.rds")
+saveRDS(sus_2L_D5,"/home/skerr/Git/SF94/Outputs/sus_2L_D5.rds")
+saveRDS(sus_2L_D8,"/home/skerr/Git/SF94/Outputs/sus_2L_D8.rds")
+#readRDS("/Users/Maaike/Downloads/sus_1L_D8.csv")
+#Then fit models (splines using 4 knots here)
+linear_model_P <- lrm(mortality_28 ~ sf94_day0 + sf94_day5_P, regresson_df_P, x=TRUE, y=TRUE)
+linear_uni_model<-lrm(mortality_28 ~ sf94_day5_P, regresson_df_P, x=TRUE, y=TRUE)
+linear_uni_model_D8<-lrm(mortality_28 ~ sf94_day8_P, regresson_df_P, x=TRUE, y=TRUE)
+univariate_model<-lrm(mortality_28 ~ sf94_day0, regresson_df_P, x=TRUE, y=TRUE)
+#Visualise using exp scale
+plot_associations_linear_exp_P <- ggplot(Predict(linear_model_P, fun=plogis), sepdiscrete='vertical',
+                                         ylab= "Risk of 28-day mortality")
+
+plot_linear_exp_p<-plot_associations_linear_exp_P + labs(title= "Relationship between S/F94 and mortality")
+#change label names
+plot_linear_exp_p$data$.predictor.<-factor(plot_linear_exp_p$data$.predictor., labels= c("Day 0 S/F94",
+                                                                                         "Day 5 S/F94"))
+plot_linear_exp_p + facet_grid(.~ .predictor., labeller = label_value)
+>>>>>>> bd8ba7e2f608165318089105165aebaab1b7c127
 
 readRDS("/Users/Maaike/Downloads/sus_1L_D5.rds")
 # SF94 values
