@@ -449,12 +449,35 @@ sus_1L_D8<-lrm(sustained_1L_improvement ~ delta_SF94_08+ age_estimateyears+ sex,
 sus_2L_D5<-lrm(sustained_2L_improvement ~ delta_SF94_05+ age_estimateyears+ sex, data = regresson_df_P)
 sus_2L_D8<-lrm(sustained_2L_improvement ~ delta_SF94_08+ age_estimateyears+ sex, data = regresson_df_P)
 
-write.rds(sus_1L_D5,"/home/skerr/Git/SF94/Outputs/sus_1L_D5.rds")
-write.rds(sus_1L_D8,"/home/skerr/Git/SF94/Outputs/sus_1L_D8.rds")
-write.rds(sus_2L_D5,"/home/skerr/Git/SF94/Outputs/sus_2L_D5.rds")
-write.rds(sus_2L_D8,"/home/skerr/Git/SF94/Outputs/sus_2L_D8.rds")
+library(stringr)
+#parser
+get_model_stats = function(x) {
+  cap = capture.output(print(x))
+  #model stats
+  stats = c()
+  stats$R2.adj = str_match(cap, "R2 adj\\s+ (\\d\\.\\d+)") %>% na.omit() %>% .[, 2] %>% as.numeric()
+  #coef stats lines
+  coef_lines = cap[which(str_detect(cap, "Coef\\s+S\\.E\\.")):(length(cap) - 1)]
+  #parse
+  coef_lines_table = suppressWarnings(readr::read_table(coef_lines %>% stringr::str_c(collapse = "\n")))
+  colnames(coef_lines_table)[1] = "Predictor"
+  list(
+    stats = stats,
+    coefs = coef_lines_table
+  )
+}
+#switch to a tibble as output format
+sus_1L_D5<-get_model_stats(sus_1L_D5)
+sus_1L_D8<-get_model_stats(sus_1L_D8)
+sus_2L_D5<-get_model_stats(sus_2L_D5)
+sus_2L_D8<-get_model_stats(sus_2L_D8)
 
-readRDS("/Users/Maaike/Downloads/sus_1L_D5.rds")
+write.csv(sus_1L_D5,"/home/skerr/Git/SF94/Outputs/sus_1L_D5.csv")
+write.csv(sus_1L_D8,"/home/skerr/Git/SF94/Outputs/sus_1L_D8.csv")
+write.csv(sus_2L_D5,"/home/skerr/Git/SF94/Outputs/sus_2L_D5.csv")
+write.csv(sus_2L_D8,"/home/skerr/Git/SF94/Outputs/sus_2L_D8.csv")
+
+
 # SF94 values
 sf94_d5<-lrm(mortality_28 ~ delta_SF94_05+ age_estimateyears+ sex, data = regresson_df_P)
 sf94_d8<-lrm(mortality_28 ~ delta_SF94_08+ age_estimateyears+ sex, data = regresson_df_P)
