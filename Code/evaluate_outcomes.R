@@ -442,7 +442,16 @@ write.rds(sum_WHO_D5,"/home/skerr/Git/SF94/Outputs/sum_WHO_D5.rds")
 write.rds(sum_WHO_D8,"/home/skerr/Git/SF94/Outputs/sum_WHO_D8.rds")
 write.rds(OR_D5_WHO,"/home/skerr/Git/SF94/Outputs/OR_D5_WHO.rds")
 write.rds(OR_D8_WHO,"/home/skerr/Git/SF94/Outputs/OR_D8_WHO.rds")
+readRDS("/Users/Maaike/Downloads/sum_WHO_D5.rds")
 
+#alternative WHO improvement
+#QUESTIONS
+# WHO with proportional deaths/discharges matched to SF94 proportionally added D/D?
+# Delta WHO or just WHO D5?
+WHO_D5_mort<-lrm(mortality_28 ~ WHOD5_P+ age_estimateyears+ sex, data = regresson_df_P)
+WHO_D5_mort_coef<-coef(WHO_D5_mort)
+exp(WHO_D5_mort_coef)
+regresson_df_P$WHOD5_P<-as.factor(regresson_df_P$WHOD5_P)
 #WHO time to improvement
 sus_1L_D5<-lrm(sustained_1L_improvement ~ delta_SF94_05+ age_estimateyears+ sex, data = regresson_df_P)
 sus_1L_D8<-lrm(sustained_1L_improvement ~ delta_SF94_08+ age_estimateyears+ sex, data = regresson_df_P)
