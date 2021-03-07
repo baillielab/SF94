@@ -448,10 +448,62 @@ readRDS("/Users/Maaike/Downloads/sum_WHO_D5.rds")
 #QUESTIONS
 # WHO with proportional deaths/discharges matched to SF94 proportionally added D/D?
 # Delta WHO or just WHO D5?
-WHO_D5_mort<-lrm(mortality_28 ~ WHOD5_P+ age_estimateyears+ sex, data = regresson_df_P)
-WHO_D5_mort_coef<-coef(WHO_D5_mort)
-exp(WHO_D5_mort_coef)
 regresson_df_P$WHOD5_P<-as.factor(regresson_df_P$WHOD5_P)
+WHO_D5_mort<-lrm(mortality_28 ~ WHOD5_P+ age_estimateyears+ sex, data = regresson_df_P)
+who_intecept<-as.numeric(coef(WHO_D5_mort)[1])
+who_model_4<-0
+who_model_5<-as.numeric(coef(WHO_D5_mort)[2])
+who_model_6<-as.numeric(coef(WHO_D5_mort)[3])
+who_model_7<-as.numeric(coef(WHO_D5_mort)[4])
+who_model_8<-as.numeric(coef(WHO_D5_mort)[5])
+who_model_9<-as.numeric(coef(WHO_D5_mort)[6])
+who_model_10<-as.numeric(coef(WHO_D5_mort)[7])
+coefage_who5<-as.numeric(coef(WHO_D5_mort)[8])
+coefsex_who5<-as.numeric(coef(WHO_D5_mort)[9])
+age_value_5<-mean(regresson_df_P$age, na.rm=T)
+sex_value_5<-mean(as.numeric(regresson_df_P$binairy_sex), na.rm=T)
+
+who_mortality= function (who_level_coef){
+  logoddmortwho = who_intecept + who_level_coef+ (age_value_5 * coefage_who5) + (sex_value_5 * coefsex_who5)
+  mort_who_OR<-exp(logoddmortwho) #to odds ratio
+  mort_who_prop<-mort_who_OR/ (1 +mort_who_OR)
+  output<-list(mort_who_OR, mort_who_prop)
+  return(output)
+}
+who_levels<-c(who_model_4, who_model_5, who_model_6, who_model_7, who_model_8, who_model_9, who_model_10)
+who_mortality_output<-who_mortality(who_levels)
+
+#same for D8
+regresson_df_P$WHOD8_P<-as.factor(regresson_df_P$WHOD8_P)
+WHO_D8_mort<-lrm(mortality_28 ~ WHOD8_P+ age_estimateyears+ sex, data = regresson_df_P)
+whoD8_intecept<-as.numeric(coef(WHO_D8_mort)[1])
+whoD8_model_4<-0
+whoD8_model_5<-as.numeric(coef(WHO_D8_mort)[2])
+whoD8_model_6<-as.numeric(coef(WHO_D8_mort)[3])
+whoD8_model_7<-as.numeric(coef(WHO_D8_mort)[4])
+whoD8_model_8<-as.numeric(coef(WHO_D8_mort)[5])
+whoD8_model_9<-as.numeric(coef(WHO_D8_mort)[6])
+whoD8_model_10<-as.numeric(coef(WHO_D8_mort)[7])
+coefage_who8<-as.numeric(coef(WHO_D8_mort)[8])
+coefsex_who8<-as.numeric(coef(WHO_D8_mort)[9])
+age_value_5<-mean(regresson_df_P$age, na.rm=T) #mean age is the same
+sex_value_5<-mean(as.numeric(regresson_df_P$binairy_sex), na.rm=T)
+
+whoD8_mortality= function (who_level_coef){
+  logoddmortwho = whoD8_intecept + who_level_coef+ (age_value_5 * coefage_who8) + (sex_value_5 * coefsex_who8)
+  mort_who_OR<-exp(logoddmortwho) #to odds ratio
+  mort_who_prop<-mort_who_OR/ (1 +mort_who_OR)
+  output<-list(mort_who_OR, mort_who_prop)
+  return(output)
+}
+whoD8_levels<-c(whoD8_model_4, whoD8_model_5, whoD8_model_6,
+              whoD8_model_7, whoD8_model_8, whoD8_model_9, whoD8_model_10)
+whoD8_mortality_output<-whoD8_mortality(whoD8_levels)
+
+sum(regresson_df_P$WHOD5_P == "10" & regresson_df_P$mortality_28 == 0, na.rm = T)
+
+
+
 #WHO time to improvement
 sus_1L_D5<-lrm(sustained_1L_improvement ~ delta_SF94_05+ age_estimateyears+ sex, data = regresson_df_P)
 sus_1L_D8<-lrm(sustained_1L_improvement ~ delta_SF94_08+ age_estimateyears+ sex, data = regresson_df_P)
