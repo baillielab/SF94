@@ -38,7 +38,7 @@ createDF <- function(df, group, variable, time){
     df2 <- filter(df[ c('subjid', 'days_since_start', variable ) ], days_since_start <= time & !(subjid %in% dropID)  ) 
   } 
   
-  derived <-  df2  %>%  mutate(rn= row_number()) %>% spread (days_since_start, variable) %>% select(-rn)
+  derived <-  df2  %>%  mutate(rn= row_number()) %>% spread (days_since_start, variable) %>% dplyr::select(-rn)
   
   newCols <- as.character( setdiff( 0:time,  setdiff( colnames(derived), 'subjid' ) ) )
   
@@ -80,7 +80,7 @@ createDF <- function(df, group, variable, time){
 }
 
 #if error message try detaching plyr:
-#detach("package:plyr", unload=T) 
+#detach("package:plyr", unload=T)
 
 #summary 
 basedd_sf94_10<-createDF(subset1, "basedd", "sf94", 10)
@@ -412,6 +412,29 @@ regresson_df_P <- regresson_df_P %>%
     regresson_df_P$sex == "Male" ~ "1",
     regresson_df_P$sex == "Female" ~ "0"
   ))
+
+#in case we need base_dd variable for sf94 and who
+df_1_basedd_sf94_10<-createDF(df_1, "basedd", "sf94", 10)
+df_1_basedd_who_10<-createDF(df_1, "basedd", "severity_scale_ordinal", 10)
+dd_sf94<-df_1_basedd_sf94_10[,c(1,2,7,10)]
+dd_who<-df_1_basedd_who_10[,c(1,2,7,10)]
+
+dd_sf94<-dd_sf94 %>% 
+  group_by(subjid) %>% 
+  summarise_all(funs(f))
+dd_who<-dd_who %>% 
+  group_by(subjid) %>% 
+  summarise_all(funs(f))
+
+dd_sf94<-dd_sf94%>%
+  dplyr::rename(sf94_dd_day5= "5", sf94_dd_day0= "0", sf94_dd_day8= "8")
+dd_who<-dd_who%>%
+  dplyr::rename(who_dd_day5= "5", who_dd_day0= "0", who_dd_day8= "8")
+
+dd_data<-left_join(dd_sf94, dd_who, by="subjid")
+dd_data<-data.frame(dd_data)
+
+regresson_df_P<-left_join(regresson_df_P, dd_data, by="subjid")
 
 #apply age filter and supp oxygen filter
 subjects_to_include <- filter(df_1, ( fio2 >=0.22 & days_since_start %in% c(0,1,2)  & age_estimateyears >19 & age_estimateyears <76 ) )['subjid']
