@@ -458,10 +458,10 @@ sum_WHO_D8<-summary(WHOD8_model)
 ci_8<-confint(WHOD8_model)
 OR_D8_WHO<-exp(cbind(OR=coef(WHOD8_model),ci_8))
 
-write.rds(sum_WHO_D5,"/home/skerr/Git/SF94/Outputs/sum_WHO_D5.rds")
-write.rds(sum_WHO_D8,"/home/skerr/Git/SF94/Outputs/sum_WHO_D8.rds")
-write.rds(OR_D5_WHO,"/home/skerr/Git/SF94/Outputs/OR_D5_WHO.rds")
-write.rds(OR_D8_WHO,"/home/skerr/Git/SF94/Outputs/OR_D8_WHO.rds")
+saveRDS(sum_WHO_D5,"/home/skerr/Git/SF94/Outputs/sum_WHO_D5.rds")
+saveRDS(sum_WHO_D8,"/home/skerr/Git/SF94/Outputs/sum_WHO_D8.rds")
+saveRDS(OR_D5_WHO,"/home/skerr/Git/SF94/Outputs/OR_D5_WHO.rds")
+saveRDS(OR_D8_WHO,"/home/skerr/Git/SF94/Outputs/OR_D8_WHO.rds")
 readRDS("/Users/Maaike/Downloads/sum_WHO_D5.rds")
 
 #alternative WHO improvement
@@ -553,10 +553,10 @@ sus_1L_D8<-get_model_stats(sus_1L_D8)
 sus_2L_D5<-get_model_stats(sus_2L_D5)
 sus_2L_D8<-get_model_stats(sus_2L_D8)
 
-write.csv(sus_1L_D5,"/home/skerr/Git/SF94/Outputs/sus_1L_D5.csv")
-write.csv(sus_1L_D8,"/home/skerr/Git/SF94/Outputs/sus_1L_D8.csv")
-write.csv(sus_2L_D5,"/home/skerr/Git/SF94/Outputs/sus_2L_D5.csv")
-write.csv(sus_2L_D8,"/home/skerr/Git/SF94/Outputs/sus_2L_D8.csv")
+write.csv(sus_1L_D5['coefs'],"/home/skerr/Git/SF94/Outputs/sus_1L_D5.csv")
+write.csv(sus_1L_D8['coefs'],"/home/skerr/Git/SF94/Outputs/sus_1L_D8.csv")
+write.csv(sus_2L_D5['coefs'],"/home/skerr/Git/SF94/Outputs/sus_2L_D5.csv")
+write.csv(sus_2L_D8['coefs'],"/home/skerr/Git/SF94/Outputs/sus_2L_D8.csv")
 
 # SF94 values
 sf94_d5<-lrm(mortality_28 ~ delta_SF94_05+ age_estimateyears+ sex, data = regresson_df_P)
