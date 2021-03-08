@@ -608,60 +608,81 @@ D8_sf94_effectsize<-absolute_mortdifD8(list_baseline_mort)
 
 write.csv(D8_sf94_effectsize,"/home/skerr/Git/SF94/Outputs/D8_sf94_effectsize.csv")
 
+#--------------- calculate change in SF94 by mortality difference-------------
+sf94_d5<-lrm(mortality_28 ~ delta_SF94_05+ age_estimateyears+ sex, data = regresson_df_P)
+
+intercept5<-as.numeric(coef(sf94_d5)[1]) 
+coefday5<-as.numeric(coef(sf94_d5)[2])
+coefage5<-as.numeric(coef(sf94_d5)[3])
+coefsex5<-as.numeric(coef(sf94_d5)[4])
+age_value_5<-mean(regresson_df_P$age, na.rm=T)
+sex_value_5<-mean(as.numeric(regresson_df_P$binairy_sex), na.rm=T)
+
+absolute_mortdifD5<-function(mort1, mortdifference) {
+  logoddsmort1<-log(1/((1-mort1)/mort1))
+  baseline_delta_sf94<-(logoddsmort1-intercept5- (coefage5 * age_value_5)- (sex_value_5 * coefsex5))/coefday5
+  mort2<-mort1-mortdifference
+  logoddsmort2<-log(1/((1-mort2)/mort2)) #from probability to logodds
+  new_delta_sf94<-(logoddsmort2-intercept5- (coefage5 * age_value_5)- (sex_value_5 * coefsex5))/coefday5
+  sf94_delta_dif<-new_delta_sf94- baseline_delta_sf94
+  return(sf94_delta_dif)
+}
+
+absolute_mort_reduction<-c(0.01,0.015,0.02,0.025,0.03,0.035,0.04,0.045,0.05)
+D5_delta_sf94_effectsize<-absolute_mortdifD5(0.25, absolute_mort_reduction)
+write.csv(D5_delta_sf94_effectsize,"/home/skerr/Git/SF94/Outputs/D5_delta_sf94_effectsize.csv")
+
+#repeat for D8
+sf94_d8<-lrm(mortality_28 ~ delta_SF94_08+ age_estimateyears+ sex, data = regresson_df_P)
+intercept8<-as.numeric(coef(sf94_d8)[1]) 
+coefday8<-as.numeric(coef(sf94_d8)[2])
+coefage8<-as.numeric(coef(sf94_d8)[3])
+coefsex8<-as.numeric(coef(sf94_d8)[4])
+age_value_5<-mean(regresson_df_P$age, na.rm=T) #these don't change when between D5 and D8
+sex_value_5<-mean(as.numeric(regresson_df_P$binairy_sex), na.rm=T) #these don't change when between D5 and D8
+
+absolute_mortdifD8<-function(mort1, mortdifference) {
+  logoddsmort1<-log(1/((1-mort1)/mort1))
+  baseline_delta_sf94<-(logoddsmort1-intercept8- (coefage8 * age_value_5)- (sex_value_5 * coefsex8))/coefday8
+  mort2<-mort1-mortdifference
+  logoddsmort2<-log(1/((1-mort2)/mort2)) #from probability to logodds
+  new_delta_sf94<-(logoddsmort2-intercept8- (coefage8 * age_value_5)- (sex_value_5 * coefsex8))/coefday8
+  sf94_delta_dif<-new_delta_sf94- baseline_delta_sf94
+  return(sf94_delta_dif)
+}
+
+absolute_mort_reduction<-c(0.01,0.015,0.02,0.025,0.03,0.035,0.04,0.045,0.05)
+D8_delta_sf94_effectsize<-absolute_mortdifD8(0.25, absolute_mort_reduction)
+write.csv(D8_delta_sf94_effectsize,"/home/skerr/Git/SF94/Outputs/D8_delta_sf94_effectsize.csv")
+
 ### alternative SF94 model
 sf94_d5_2<-lrm(mortality_28 ~ sf94_day5_P+sf94_day0+ age_estimateyears+ sex, data = regresson_df_P)
-intercept5<-as.numeric(coef(sf94_d5_2)[1]) 
-coefday5<-as.numeric(coef(sf94_d5_2)[2])
-coefday0<-as.numeric(coef(sf94_d5_2)[3])
-coefage5<-as.numeric(coef(sf94_d5_2)[4])
-coefsex5<-as.numeric(coef(sf94_d5_2)[5])
-age_value_5<-mean(regresson_df_P$age, na.rm=T)
-sex_value_5<-mean(as.numeric(regresson_df_P$binairy_sex), na.rm=T)
-value_D0<-mean(regresson_df_P$sf94_day0, na.rm=T)
-
-abseffect_size<- function(mortdifference, mort1) {
-  logoddsmort1<-log(1/((1-mort1)/mort1))
-  baselinesf94<-(logoddsmort1-intercept5-(coefage5 * age_value_5)- 
-                   (sex_value_5 * coefsex5)- (value_D0 * coefday0 ) )/coefday5
-  mort2<-mort1-mortdifference
-  logoddsmort2<-log(1/((1-mort2)/mort2)) #from probability to logodds
-  newsf94<-(logoddsmort2-intercept5-(coefage5 * age_value_5)- 
-              (sex_value_5 * coefsex5)- (value_D0 * coefday0 ) )/coefday5 
-  sf94_difference<-newsf94-baselinesf94
-  return(sf94_difference)
-}
-
-absolute_mort_reduction<-c(0.01,0.015,0.02,0.025,0.03,0.035,0.04,0.045,0.05)
-sf94_25<-abseffect_size(absolute_mort_reduction,0.25)
-sf94_30<-abseffect_size(absolute_mort_reduction,0.30)
-sf94_35<-abseffect_size(absolute_mort_reduction,0.35)
-
 sf94_d8_2<-lrm(mortality_28 ~ sf94_day8_P+sf94_day0+ age_estimateyears+ sex, data = regresson_df_P)
-intercept8<-as.numeric(coef(sf94_d8_2)[1]) 
-coefday8<-as.numeric(coef(sf94_d8_2)[2])
-coefday0_8<-as.numeric(coef(sf94_d8_2)[3])
-coefage8<-as.numeric(coef(sf94_d8_2)[4])
-coefsex8<-as.numeric(coef(sf94_d8_2)[5])
-age_value_5<-mean(regresson_df_P$age, na.rm=T)
-sex_value_5<-mean(as.numeric(regresson_df_P$binairy_sex), na.rm=T)
-value_D0<-mean(regresson_df_P$sf94_day0, na.rm=T)
 
-abseffect_size_D8<- function(mortdifference, mort1) {
+abseffect_size<- function(mortdifference, mort1, model_sf94) {
   logoddsmort1<-log(1/((1-mort1)/mort1))
-  baselinesf94<-(logoddsmort1-intercept5-(coefage8 * age_value_5)- 
-                   (sex_value_5 * coefsex8)- (value_D0 * coefday0_8 ) )/coefday8
+  baselinesf94<-(logoddsmort1-as.numeric(coef(model_sf94)[1])-
+                   (as.numeric(coef(model_sf94)[4]) * mean(regresson_df_P$age, na.rm=T))- 
+                   (mean(as.numeric(regresson_df_P$binairy_sex), na.rm=T) * as.numeric(coef(model_sf94)[5]))-
+                   (mean(regresson_df_P$sf94_day0, na.rm=T) * as.numeric(coef(model_sf94)[3]) ))/as.numeric(coef(model_sf94)[2])
   mort2<-mort1-mortdifference
   logoddsmort2<-log(1/((1-mort2)/mort2)) #from probability to logodds
-  newsf94<-(logoddsmort2-intercept5-(coefage8 * age_value_5)- 
-              (sex_value_5 * coefsex8)- (value_D0 * coefday0_8 ) )/coefday8
+  newsf94<-(logoddsmort2-as.numeric(coef(model_sf94)[1])-
+              (as.numeric(coef(model_sf94)[4]) * mean(regresson_df_P$age, na.rm=T))- 
+              (mean(as.numeric(regresson_df_P$binairy_sex), na.rm=T) * as.numeric(coef(model_sf94)[5]))-
+              (mean(regresson_df_P$sf94_day0, na.rm=T) * as.numeric(coef(model_sf94)[3]) ))/as.numeric(coef(model_sf94)[2])
   sf94_difference<-newsf94-baselinesf94
   return(sf94_difference)
 }
 
 absolute_mort_reduction<-c(0.01,0.015,0.02,0.025,0.03,0.035,0.04,0.045,0.05)
-D8_sf94_25<-abseffect_size_D8(absolute_mort_reduction,0.25)
-D8_sf94_30<-abseffect_size_D8(absolute_mort_reduction,0.30)
-D8_sf94_35<-abseffect_size_D8(absolute_mort_reduction,0.35)
+sf94_25_D5<-abseffect_size(absolute_mort_reduction,0.25,sf94_d5_2)
+sf94_25_D8<-abseffect_size(absolute_mort_reduction,0.25,sf94_d8_2)
+
+write.csv(sf94_25_D5,"/home/skerr/Git/SF94/Outputs/sf94_25_D5.csv")
+write.csv(sf94_25_D8,"/home/skerr/Git/SF94/Outputs/sf94_25_D8.csv")
+
+
 #############################################################################################################
 
 #Then fit models (splines using 4 knots here)
