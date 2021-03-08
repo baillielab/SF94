@@ -290,14 +290,7 @@ geom_split_violin <- function(mapping = NULL, data = NULL, stat = "ydensity", po
 
 #=============================================================================================#
 
-#slightly confusing- part of the analysis is done on data without a filter (age + oxygen support)
-#so to not have to change the createDF function- I change the input to the complete (cleaned) df
-#If you need to re-run earlier analysis, please double check that you have the correct input file!!
-
-#Data imputation based on total number of deaths
-#ANALYSIS DONE WITH DF_1 DATA, SO NO AGE OR RESP SUPPORT FILTERS. START = ±79000 SUBJECTS
-#using df_1 (without filters)
-#subset1<-df_1
+#input data = df_1, filters are applied at a later point in time
 df_1_base_sf94<-createDF(df_1, "base", "sf94", 10)
 
 #regression model D5 SF94 and mortality
@@ -360,9 +353,9 @@ predictor_variables<-predictor_variables %>% group_by(subjid)%>%slice(which.min(
 regresson_df_P<-left_join(day08_P,predictor_variables, by="subjid")
 rm(sf94_day5_P,sf94_day8_P) #remove from global environment
 
-#use proportionally added outcome values, take subject ID and day 5 SF94_P values (from DF_1, so not using filters)
+#match mortality for proportionally added deaths/discharges
 regresson_df_P <-data.frame(regresson_df_P)
-regresson_df_P<-regresson_df_P %>% #change mortality to match proportionally added values
+regresson_df_P<-regresson_df_P %>% 
   mutate(
     mortality_28 = case_when(
       sf94_day5_P == 4.760 |sf94_day8_P == 4.760  ~ 0, sf94_day5_P == 0.5 |sf94_day8_P == 0.5 ~ 1,TRUE ~ as.numeric(mortality_28)))
@@ -387,6 +380,10 @@ regresson_df_P<-regresson_df_P %>% #change mortality to match proportionally add
   mutate(
     WHOD8_P = case_when(
       sf94_day8_P == 4.760  ~ 4, sf94_day8_P == 0.5 ~ 10,TRUE ~ as.numeric(WHOD8_P)))
+regresson_df_P<-regresson_df_P %>% #if dead on day 5 or 8, change mortality to 1
+  mutate(
+    mortality_28 = case_when(
+      WHOD5_P == 10  ~ 1, WHOD8_P == 10 ~ 1,TRUE ~ as.numeric(mortality_28)))
 
 #add days to improvement variable
 time_to_improvement<-df_1[,c("subjid", "who_days_to_improve2", "who_days_to_improve1")]
@@ -406,7 +403,7 @@ time_to_improvement<-data.frame(time_to_improvement)
 
 #bind to rest of data
 regresson_df_P<-left_join(regresson_df_P, time_to_improvement, by="subjid")
-
+#to calculate mean for gender change to 1 and 0
 regresson_df_P <- regresson_df_P %>%
   mutate(binairy_sex= case_when(
     regresson_df_P$sex == "Male" ~ "1",
@@ -469,7 +466,6 @@ readRDS("/Users/Maaike/Downloads/sum_WHO_D5.rds")
 
 #alternative WHO improvement
 #QUESTIONS
-# WHO with proportional deaths/discharges matched to SF94 proportionally added D/D?
 # Delta WHO or just WHO D5?
 regresson_df_P$WHOD5_P<-as.factor(regresson_df_P$WHOD5_P)
 WHO_D5_mort<-lrm(mortality_28 ~ WHOD5_P+ age_estimateyears+ sex, data = regresson_df_P)
@@ -494,7 +490,9 @@ who_mortality= function (who_level_coef){
   return(output)
 }
 who_levels<-c(who_model_4, who_model_5, who_model_6, who_model_7, who_model_8, who_model_9, who_model_10)
-who_mortality_output<-who_mortality(who_levels)
+who_mortality_output_D5<-who_mortality(who_levels)
+
+write.csv(who_mortality_output_D5,"/home/skerr/Git/SF94/Outputs/who_mortality_output_D5.csv")
 
 #same for D8
 regresson_df_P$WHOD8_P<-as.factor(regresson_df_P$WHOD8_P)
@@ -523,9 +521,8 @@ whoD8_levels<-c(whoD8_model_4, whoD8_model_5, whoD8_model_6,
               whoD8_model_7, whoD8_model_8, whoD8_model_9, whoD8_model_10)
 whoD8_mortality_output<-whoD8_mortality(whoD8_levels)
 
-sum(regresson_df_P$WHOD5_P == "10" & regresson_df_P$mortality_28 == 0, na.rm = T)
 
-
+write.csv(whoD8_mortality_output,"/home/skerr/Git/SF94/Outputs/whoD8_mortality_output.csv")
 
 #WHO time to improvement
 sus_1L_D5<-lrm(sustained_1L_improvement ~ delta_SF94_05+ age_estimateyears+ sex, data = regresson_df_P)
@@ -560,7 +557,6 @@ write.csv(sus_1L_D5,"/home/skerr/Git/SF94/Outputs/sus_1L_D5.csv")
 write.csv(sus_1L_D8,"/home/skerr/Git/SF94/Outputs/sus_1L_D8.csv")
 write.csv(sus_2L_D5,"/home/skerr/Git/SF94/Outputs/sus_2L_D5.csv")
 write.csv(sus_2L_D8,"/home/skerr/Git/SF94/Outputs/sus_2L_D8.csv")
-
 
 # SF94 values
 sf94_d5<-lrm(mortality_28 ~ delta_SF94_05+ age_estimateyears+ sex, data = regresson_df_P)
