@@ -608,6 +608,60 @@ D8_sf94_effectsize<-absolute_mortdifD8(list_baseline_mort)
 
 write.csv(D8_sf94_effectsize,"/home/skerr/Git/SF94/Outputs/D8_sf94_effectsize.csv")
 
+### alternative SF94 model
+sf94_d5_2<-lrm(mortality_28 ~ sf94_day5_P+sf94_day0+ age_estimateyears+ sex, data = regresson_df_P)
+intercept5<-as.numeric(coef(sf94_d5_2)[1]) 
+coefday5<-as.numeric(coef(sf94_d5_2)[2])
+coefday0<-as.numeric(coef(sf94_d5_2)[3])
+coefage5<-as.numeric(coef(sf94_d5_2)[4])
+coefsex5<-as.numeric(coef(sf94_d5_2)[5])
+age_value_5<-mean(regresson_df_P$age, na.rm=T)
+sex_value_5<-mean(as.numeric(regresson_df_P$binairy_sex), na.rm=T)
+value_D0<-mean(regresson_df_P$sf94_day0, na.rm=T)
+
+abseffect_size<- function(mortdifference, mort1) {
+  logoddsmort1<-log(1/((1-mort1)/mort1))
+  baselinesf94<-(logoddsmort1-intercept5-(coefage5 * age_value_5)- 
+                   (sex_value_5 * coefsex5)- (value_D0 * coefday0 ) )/coefday5
+  mort2<-mort1-mortdifference
+  logoddsmort2<-log(1/((1-mort2)/mort2)) #from probability to logodds
+  newsf94<-(logoddsmort2-intercept5-(coefage5 * age_value_5)- 
+              (sex_value_5 * coefsex5)- (value_D0 * coefday0 ) )/coefday5 
+  sf94_difference<-newsf94-baselinesf94
+  return(sf94_difference)
+}
+
+absolute_mort_reduction<-c(0.01,0.015,0.02,0.025,0.03,0.035,0.04,0.045,0.05)
+sf94_25<-abseffect_size(absolute_mort_reduction,0.25)
+sf94_30<-abseffect_size(absolute_mort_reduction,0.30)
+sf94_35<-abseffect_size(absolute_mort_reduction,0.35)
+
+sf94_d8_2<-lrm(mortality_28 ~ sf94_day8_P+sf94_day0+ age_estimateyears+ sex, data = regresson_df_P)
+intercept8<-as.numeric(coef(sf94_d8_2)[1]) 
+coefday8<-as.numeric(coef(sf94_d8_2)[2])
+coefday0_8<-as.numeric(coef(sf94_d8_2)[3])
+coefage8<-as.numeric(coef(sf94_d8_2)[4])
+coefsex8<-as.numeric(coef(sf94_d8_2)[5])
+age_value_5<-mean(regresson_df_P$age, na.rm=T)
+sex_value_5<-mean(as.numeric(regresson_df_P$binairy_sex), na.rm=T)
+value_D0<-mean(regresson_df_P$sf94_day0, na.rm=T)
+
+abseffect_size_D8<- function(mortdifference, mort1) {
+  logoddsmort1<-log(1/((1-mort1)/mort1))
+  baselinesf94<-(logoddsmort1-intercept5-(coefage8 * age_value_5)- 
+                   (sex_value_5 * coefsex8)- (value_D0 * coefday0_8 ) )/coefday8
+  mort2<-mort1-mortdifference
+  logoddsmort2<-log(1/((1-mort2)/mort2)) #from probability to logodds
+  newsf94<-(logoddsmort2-intercept5-(coefage8 * age_value_5)- 
+              (sex_value_5 * coefsex8)- (value_D0 * coefday0_8 ) )/coefday8
+  sf94_difference<-newsf94-baselinesf94
+  return(sf94_difference)
+}
+
+absolute_mort_reduction<-c(0.01,0.015,0.02,0.025,0.03,0.035,0.04,0.045,0.05)
+D8_sf94_25<-abseffect_size_D8(absolute_mort_reduction,0.25)
+D8_sf94_30<-abseffect_size_D8(absolute_mort_reduction,0.30)
+D8_sf94_35<-abseffect_size_D8(absolute_mort_reduction,0.35)
 #############################################################################################################
 
 #Then fit models (splines using 4 knots here)
