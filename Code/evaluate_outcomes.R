@@ -464,9 +464,19 @@ saveRDS(OR_D5_WHO,"/home/skerr/Git/SF94/Outputs/OR_D5_WHO.rds")
 saveRDS(OR_D8_WHO,"/home/skerr/Git/SF94/Outputs/OR_D8_WHO.rds")
 readRDS("/Users/Maaike/Downloads/sum_WHO_D5.rds")
 
+#Proportional odds model with D5/D8 and D0 as separate predictors
+WHOD5_model_2<-polr(as.factor(WHOD5_P) ~ sf94_day5_P+sf94_day0+ age_estimateyears+ sex, data = regresson_df_P, Hess=T)
+WHOD8_model_2<-polr(as.factor(WHOD8_P) ~ sf94_day8_P+sf94_day0+ age_estimateyears+ sex, data = regresson_df_P, Hess=T)
+sum_WHO_D5_2<-summary(WHOD5_model_2)
+ci_5<-confint(WHOD5_model_2) #calculate confidence interval
+OR_D5_WHO_2<-exp(cbind(OR=coef(WHOD5_model_2),ci_5)) #calculate OR
+ci_8<-confint(WHOD8_model_2)
+OR_D8_WHO_2<-exp(cbind(OR=coef(WHOD8_model_2),ci_8))
+
+saveRDS(OR_D5_WHO_2,"/home/skerr/Git/SF94/Outputs/OR_D5_WHO_2.rds")
+saveRDS(OR_D8_WHO_2,"/home/skerr/Git/SF94/Outputs/OR_D8_WHO_2.rds")
+
 #alternative WHO improvement
-#QUESTIONS
-# Delta WHO or just WHO D5?
 regresson_df_P$WHOD5_P<-as.factor(regresson_df_P$WHOD5_P)
 WHO_D5_mort<-lrm(mortality_28 ~ WHOD5_P+ age_estimateyears+ sex, data = regresson_df_P)
 who_intecept<-as.numeric(coef(WHO_D5_mort)[1])
