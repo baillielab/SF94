@@ -476,7 +476,8 @@ OR_D8_WHO_2<-exp(cbind(OR=coef(WHOD8_model_2),ci_8))
 
 saveRDS(OR_D5_WHO_2,"/home/skerr/Git/SF94/Outputs/OR_D5_WHO_2.rds")
 saveRDS(OR_D8_WHO_2,"/home/skerr/Git/SF94/Outputs/OR_D8_WHO_2.rds")
-
+readRDS("/Users/Maaike/Downloads/OR_D5_WHO_2.rds")
+readRDS("/Users/Maaike/Downloads/OR_D8_WHO_2.rds")
 #alternative WHO improvement
 regresson_df_P$WHOD5_P<-as.factor(regresson_df_P$WHOD5_P)
 WHO_D5_mort<-lrm(mortality_28 ~ WHOD5_P+ age_estimateyears+ sex, data = regresson_df_P)
