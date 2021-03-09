@@ -3,6 +3,7 @@ library(ggplot2)
 library(data.table)
 library(tidyr)
 library(rms)
+library(dplyr)
 
 df_1<-fread("/home/skerr/Data/ccp_subset_derived.csv", data.table = FALSE )
 
