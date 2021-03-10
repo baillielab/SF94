@@ -287,3 +287,26 @@ linear_model_glm_P  %>% tbl_regression(exponentiate=T, intercept= T)
 
 #OUTPUT
 #HTML code
+
+#in case we need base_dd variable for sf94 and who
+df_1_basedd_sf94_10<-createDF(df_1, "basedd", "sf94", 10)
+df_1_basedd_who_10<-createDF(df_1, "basedd", "severity_scale_ordinal", 10)
+dd_sf94<-df_1_basedd_sf94_10[,c(1,2,7,10)]
+dd_who<-df_1_basedd_who_10[,c(1,2,7,10)]
+
+dd_sf94<-dd_sf94 %>% 
+  group_by(subjid) %>% 
+  summarise_all(funs(f))
+dd_who<-dd_who %>% 
+  group_by(subjid) %>% 
+  summarise_all(funs(f))
+
+dd_sf94<-dd_sf94%>%
+  dplyr::rename(sf94_dd_day5= "5", sf94_dd_day0= "0", sf94_dd_day8= "8")
+dd_who<-dd_who%>%
+  dplyr::rename(who_dd_day5= "5", who_dd_day0= "0", who_dd_day8= "8")
+
+dd_data<-left_join(dd_sf94, dd_who, by="subjid")
+dd_data<-data.frame(dd_data)
+
+regresson_df_P<-left_join(regresson_df_P, dd_data, by="subjid")

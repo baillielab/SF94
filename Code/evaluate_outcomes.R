@@ -313,16 +313,12 @@ alive_to_add5<-(percalive5*available5)/percavailable5 #number of 4.76 values to 
 day05_P<-day05 #for proportional deaths
 day05_P<-setDT(day05_P)[, lapply(.SD, na.omit), by=subjid] #keep 1 entry/subject
 day05_P<-data.frame(day05_P)
+day05_P<-left_join(day05_P, mortality, by="subjid") #add mortality to sample from
 set.seed(1234)
-sf94_day5_P<-day05_P$sf94_day5 #add day 5 to a separate df
-rows_to_replace<-which(is.na(sf94_day5_P))
-sf94_day5_P[sample(rows_to_replace, dead_to_add5)]<- 0.5
-rows_to_replace<-which(is.na(sf94_day5_P))
-sf94_day5_P[sample(rows_to_replace, alive_to_add5)]<- 4.76
-
-sf94_day5_P<-data.frame(sf94_day5_P)
-day05_P<-cbind(day05_P, sf94_day5_P)
-day05_P<-data.frame(day05_P)
+rows_to_replace<-which(is.na(day05_P$sf94_day5) & day05_P$mortality_28 == 1)
+day05_P$sf94_day5[sample(rows_to_replace, dead_to_add5)]<- 0.5
+rows_to_replace<-which(is.na(day05_P$sf94_day5) & day05_P$mortality_28 == 0)
+day05_P$sf94_day5[sample(rows_to_replace, alive_to_add5)]<- 4.76
 
 #same for day 8
 dead8<-length(unique(df_1$subjid[(df_1$day_of_death <8)])) #number of subjects that died before day 8
@@ -334,33 +330,29 @@ percavailable8<- (1-percdead8- percalive8)# % of available values
 dead_to_add8<-(percdead8*available8)/percavailable8 #number of 0.5 values to add to variable
 alive_to_add8<-(percalive8*available8)/percavailable8 #number of 4.76 values to add to variable
 
+proportional_numbers<-cbind(percdead5, percalive5, percavailable5,percdead8, percalive8, percavailable8)
+write.csv(proportional_numbers,"/home/skerr/Git/SF94/Outputs/proportional_numbers.csv")
+
 day08_P<-day05_P #for proportional deaths day 8 
 set.seed(1234)
-day08_P$sf94_day8_P<-day08_P$sf94_day8 #make new column with proportional deaths, copy measured values D8
-rows_to_replace<-which(is.na(day08_P$sf94_day8) & is.na(day08_P$sf94_day5_P)) #replace if D5_P and D8 NA
-day08_P$sf94_day8_P[sample(rows_to_replace, dead_to_add8)]<- 0.5 #add dead patients
-rows_to_replace<-which(is.na(day08_P$sf94_day8) & is.na(day08_P$sf94_day5_P))
-day08_P$sf94_day8_P[sample(rows_to_replace, alive_to_add8)]<- 4.76 #add discharged patients
-
+rows_to_replace<-which(is.na(day08_P$sf94_day8) & is.na(day08_P$sf94_day5)& day08_P$mortality_28 == 1) #replace if D5_P and D8 NA
+day08_P$sf94_day8[sample(rows_to_replace, dead_to_add8)]<- 0.5 #add dead patients
+rows_to_replace<-which(is.na(day08_P$sf94_day8) & is.na(day08_P$sf94_day5)& day08_P$mortality_28 == 0)
+day08_P$sf94_day8[sample(rows_to_replace, alive_to_add8)]<- 4.76 #add discharged patients
+day08_P<-day08_P%>%
+  dplyr::rename(sf94_day5_P= sf94_day5, sf94_day8_P= sf94_day8)
 day08_P<-data.frame(day08_P)
+
+#calculate delta variables
 day08_P$delta_SF94_05<-day08_P$sf94_day5_P - day08_P$sf94_day0 #calculate difference from day 0 to day 5
 day08_P$delta_SF94_08<-day08_P$sf94_day8_P - day08_P$sf94_day0 #same for D0-D8
 
 #create small df with the independent predictor variables (except sf94) and outcome variable
-predictor_variables<-df_1[,c("subjid", "sex", "age_estimateyears", "mortality_28")]
-predictor_variables<-predictor_variables %>% group_by(subjid)%>%slice(which.min(mortality_28))
+predictor_variables<-df_1[,c("subjid", "sex", "age_estimateyears")]
+predictor_variables<-predictor_variables %>% group_by(subjid)%>%slice(which.max(age_estimateyears))
 
 #join both together
 regresson_df_P<-left_join(day08_P,predictor_variables, by="subjid")
-rm(sf94_day5_P,sf94_day8_P) #remove from global environment
-
-#match mortality for proportionally added deaths/discharges
-regresson_df_P <-data.frame(regresson_df_P)
-regresson_df_P<-regresson_df_P %>% 
-  mutate(
-    mortality_28 = case_when(
-      sf94_day5_P == 4.760 |sf94_day8_P == 4.760  ~ 0, sf94_day5_P == 0.5 |sf94_day8_P == 0.5 ~ 1,TRUE ~ as.numeric(mortality_28)))
-
 #add proportional WHO D5 and D8 to regresson DF
 df_1_base_who_8<-createDF(df_1, "base", "severity_scale_ordinal",8)
 who_5_8<-df_1_base_who_8[,c(1,2,7,10)] #select subjid, day 0 and day 5 and day 8
@@ -411,29 +403,6 @@ regresson_df_P <- regresson_df_P %>%
     regresson_df_P$sex == "Female" ~ "0"
   ))
 
-#in case we need base_dd variable for sf94 and who
-df_1_basedd_sf94_10<-createDF(df_1, "basedd", "sf94", 10)
-df_1_basedd_who_10<-createDF(df_1, "basedd", "severity_scale_ordinal", 10)
-dd_sf94<-df_1_basedd_sf94_10[,c(1,2,7,10)]
-dd_who<-df_1_basedd_who_10[,c(1,2,7,10)]
-
-dd_sf94<-dd_sf94 %>% 
-  group_by(subjid) %>% 
-  summarise_all(funs(f))
-dd_who<-dd_who %>% 
-  group_by(subjid) %>% 
-  summarise_all(funs(f))
-
-dd_sf94<-dd_sf94%>%
-  dplyr::rename(sf94_dd_day5= "5", sf94_dd_day0= "0", sf94_dd_day8= "8")
-dd_who<-dd_who%>%
-  dplyr::rename(who_dd_day5= "5", who_dd_day0= "0", who_dd_day8= "8")
-
-dd_data<-left_join(dd_sf94, dd_who, by="subjid")
-dd_data<-data.frame(dd_data)
-
-regresson_df_P<-left_join(regresson_df_P, dd_data, by="subjid")
-
 #apply age filter and supp oxygen filter
 subjects_to_include <- filter(df_1, ( fio2 >=0.22 & days_since_start %in% c(0,1,2)  & age_estimateyears >19 & age_estimateyears <76 ) )['subjid']
 regresson_df_P<-regresson_df_P[regresson_df_P$subjid %in% subjects_to_include$subjid,] 
@@ -441,7 +410,7 @@ regresson_df_P <- as.data.frame(regresson_df_P)
 
 #First need to set data distribution for rms functions
 attach(regresson_df_P)
-ddist <- datadist(sf94_day0, delta_SF94_05,delta_SF94_08,sex, age_estimateyears, mortality_28,
+ddist <- datadist(sf94_day0,sf94_day5_P,sf94_day8_P, delta_SF94_05,delta_SF94_08,sex, age_estimateyears, mortality_28,
                   sustained_1L_improvement, sustained_2L_improvement, WHOD5_P, WHOD8_P, binairy_sex)
 options(datadist='ddist')
 detach(regresson_df_P)
