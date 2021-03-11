@@ -8,7 +8,7 @@ library(dplyr)
 df_1<-fread("/home/skerr/Data/ccp_subset_derived.csv", data.table = FALSE )
 
 #df_1<-fread("/home/u034/mcswets/df_20211402.csv", data.table = FALSE)
-#df_1<-df_1[,c(2:89)]
+#df_1<-df_1[,c(2:90)]
 
 subjects_to_include <- filter(df_1, ( fio2 >=0.22 & days_since_start %in% c(0,1,2)  & age_estimateyears >19 & age_estimateyears <76 ) )['subjid']
 subset1<-df_1[df_1$subjid %in% subjects_to_include$subjid,] 
@@ -296,52 +296,56 @@ df_1_base_sf94<-createDF(df_1, "base", "sf94", 10)
 
 #regression model D5 SF94 and mortality
 #with sf94 values regression
-day05<-df_1_base_sf94[,c(1,2,7,10)] #select subjid, day 0 and day 5 and day 8
+day05<-df_1_base_sf94[,c("subjid","0","5","8","10","11","12","13","14","15","16")] #select subjid, day 0 and day 5 and day 8
 day05<-day05%>%
-  dplyr::rename(sf94_day5= "5", sf94_day0= "0", sf94_day8= "8")
+  dplyr::rename(sf94_day0= "0",sf94_day5= "5", sf94_day8= "8",
+                sf94_day10= "10",sf94_day11= "11", sf94_day12= "12",
+                  sf94_day13= "13",sf94_day14= "14", sf94_day15= "15",sf94_day16= "16" )
+day05<-setDT(day05)[, lapply(.SD, na.omit), by=subjid] #keep 1 entry/subject
 
 #calculate what number of subjects needs to be added to get correct proportion
-dead5<-length(unique(df_1$subjid[(df_1$day_of_death <5)])) #number of subjects that died before day 5
-alive5<-length(unique(df_1$subjid[(df_1$day_of_discharge <5)])) #number of subjects that went home before day 5
-available5<-sum((!is.na(df_1$sf94) & df_1$days_since_start == 5), na.rm=T) 
-percdead5<-dead5/length(unique(df_1$subjid)) #% that died before day from total subjects
-percalive5<-alive5/length(unique(df_1$subjid))# % that went home before day 5 from total subjects
-percavailable5<- (1-percdead5- percalive5)# % of available values
-dead_to_add5<-(percdead5*available5)/percavailable5 #number of 0.5 values to add to variable
-alive_to_add5<-(percalive5*available5)/percavailable5 #number of 4.76 values to add to variable
+dead_alive_to_add<-function(day_of_interest){
+  dead<-(length(unique(df_1$subjid[(df_1$day_of_death < day_of_interest)])))/length(unique(df_1$subjid))
+  alive<-(length(unique(df_1$subjid[(df_1$day_of_discharge < day_of_interest)])))/length(unique(df_1$subjid))
+  in_study<-sum((!is.na(df_1$sf94) & df_1$days_since_start == day_of_interest), na.rm=T)
+  percentage_in_study<- 1-dead-alive
+  dead_to_add<- (dead*in_study)/percentage_in_study
+  alive_to_add<-(alive*in_study)/percentage_in_study
+  summary_dead_alive<-c("% dead" = dead,"% alive"= alive,"% in study" =percentage_in_study,
+                        "dead to add" =dead_to_add,"alive to add" =alive_to_add)
+  return(summary_dead_alive)
+}
+sum_d5<-dead_alive_to_add(5)
+sum_d8<-dead_alive_to_add(8)
+sum_d10<-dead_alive_to_add(10)
+sum_d11<-dead_alive_to_add(11)
+sum_d12<-dead_alive_to_add(12)
+sum_d13<-dead_alive_to_add(13)
+sum_d14<-dead_alive_to_add(14)
+sum_d15<-dead_alive_to_add(15)
+sum_d16<-dead_alive_to_add(16)
 
-day05_P<-day05 #for proportional deaths
-day05_P<-setDT(day05_P)[, lapply(.SD, na.omit), by=subjid] #keep 1 entry/subject
-day05_P<-data.frame(day05_P)
-day05_P<-left_join(day05_P, mortality, by="subjid") #add mortality to sample from
-set.seed(1234)
-rows_to_replace<-which(is.na(day05_P$sf94_day5) & day05_P$mortality_28 == 1)
-day05_P$sf94_day5[sample(rows_to_replace, dead_to_add5)]<- 0.5
-rows_to_replace<-which(is.na(day05_P$sf94_day5) & day05_P$mortality_28 == 0)
-day05_P$sf94_day5[sample(rows_to_replace, alive_to_add5)]<- 4.76
-
-#same for day 8
-dead8<-length(unique(df_1$subjid[(df_1$day_of_death <8)])) #number of subjects that died before day 8
-alive8<-length(unique(df_1$subjid[(df_1$day_of_discharge <8)])) #number of subjects that went home before day 8
-available8<-sum((!is.na(df_1$sf94) & df_1$days_since_start == 8), na.rm=T) 
-percdead8<-dead8/length(unique(df_1$subjid)) #% that died before day from total subjects
-percalive8<-alive8/length(unique(df_1$subjid))# % that went home before day 5 from total subjects
-percavailable8<- (1-percdead8- percalive8)# % of available values
-dead_to_add8<-(percdead8*available8)/percavailable8 #number of 0.5 values to add to variable
-alive_to_add8<-(percalive8*available8)/percavailable8 #number of 4.76 values to add to variable
-
-proportional_numbers<-cbind(percdead5, percalive5, percavailable5,percdead8, percalive8, percavailable8)
+proportional_numbers<-cbind(sum_d5[c(1,2)], sum_d8[c(1,2)],sum_d10[c(1,2)],sum_d11[c(1,2)],sum_d12[c(1,2)],sum_d13[c(1,2)], 
+                            sum_d14[c(1,2)],sum_d15[c(1,2)],sum_d16[c(1,2)])
 write.csv(proportional_numbers,"/home/skerr/Git/SF94/Outputs/proportional_numbers.csv")
 
-day08_P<-day05_P #for proportional deaths day 8 
-set.seed(1234)
-rows_to_replace<-which(is.na(day08_P$sf94_day8) & is.na(day08_P$sf94_day5)& day08_P$mortality_28 == 1) #replace if D5_P and D8 NA
-day08_P$sf94_day8[sample(rows_to_replace, dead_to_add8)]<- 0.5 #add dead patients
-rows_to_replace<-which(is.na(day08_P$sf94_day8) & is.na(day08_P$sf94_day5)& day08_P$mortality_28 == 0)
-day08_P$sf94_day8[sample(rows_to_replace, alive_to_add8)]<- 4.76 #add discharged patients
-day08_P<-day08_P%>%
-  dplyr::rename(sf94_day5_P= sf94_day5, sf94_day8_P= sf94_day8)
-day08_P<-data.frame(day08_P)
+day05_P<-day05 #for proportional deaths
+day05_P<-left_join(day05_P, mortality, by="subjid") #add mortality
+
+prop_added<- function(sf_day_to_replace, dead_to_add_fun, alive_to_add_fun){
+  set.seed(1234)
+  rows_to_replace<-which(is.na(day05_P[[sf_day_to_replace]]) & day05_P$mortality_28 == 1) #find rows with missing values and who died
+  day05_P[[sf_day_to_replace]][sample(rows_to_replace, dead_to_add_fun)]<- 0.5 #and add correct number of dead patients
+  rows_to_replace<-which(is.na(day05_P[[sf_day_to_replace]]) & day05_P$mortality_28 == 0) #same for patients who lived
+  day05_P[[sf_day_to_replace]][sample(rows_to_replace, alive_to_add_fun)]<- 4.76
+  day05_P<-data.frame(day05_P)
+  day05_P<-day05_P[c("subjid", sf_day_to_replace)]
+  return(day05_P)
+}
+
+sf94_day5_P<-prop_added("sf94_day5", sum_d5[("dead to add")], sum_d5[("alive to add")])
+sf94_day8_P<-prop_added("sf94_day8", sum_d8[("dead to add")], sum_d8[("alive to add")])
+
 
 #calculate delta variables
 day08_P$delta_SF94_05<-day08_P$sf94_day5_P - day08_P$sf94_day0 #calculate difference from day 0 to day 5
@@ -414,6 +418,26 @@ ddist <- datadist(sf94_day0,sf94_day5_P,sf94_day8_P, delta_SF94_05,delta_SF94_08
                   sustained_1L_improvement, sustained_2L_improvement, WHOD5_P, WHOD8_P, binairy_sex)
 options(datadist='ddist')
 detach(regresson_df_P)
+
+#Missing data
+library(naniar)
+
+#D5
+#the 'true' dataset is those with the proportionally added values, with the correct proportion of deat/alive/in study
+df_5NA<-subset(regresson_df_P, !is.na(sf94_day5_P))
+df_5NA<-left_join(df_5NA, df_1_base_sf94_16, by="subjid")
+sum_NA_D5<-data.frame(sum_NA_D5)
+sum_NA_D5<-miss_var_summary(df_5NA)
+write.csv(sum_NA_D5,"/home/skerr/Git/SF94/Outputs/sum_NA_D5.csv")
+#D8
+df_8NA<-subset(regresson_df_P, !is.na(sf94_day8_P))
+sum_NA_D8<-miss_var_summary(df_8NA)
+write.csv(sum_NA_D8,"/home/skerr/Git/SF94/Outputs/sum_NA_D8.csv")
+head(df_5NA)
+
+d5_0_16<-left_join(df_5NA, df_1_base_sf94_16, by="subjid")
+
+head(df_1_base_sf94_16)
 
 #Effect size proportional odds logistic regression for WHO scale
 # WHO D5/D8 as dependent variable

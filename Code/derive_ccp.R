@@ -159,7 +159,7 @@ df<-df %>%
   mutate(
     mortality_28 = case_when(
       day_of_death <29 ~ 1,
-      day_of_discharge<29 ~ 0))
+      TRUE ~ 0))
 
 # 4 day mortality variable
 df<-df %>% 
