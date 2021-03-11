@@ -292,7 +292,8 @@ geom_split_violin <- function(mapping = NULL, data = NULL, stat = "ydensity", po
 #=============================================================================================#
 
 #input data = df_1, filters are applied at a later point in time
-df_1_base_sf94<-createDF(df_1, "base", "sf94", 10)
+df_1_base_sf94<-createDF(df_1, "base", "sf94", 16)
+df_1_basedd_sf94<-createDF(df_1, "basedd", "sf94", 16)
 
 #regression model D5 SF94 and mortality
 #with sf94 values regression
@@ -345,6 +346,34 @@ prop_added<- function(sf_day_to_replace, dead_to_add_fun, alive_to_add_fun){
 
 sf94_day5_P<-prop_added("sf94_day5", sum_d5[("dead to add")], sum_d5[("alive to add")])
 sf94_day8_P<-prop_added("sf94_day8", sum_d8[("dead to add")], sum_d8[("alive to add")])
+sf94_day10_P<-prop_added("sf94_day10", sum_d10[("dead to add")], sum_d10[("alive to add")])
+sf94_day11_P<-prop_added("sf94_day11", sum_d11[("dead to add")], sum_d11[("alive to add")])
+sf94_day12_P<-prop_added("sf94_day12", sum_d12[("dead to add")], sum_d12[("alive to add")])
+sf94_day13_P<-prop_added("sf94_day13", sum_d13[("dead to add")], sum_d13[("alive to add")])
+sf94_day14_P<-prop_added("sf94_day14", sum_d14[("dead to add")], sum_d14[("alive to add")])
+sf94_day15_P<-prop_added("sf94_day15", sum_d15[("dead to add")], sum_d15[("alive to add")])
+sf94_day16_P<-prop_added("sf94_day16", sum_d16[("dead to add")], sum_d16[("alive to add")])
+
+#merge dataframes together
+library(plyr)
+sf94_d10_d16<-join_all(list(sf94_day10_P,sf94_day11_P,sf94_day12_P,sf94_day13_P,
+                            sf94_day14_P,sf94_day15_P,sf94_day16_P), by="subjid", type="full")
+detach("package:plyr", unload=T)
+#Missing data
+library(naniar)
+
+#D5
+#the 'true' dataset is those with the proportionally added values, with the correct proportion of deat/alive/in study
+df_5NA<-subset(regresson_df_P, !is.na(sf94_day5_P))
+df_5NA<-left_join(df_5NA, df_1_base_sf94_16, by="subjid")
+sum_NA_D5<-data.frame(sum_NA_D5)
+sum_NA_D5<-miss_var_summary(df_5NA)
+write.csv(sum_NA_D5,"/home/skerr/Git/SF94/Outputs/sum_NA_D5.csv")
+#D8
+df_8NA<-subset(regresson_df_P, !is.na(sf94_day8_P))
+sum_NA_D8<-miss_var_summary(df_8NA)
+write.csv(sum_NA_D8,"/home/skerr/Git/SF94/Outputs/sum_NA_D8.csv")
+head(df_5NA)
 
 
 #calculate delta variables
