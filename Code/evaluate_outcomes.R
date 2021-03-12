@@ -293,7 +293,6 @@ geom_split_violin <- function(mapping = NULL, data = NULL, stat = "ydensity", po
 
 #input data = df_1, filters are applied at a later point in time
 df_1_base_sf94<-createDF(df_1, "base", "sf94", 16)
-df_1_basedd_sf94<-createDF(df_1, "basedd", "sf94", 16)
 
 #regression model D5 SF94 and mortality
 #with sf94 values regression
@@ -356,36 +355,48 @@ sf94_day16_P<-prop_added("sf94_day16", sum_d16[("dead to add")], sum_d16[("alive
 
 #merge dataframes together
 library(plyr)
-sf94_d10_d16<-join_all(list(sf94_day10_P,sf94_day11_P,sf94_day12_P,sf94_day13_P,
+sf94_d10_d16<-join_all(list(sf94_day5_P, sf94_day8_P, sf94_day10_P,sf94_day11_P,sf94_day12_P,sf94_day13_P,
                             sf94_day14_P,sf94_day15_P,sf94_day16_P), by="subjid", type="full")
+sf94_D5_D8<-join_all(list(sf94_day5_P, sf94_day8_P), by="subjid", type="full") #if we want to add additional days to the analysis
+#change this variable to include another day ^
 detach("package:plyr", unload=T)
 #Missing data
 library(naniar)
+head(day05)
+head(day5_prop)
+miss_var_summary(day05)
+day5_P<-sf94_D5_D8[,c("subjid","sf94_day5_P")] #is deze variable naam al in gebruik?
 
-#D5
-#the 'true' dataset is those with the proportionally added values, with the correct proportion of deat/alive/in study
-df_5NA<-subset(regresson_df_P, !is.na(sf94_day5_P))
-df_5NA<-left_join(df_5NA, df_1_base_sf94_16, by="subjid")
-sum_NA_D5<-data.frame(sum_NA_D5)
-sum_NA_D5<-miss_var_summary(df_5NA)
-write.csv(sum_NA_D5,"/home/skerr/Git/SF94/Outputs/sum_NA_D5.csv")
-#D8
-df_8NA<-subset(regresson_df_P, !is.na(sf94_day8_P))
-sum_NA_D8<-miss_var_summary(df_8NA)
-write.csv(sum_NA_D8,"/home/skerr/Git/SF94/Outputs/sum_NA_D8.csv")
-head(df_5NA)
+prop_original<-left_join(day5_P, day05, by="subjid") #merge with daily values
+day5_prop<-subset(prop_original, !is.na(sf94_day5_P)) #starting set: D5 is known
+day5_prop<-day5_prop%>% #remove some double subjects
+  group_by(subjid)%>%
+  slice(which.min(sf94_day5_P))
+day5_prop<-data.frame(day5_prop)
+miss_day5<-miss_var_summary(day5_prop)
+nrow(day05)
+write.csv(miss_day5,"/home/skerr/Git/SF94/Outputs/miss_day5.csv")
+day8_prop<-subset(prop_original, !is.na(sf94_day8.x))
+miss_day8<-miss_var_summary(day8_prop)
+write.csv(miss_day8,"/home/skerr/Git/SF94/Outputs/miss_day8.csv")
 
-
+#add proportional D5 and D8 to D0
+sf94_D5_D8<-sf94_D5_D8%>%
+  dplyr::rename(sf94_day5_P= sf94_day5, sf94_day8_P=sf94_day8) #change names to differentiate from un-edited values
+sf94_D0<-day05[,c("subjid", "sf94_day0")] #only take necessary columns
+library(plyr)
+sf94_D5_D8<-merge(sf94_D5_D8, sf94_D0, by="subjid") #combine 2 dataframes by subjid
+detach("package:plyr", unload=T)
 #calculate delta variables
-day08_P$delta_SF94_05<-day08_P$sf94_day5_P - day08_P$sf94_day0 #calculate difference from day 0 to day 5
-day08_P$delta_SF94_08<-day08_P$sf94_day8_P - day08_P$sf94_day0 #same for D0-D8
+sf94_D5_D8$delta_SF94_05<-sf94_D5_D8$sf94_day5_P - sf94_D5_D8$sf94_day0 #calculate difference from day 0 to day 5
+sf94_D5_D8$delta_SF94_08<-sf94_D5_D8$sf94_day8_P - sf94_D5_D8$sf94_day0 #same for D0-D8
 
 #create small df with the independent predictor variables (except sf94) and outcome variable
-predictor_variables<-df_1[,c("subjid", "sex", "age_estimateyears")]
-predictor_variables<-predictor_variables %>% group_by(subjid)%>%slice(which.max(age_estimateyears))
+predictor_variables<-df_1[,c("subjid", "sex", "age_estimateyears", "mortality_28")]
+predictor_variables<-predictor_variables %>% group_by(subjid)%>%slice(which.max(mortality_28))
 
 #join both together
-regresson_df_P<-left_join(day08_P,predictor_variables, by="subjid")
+regresson_df_P<-left_join(sf94_D5_D8,predictor_variables, by="subjid")
 #add proportional WHO D5 and D8 to regresson DF
 df_1_base_who_8<-createDF(df_1, "base", "severity_scale_ordinal",8)
 who_5_8<-df_1_base_who_8[,c(1,2,7,10)] #select subjid, day 0 and day 5 and day 8
@@ -406,27 +417,31 @@ regresson_df_P<-regresson_df_P %>% #change mortality to match proportionally add
   mutate(
     WHOD8_P = case_when(
       sf94_day8_P == 4.760  ~ 4, sf94_day8_P == 0.5 ~ 10,TRUE ~ as.numeric(WHOD8_P)))
-regresson_df_P<-regresson_df_P %>% #if dead on day 5 or 8, change mortality to 1
-  mutate(
-    mortality_28 = case_when(
-      WHOD5_P == 10  ~ 1, WHOD8_P == 10 ~ 1,TRUE ~ as.numeric(mortality_28)))
 
 #add days to improvement variable
-time_to_improvement<-df_1[,c("subjid", "who_days_to_improve2", "who_days_to_improve1")]
-time_to_improvement<-time_to_improvement %>%
+time_to_improvement<-df_1[,c("subjid", "who_days_to_improve2", "who_days_to_improve1", "severity_scale_ordinal")]
+time_to_improvement<- time_to_improvement %>% group_by(subjid)%>%add_count(number=!is.na(severity_scale_ordinal))
+time_to_improvement<-time_to_improvement %>% #keep 1 value per subject
   group_by(subjid)%>%
-  summarise_all(funs(f))
+  slice(which.min(severity_scale_ordinal))
+time_to_improvement<-time_to_improvement %>%
+  mutate( #if zero or 1 observation, change to NA. if there is a number, there is sustained improvement, so change to 1. 
+    sustained_1L_improvement= case_when( #if >1 who value but no improvement > 0
+      n<2 ~ NA_real_, !is.na(who_days_to_improve1) ~ 1, is.na(who_days_to_improve1) ~ 0 ))
 time_to_improvement<-time_to_improvement %>%
   mutate( #if there is a number, there is sustained improvement, so change to 1. If not, change to 0
-    sustained_1L_improvement= case_when(
-      !is.na(who_days_to_improve1) ~ 1, is.na(who_days_to_improve1) ~ 0 ))
-time_to_improvement<-time_to_improvement %>%
-  mutate( #if there is a number, there is sustained improvement, so change to 1. If not, change to 0
-    sustained_2L_improvement= case_when(
+    sustained_2L_improvement= case_when(n<2 ~ NA_real_,
       !is.na(who_days_to_improve2) ~ 1, is.na(who_days_to_improve2) ~ 0 ))
 time_to_improvement<-time_to_improvement[,c("subjid", "sustained_1L_improvement", "sustained_2L_improvement")]
 time_to_improvement<-data.frame(time_to_improvement)
-
+#save numbers
+table_1L_0<-sum(time_to_improvement$sustained_1L_improvement==0, na.rm=T)
+table_1L_1<-sum(time_to_improvement$sustained_1L_improvement==1, na.rm=T)
+table_2L_0<-sum(time_to_improvement$sustained_2L_improvement==0, na.rm=T)
+table_2L_1<-sum(time_to_improvement$sustained_2L_improvement==1, na.rm=T)
+insufdata_time_to_improvement<-sum(is.na(time_to_improvement$sustained_1L_improvement))
+insufdata_time_to_improvement<-cbind(insufdata_time_to_improvement,table_1L_0,table_1L_1,table_2L_0,table_2L_1)
+write.csv(insufdata_time_to_improvement,"/home/skerr/Git/SF94/Outputs/insufdata_time_to_improvement.csv")
 #bind to rest of data
 regresson_df_P<-left_join(regresson_df_P, time_to_improvement, by="subjid")
 #to calculate mean for gender change to 1 and 0
