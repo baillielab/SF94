@@ -19,6 +19,7 @@ library(ggplot2)
 library(mice)
 library(data.table)
 library(stringr)
+library(tidyr)
 
 ################################### CURATE VARIABLE SELECTION #################################################
 
@@ -129,7 +130,7 @@ addRows <- function(df){
 
 # Create a dataframe for simulated df
 # n is the size of the simulated dataset
-n <- 3000
+n <- 1000
 
 simulated <- do.call(data.frame, replicate( length(df), rep(NA, n), simplify=FALSE))
 
@@ -142,6 +143,9 @@ fulldf <- rbind(sample, simulated)
 
 # mice needs categorical varaiables to be factors
 fulldf[catVars] <- lapply(fulldf[catVars], factor )
+
+# maximum number of iterations to be done in MICE
+iterations = 200
 
 ################################ IMPUTE CONSTANT VARIABLES: #######################################
 
@@ -163,13 +167,13 @@ method1 <- createMethod(fulldf, impExclude1)
 predMat1 <- template
 predMat1[, impExclude1] <- 0
 
-Imputation1 <- mice(fulldf ,m=1, maxit=200, predictorMatrix = predMat1, method = method1)
+Imputation1 <- mice(fulldf ,m=1, maxit=iterations, predictorMatrix = predMat1, method = method1)
 
 # Look at results of Imputation
 
 pdf('/home/skerr/Git/SF94/Code/dummy_data_generator/Imputation1.pdf') 
 
-densityplot(Imputation1, fulldf ~ age_estimateyears)
+densityplot(Imputation1, ~age_estimateyears)
 
 dev.off()
 
@@ -193,14 +197,13 @@ method2 <- createMethod(dead, impExclude2)
 predMat2 <- template
 predMat2[, c(nonConstVars, 'who_days_to_improve1', 'who_days_to_improve2'  )] <- 0
 
-Imputation2 <- mice(dead ,m=1, maxit=200, predictorMatrix = predMat2, method = method2)
-
+Imputation2 <- mice(dead ,m=1, maxit=iterations, predictorMatrix = predMat2, method = method2)
 
 # Look at results of Imputation
 
 pdf('/home/skerr/Git/SF94/Code/dummy_data_generator/Imputation2.pdf') 
 
-densityplot(Imputation2, dead ~ day_of_death)
+densityplot(Imputation2, ~ day_of_death)
 
 dev.off()
 
@@ -220,7 +223,7 @@ predMat3 <- template
 
 predMat3[, c('who_days_to_improve1', 'who_days_to_improve2')] <- 0
 
-Imputation3 <- mice(dead,m=1, maxit=200, predictorMatrix = predMat3, method = method3)
+Imputation3 <- mice(dead,m=1, maxit=iterations, predictorMatrix = predMat3, method = method3)
 
 
 # Look at results of Imputation
@@ -249,7 +252,7 @@ predMat4 <- template
 
 predMat4[, c('who_days_to_improve1', 'who_days_to_improve2')] <- 0
 
-Imputation4 <- mice(notDead ,m=1,maxit=200, predictorMatrix = predMat4, method = method4)
+Imputation4 <- mice(notDead ,m=1,maxit=iterations, predictorMatrix = predMat4, method = method4)
 
 
 pdf('/home/skerr/Git/SF94/Code/dummy_data_generator/Imputation4.pdf')
@@ -325,7 +328,7 @@ predMat5 <- template2
 
 predMat5[, c('day_of_death', 'who_days_to_improve1', 'who_days_to_improve2', 'whoImprovement1')] <- 0
 
-Imputation5 <- mice(notDead28 ,m=1,maxit=200, predictorMatrix = predMat5, method = method5)
+Imputation5 <- mice(notDead28 ,m=1,maxit=iterations, predictorMatrix = predMat5, method = method5)
 
 
 freqTab(notDead28, Imputation5, 'whoImprovement2')
@@ -337,8 +340,6 @@ notDead28 <- complete(Imputation5)
 # Whenever there is a 2 level improvement, there is a one level improvement
 notDead28[ notDead28['whoImprovement2'] == 'YES', ]['whoImprovement1'] <- 'YES'
 
-
-
 # Impute whoImprovement1
 impExclude6 <-  c(allVars, 'severity_scale_ordinal', 'sfr', 'whoImprovement2')
 
@@ -348,14 +349,13 @@ predMat6 <- template2
 
 predMat6[, c('day_of_death', 'who_days_to_improve1', 'who_days_to_improve2')] <- 0
 
-Imputation6 <- mice(notDead28 ,m=1,maxit=200, predictorMatrix = predMat6, method = method6)
+Imputation6 <- mice(notDead28 ,m=1,maxit=iterations, predictorMatrix = predMat6, method = method6)
 
 
 freqTab(notDead28, Imputation6, 'whoImprovement1')
 
 
 notDead28 <- complete(Imputation6)
-
 
 ##################### IMPUTE who_days_to_improve2 and  who_days_to_improve1 #####################
 
@@ -375,7 +375,7 @@ predMat7 <- template2
 
 predMat7[, c('day_of_death', 'who_days_to_improve2')] <- 0
 
-Imputation7 <- mice(who1 ,m=1,maxit=200, predictorMatrix = predMat7, method = method7)
+Imputation7 <- mice(who1 ,m=1,maxit=iterations, predictorMatrix = predMat7, method = method7)
 
 
 
@@ -409,7 +409,7 @@ predMat8 <- template3
 
 predMat8[, c('day_of_death', 'who_days_to_improve2')] <- 0
 
-Imputation8 <- mice(who2 ,m=1,maxit=200, predictorMatrix = predMat8, method = method8)
+Imputation8 <- mice(who2 ,m=1,maxit=iterations, predictorMatrix = predMat8, method = method8)
 
 
 
@@ -440,20 +440,8 @@ real_ccp <- filter(fulldf, str_sub(subjid ,1, 9) != 'Simulated')
 
 simulated_ccp <- filter(fulldf, str_sub(subjid ,1, 9) == 'Simulated')
 
-simulated_ccp[c('whoImprovement1', 'whoImprovement2')] <- NULL
-
 # Fill values for who_days_to_improve1 and who_days_to_improve2
 simulated_ccp <- simulated_ccp %>% group_by(subjid) %>% fill( c('who_days_to_improve1','who_days_to_improve2'), .direction = 'downup')
-
-# Add mortality variable for days 5,8,28
-simulated_ccp <- mutate(simulated_ccp, day5_mortality = case_when(day_of_death <= 5 ~ "YES",
-                                                                              TRUE ~ 'NO' ))
-
-simulated_ccp <- mutate(simulated_ccp, day8_mortality = case_when(day_of_death <= 8 ~ "YES",
-                                                                               TRUE ~ 'NO' ))
-
-simulated_ccp <- mutate(simulated_ccp, day28_mortality = case_when(day_of_death <= 28 ~ "YES",
-                                                                                 TRUE ~ 'NO' ))
 
 simulated_ccp['age_estimateyears'] <- lapply( simulated_ccp['age_estimateyears'], as.integer  )
 
@@ -461,5 +449,4 @@ simulated_ccp['age_estimateyears'] <- lapply( simulated_ccp['age_estimateyears']
 
 # Write on argosafe
 write.csv(simulated_ccp ,"/home/skerr/Data/ccp_subset_simulated.csv", row.names = FALSE)
-
 
