@@ -362,11 +362,8 @@ sf94_D5_D8<-join_all(list(sf94_day5_P, sf94_day8_P), by="subjid", type="full") #
 detach("package:plyr", unload=T)
 #Missing data
 library(naniar)
-head(day05)
-head(day5_prop)
 miss_var_summary(day05)
-day5_P<-sf94_D5_D8[,c("subjid","sf94_day5_P")] #is deze variable naam al in gebruik?
-
+day5_P<-sf94_D5_D8[,c("subjid","sf94_day5_P")] 
 prop_original<-left_join(day5_P, day05, by="subjid") #merge with daily values
 day5_prop<-subset(prop_original, !is.na(sf94_day5_P)) #starting set: D5 is known
 day5_prop<-day5_prop%>% #remove some double subjects
@@ -374,7 +371,6 @@ day5_prop<-day5_prop%>% #remove some double subjects
   slice(which.min(sf94_day5_P))
 day5_prop<-data.frame(day5_prop)
 miss_day5<-miss_var_summary(day5_prop)
-nrow(day05)
 write.csv(miss_day5,"/home/skerr/Git/SF94/Outputs/miss_day5.csv")
 day8_prop<-subset(prop_original, !is.na(sf94_day8.x))
 miss_day8<-miss_var_summary(day8_prop)
@@ -463,26 +459,6 @@ ddist <- datadist(sf94_day0,sf94_day5_P,sf94_day8_P, delta_SF94_05,delta_SF94_08
 options(datadist='ddist')
 detach(regresson_df_P)
 
-#Missing data
-library(naniar)
-
-#D5
-#the 'true' dataset is those with the proportionally added values, with the correct proportion of deat/alive/in study
-df_5NA<-subset(regresson_df_P, !is.na(sf94_day5_P))
-df_5NA<-left_join(df_5NA, df_1_base_sf94_16, by="subjid")
-sum_NA_D5<-data.frame(sum_NA_D5)
-sum_NA_D5<-miss_var_summary(df_5NA)
-write.csv(sum_NA_D5,"/home/skerr/Git/SF94/Outputs/sum_NA_D5.csv")
-#D8
-df_8NA<-subset(regresson_df_P, !is.na(sf94_day8_P))
-sum_NA_D8<-miss_var_summary(df_8NA)
-write.csv(sum_NA_D8,"/home/skerr/Git/SF94/Outputs/sum_NA_D8.csv")
-head(df_5NA)
-
-d5_0_16<-left_join(df_5NA, df_1_base_sf94_16, by="subjid")
-
-head(df_1_base_sf94_16)
-
 #Effect size proportional odds logistic regression for WHO scale
 # WHO D5/D8 as dependent variable
 #SF94 at D5/D8 respectively, age and sex as independent variable
@@ -515,6 +491,7 @@ saveRDS(OR_D5_WHO_2,"/home/skerr/Git/SF94/Outputs/OR_D5_WHO_2.rds")
 saveRDS(OR_D8_WHO_2,"/home/skerr/Git/SF94/Outputs/OR_D8_WHO_2.rds")
 readRDS("/Users/Maaike/Downloads/OR_D5_WHO_2.rds")
 readRDS("/Users/Maaike/Downloads/OR_D8_WHO_2.rds")
+
 #alternative WHO improvement
 regresson_df_P$WHOD5_P<-as.factor(regresson_df_P$WHOD5_P)
 WHO_D5_mort<-lrm(mortality_28 ~ WHOD5_P+ age_estimateyears+ sex, data = regresson_df_P)
@@ -573,6 +550,38 @@ whoD8_mortality_output<-whoD8_mortality(whoD8_levels)
 
 write.csv(whoD8_mortality_output,"/home/skerr/Git/SF94/Outputs/whoD8_mortality_output.csv")
 
+#WHO improvement- as a numerical variable instead of as a factor
+WHO_D5_mort_2<-lrm(mortality_28 ~ as.numeric(WHOD5_P)+ age_estimateyears+ sex, data = regresson_df_P)
+WHO_D8_mort_2<-lrm(mortality_28 ~ as.numeric(WHOD8_P)+ age_estimateyears+ sex, data = regresson_df_P)
+#function
+WHO_abseffect_size<- function(mortdifference, mort1, model_who) {
+  logoddsmort1<-log(1/((1-mort1)/mort1))
+  baselinewho_male<-(logoddsmort1-as.numeric(coef(model_who)[1])-
+                        (as.numeric(coef(model_who)[3]) * mean(regresson_df_P$age, na.rm=T))- 
+                        (1* as.numeric(coef(model_who)[4])))/as.numeric(coef(model_who)[2])
+  baselinewho_female<-(logoddsmort1-as.numeric(coef(model_who)[1])-
+                         (as.numeric(coef(model_who)[3]) * mean(regresson_df_P$age, na.rm=T))- 
+                         (0* as.numeric(coef(model_who)[4])))/as.numeric(coef(model_who)[2])
+  baselinewho<-(baselinewho_male * male_perc) + (baselinewho_female * female_perc)
+  mort2<-mort1-mortdifference
+  logoddsmort2<-log(1/((1-mort2)/mort2)) #from probability to logodds
+  newwho_male<-(logoddsmort2-as.numeric(coef(model_who)[1])-
+                  (as.numeric(coef(model_who)[3]) * mean(regresson_df_P$age, na.rm=T))- 
+                  (1* as.numeric(coef(model_who)[4])))/as.numeric(coef(model_who)[2])
+  newwho_female<-(logoddsmort2-as.numeric(coef(model_who)[1])-
+                    (as.numeric(coef(model_who)[3]) * mean(regresson_df_P$age, na.rm=T))- 
+                    (0* as.numeric(coef(model_who)[4])))/as.numeric(coef(model_who)[2])
+  newwho<-(newwho_male * male_perc) + (newwho_female * female_perc)
+  who_difference<-newwho-baselinewho
+  return(who_difference)
+}
+absolute_mort_reduction<-c(0.01,0.015,0.02,0.025,0.03,0.035,0.04,0.045,0.05)
+WHO_25_D5<-WHO_abseffect_size(absolute_mort_reduction,0.25,WHO_D5_mort_2)
+WHO_25_D8<-WHO_abseffect_size(absolute_mort_reduction,0.25,WHO_D8_mort_2)
+
+write.csv(WHO_25_D5,"/home/skerr/Git/SF94/Outputs/WHO_25_D5.csv")
+write.csv(WHO_25_D8,"/home/skerr/Git/SF94/Outputs/WHO_25_D8.csv")
+
 #WHO time to improvement
 sus_1L_D5<-lrm(sustained_1L_improvement ~ delta_SF94_05+ age_estimateyears+ sex, data = regresson_df_P)
 sus_1L_D8<-lrm(sustained_1L_improvement ~ delta_SF94_08+ age_estimateyears+ sex, data = regresson_df_P)
@@ -616,11 +625,14 @@ coefday5<-as.numeric(coef(sf94_d5)[2])
 coefage5<-as.numeric(coef(sf94_d5)[3])
 coefsex5<-as.numeric(coef(sf94_d5)[4])
 age_value_5<-mean(regresson_df_P$age, na.rm=T)
-sex_value_5<-mean(as.numeric(regresson_df_P$binairy_sex), na.rm=T)
+male_perc <- sum(regresson_df_P$binairy_sex == 1, na.rm = T)/ sum(!is.na(regresson_df_P$binairy_sex))
+female_perc<-sum(regresson_df_P$binairy_sex == 0, na.rm = T)/ sum(!is.na(regresson_df_P$binairy_sex))
 
 absolute_mortdif<-function(mort1) {
   logoddsmort1<-log(1/((1-mort1)/mort1))
-  baselinesf94<-(logoddsmort1-intercept5- (coefage5 * age_value_5)- (sex_value_5 * coefsex5))/coefday5
+  baselinesf94_male<-(logoddsmort1-intercept5- (coefage5 * age_value_5)- (1 * coefsex5))/coefday5
+  baselinesf94_female<-(logoddsmort1-intercept5- (coefage5 * age_value_5)- (0 * coefsex5))/coefday5
+  baselinesf94<-(baselinesf94_male * male_perc) + (baselinesf94_female * female_perc)
   sf94_2<-baselinesf94+0.5
   logoddsmort2<-intercept5+ (coefday5 * sf94_2) + (coefage5 * age_value_5) + (sex_value_5 * coefsex5)
   mort2OR<-exp(logoddsmort2) #to odds ratio
@@ -639,11 +651,12 @@ coefday8<-as.numeric(coef(sf94_d8)[2])
 coefage8<-as.numeric(coef(sf94_d8)[3])
 coefsex8<-as.numeric(coef(sf94_d8)[4])
 age_value_8<-mean(regresson_df_P$age, na.rm=T)
-sex_value_8<-mean(as.numeric(regresson_df_P$binairy_sex), na.rm=T)
 
 absolute_mortdifD8<-function(mort1) {
   logoddsmort1<-log(1/((1-mort1)/mort1))
-  baselinesf94<-(logoddsmort1-intercept8- (coefage8 * age_value_8)- (sex_value_8 * coefsex8))/coefday8
+  baselinesf94_male<-(logoddsmort1-intercept8- (coefage8 * age_value_8)- (1 * coefsex8))/coefday8
+  baselinesf94_female<-(logoddsmort1-intercept8- (coefage8 * age_value_8)- (0 * coefsex8))/coefday8
+  baselinesf94<-(baselinesf94_male * male_perc) + (baselinesf94_female * female_perc)
   sf94_2<-baselinesf94+0.5
   logoddsmort2<-intercept8+ (coefday8 * sf94_2) + (coefage8 * age_value_8) + (sex_value_8 * coefsex8)
   mort2OR<-exp(logoddsmort2) #to odds ratio
@@ -665,14 +678,17 @@ coefday5<-as.numeric(coef(sf94_d5)[2])
 coefage5<-as.numeric(coef(sf94_d5)[3])
 coefsex5<-as.numeric(coef(sf94_d5)[4])
 age_value_5<-mean(regresson_df_P$age, na.rm=T)
-sex_value_5<-mean(as.numeric(regresson_df_P$binairy_sex), na.rm=T)
 
 absolute_mortdifD5<-function(mort1, mortdifference) {
   logoddsmort1<-log(1/((1-mort1)/mort1))
-  baseline_delta_sf94<-(logoddsmort1-intercept5- (coefage5 * age_value_5)- (sex_value_5 * coefsex5))/coefday5
+  baselinesf94_delta_male<-(logoddsmort1-intercept5- (coefage5 * age_value_5)- (1 * coefsex5))/coefday5
+  baselinesf94_delta_female<-(logoddsmort1-intercept5- (coefage5 * age_value_5)- (0 * coefsex5))/coefday5
+  baseline_delta_sf94<-(baselinesf94_delta_male * male_perc) + (baselinesf94_delta_female * female_perc)
   mort2<-mort1-mortdifference
   logoddsmort2<-log(1/((1-mort2)/mort2)) #from probability to logodds
-  new_delta_sf94<-(logoddsmort2-intercept5- (coefage5 * age_value_5)- (sex_value_5 * coefsex5))/coefday5
+  new_delta_sf94_male<-(logoddsmort2-intercept5- (coefage5 * age_value_5)- (1 * coefsex5))/coefday5
+  new_delta_sf94_female<-(logoddsmort2-intercept5- (coefage5 * age_value_5)- (0 * coefsex5))/coefday5
+  new_delta_sf94<-(new_delta_sf94_male * male_perc) + (new_delta_sf94_female * female_perc)
   sf94_delta_dif<-new_delta_sf94- baseline_delta_sf94
   return(sf94_delta_dif)
 }
@@ -688,14 +704,17 @@ coefday8<-as.numeric(coef(sf94_d8)[2])
 coefage8<-as.numeric(coef(sf94_d8)[3])
 coefsex8<-as.numeric(coef(sf94_d8)[4])
 age_value_5<-mean(regresson_df_P$age, na.rm=T) #these don't change when between D5 and D8
-sex_value_5<-mean(as.numeric(regresson_df_P$binairy_sex), na.rm=T) #these don't change when between D5 and D8
 
 absolute_mortdifD8<-function(mort1, mortdifference) {
   logoddsmort1<-log(1/((1-mort1)/mort1))
-  baseline_delta_sf94<-(logoddsmort1-intercept8- (coefage8 * age_value_5)- (sex_value_5 * coefsex8))/coefday8
+  baselinesf94_delta_male<-(logoddsmort1-intercept8- (coefage8 * age_value_5)- (1 * coefsex8))/coefday8
+  baselinesf94_delta_female<-(logoddsmort1-intercept8- (coefage8 * age_value_5)- (0 * coefsex8))/coefday8
+  baseline_delta_sf94<-(baselinesf94_delta_male * male_perc) + (baselinesf94_delta_female * female_perc)
   mort2<-mort1-mortdifference
   logoddsmort2<-log(1/((1-mort2)/mort2)) #from probability to logodds
-  new_delta_sf94<-(logoddsmort2-intercept8- (coefage8 * age_value_5)- (sex_value_5 * coefsex8))/coefday8
+  new_delta_sf94_male<-(logoddsmort2-intercept8- (coefage8 * age_value_5)- (1 * coefsex8))/coefday8
+  new_delta_sf94_female<-(logoddsmort2-intercept8- (coefage8 * age_value_5)- (0 * coefsex8))/coefday8
+  new_delta_sf94<-(new_delta_sf94_male * male_perc) + (new_delta_sf94_female * female_perc)
   sf94_delta_dif<-new_delta_sf94- baseline_delta_sf94
   return(sf94_delta_dif)
 }
@@ -710,20 +729,29 @@ sf94_d8_2<-lrm(mortality_28 ~ sf94_day8_P+sf94_day0+ age_estimateyears+ sex, dat
 
 abseffect_size<- function(mortdifference, mort1, model_sf94) {
   logoddsmort1<-log(1/((1-mort1)/mort1))
-  baselinesf94<-(logoddsmort1-as.numeric(coef(model_sf94)[1])-
+  baselinesf94_male<-(logoddsmort1-as.numeric(coef(model_sf94)[1])-
                    (as.numeric(coef(model_sf94)[4]) * mean(regresson_df_P$age, na.rm=T))- 
-                   (mean(as.numeric(regresson_df_P$binairy_sex), na.rm=T) * as.numeric(coef(model_sf94)[5]))-
+                   (1* as.numeric(coef(model_sf94)[5]))-
                    (mean(regresson_df_P$sf94_day0, na.rm=T) * as.numeric(coef(model_sf94)[3]) ))/as.numeric(coef(model_sf94)[2])
+  baselinesf94_female<-(logoddsmort1-as.numeric(coef(model_sf94)[1])-
+                      (as.numeric(coef(model_sf94)[4]) * mean(regresson_df_P$age, na.rm=T))- 
+                      (0* as.numeric(coef(model_sf94)[5]))-
+                    (mean(regresson_df_P$sf94_day0, na.rm=T) * as.numeric(coef(model_sf94)[3])) )/as.numeric(coef(model_sf94)[2])
+  baselinesf94<-(baselinesf94_male * male_perc) + (baselinesf94_female * female_perc)
   mort2<-mort1-mortdifference
   logoddsmort2<-log(1/((1-mort2)/mort2)) #from probability to logodds
-  newsf94<-(logoddsmort2-as.numeric(coef(model_sf94)[1])-
+  newsf94_male<-(logoddsmort2-as.numeric(coef(model_sf94)[1])-
               (as.numeric(coef(model_sf94)[4]) * mean(regresson_df_P$age, na.rm=T))- 
-              (mean(as.numeric(regresson_df_P$binairy_sex), na.rm=T) * as.numeric(coef(model_sf94)[5]))-
-              (mean(regresson_df_P$sf94_day0, na.rm=T) * as.numeric(coef(model_sf94)[3]) ))/as.numeric(coef(model_sf94)[2])
+              (1 * as.numeric(coef(model_sf94)[5]))-
+              (mean(regresson_df_P$sf94_day0, na.rm=T) * as.numeric(coef(model_sf94)[3])))/as.numeric(coef(model_sf94)[2])
+  newsf94_female<-(logoddsmort2-as.numeric(coef(model_sf94)[1])-
+              (as.numeric(coef(model_sf94)[4]) * mean(regresson_df_P$age, na.rm=T))- 
+               (0 * as.numeric(coef(model_sf94)[5]))-
+              (mean(regresson_df_P$sf94_day0, na.rm=T) * as.numeric(coef(model_sf94)[3])))/as.numeric(coef(model_sf94)[2])
+  newsf94<-(newsf94_male * male_perc) + (newsf94_female * female_perc)
   sf94_difference<-newsf94-baselinesf94
   return(sf94_difference)
 }
-
 absolute_mort_reduction<-c(0.01,0.015,0.02,0.025,0.03,0.035,0.04,0.045,0.05)
 sf94_25_D5<-abseffect_size(absolute_mort_reduction,0.25,sf94_d5_2)
 sf94_25_D8<-abseffect_size(absolute_mort_reduction,0.25,sf94_d8_2)
@@ -756,7 +784,4 @@ plot_linear_exp_uni
 
 #OUTPUT 
 #2 graphs
-
-
-
 
