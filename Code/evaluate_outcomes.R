@@ -330,6 +330,10 @@ proportional_numbers<-cbind(sum_d5[c(1,2)], sum_d8[c(1,2)],sum_d10[c(1,2)],sum_d
 write.csv(proportional_numbers,"/home/skerr/Git/SF94/Outputs/proportional_numbers.csv")
 
 day05_P<-day05 #for proportional deaths
+mortality<-df_1[,c("subjid","mortality_28")]
+mortality<-mortality%>%
+  group_by(subjid)%>%
+  slice(which.min(mortality_28))
 day05_P<-left_join(day05_P, mortality, by="subjid") #add mortality
 
 prop_added<- function(sf_day_to_replace, dead_to_add_fun, alive_to_add_fun){
@@ -358,13 +362,16 @@ library(plyr)
 sf94_d10_d16<-join_all(list(sf94_day5_P, sf94_day8_P, sf94_day10_P,sf94_day11_P,sf94_day12_P,sf94_day13_P,
                             sf94_day14_P,sf94_day15_P,sf94_day16_P), by="subjid", type="full")
 sf94_D5_D8<-join_all(list(sf94_day5_P, sf94_day8_P), by="subjid", type="full") #if we want to add additional days to the analysis
+sf94_D5_D8<-sf94_D5_D8%>%
+  dplyr::rename(sf94_day5_P= sf94_day5, sf94_day8_P=sf94_day8) #change names to differentiate from un-edited values
 #change this variable to include another day ^
 detach("package:plyr", unload=T)
 #Missing data
 library(naniar)
-miss_var_summary(day05)
-day5_P<-sf94_D5_D8[,c("subjid","sf94_day5")] 
+day5_P<-sf94_D5_D8[,c("subjid","sf94_day5_P", "sf94_day8_P")]
 prop_original<-left_join(day5_P, day05, by="subjid") #merge with daily values
+missing_add_prop<-miss_var_summary(prop_original)
+write.csv(missing_add_prop,"/home/skerr/Git/SF94/Outputs/missing_add_prop.csv")
 day5_prop<-subset(prop_original, !is.na(sf94_day5_P)) #starting set: D5 is known
 day5_prop<-day5_prop%>% #remove some double subjects
   group_by(subjid)%>%
@@ -372,13 +379,15 @@ day5_prop<-day5_prop%>% #remove some double subjects
 day5_prop<-data.frame(day5_prop)
 miss_day5<-miss_var_summary(day5_prop)
 write.csv(miss_day5,"/home/skerr/Git/SF94/Outputs/miss_day5.csv")
-day8_prop<-subset(prop_original, !is.na(sf94_day8.x))
+day8_prop<-subset(prop_original, !is.na(sf94_day8_P)) #starting set: D8 is known
+day8_prop<-day8_prop%>% #remove some double subjects
+  group_by(subjid)%>%
+  slice(which.min(sf94_day8_P))
+day8_prop<-data.frame(day8_prop)
 miss_day8<-miss_var_summary(day8_prop)
 write.csv(miss_day8,"/home/skerr/Git/SF94/Outputs/miss_day8.csv")
 
 #add proportional D5 and D8 to D0
-sf94_D5_D8<-sf94_D5_D8%>%
-  dplyr::rename(sf94_day5_P= sf94_day5, sf94_day8_P=sf94_day8) #change names to differentiate from un-edited values
 sf94_D0<-day05[,c("subjid", "sf94_day0")] #only take necessary columns
 library(plyr)
 sf94_D5_D8<-merge(sf94_D5_D8, sf94_D0, by="subjid") #combine 2 dataframes by subjid
