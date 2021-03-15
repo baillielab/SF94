@@ -396,7 +396,6 @@ dd_dataset<-data.frame(dd_dataset)
 miss_dd<-miss_var_summary(dd_dataset)
 write.csv(miss_dd,"/home/skerr/Git/SF94/Outputs/miss_dd.csv")
 
-head(dd_dataset)
 #add proportional D5 and D8 to D0
 sf94_D0<-day05[,c("subjid", "sf94_day0")] #only take necessary columns
 library(plyr)
