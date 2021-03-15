@@ -634,9 +634,13 @@ absolute_mortdif<-function(mort1) {
   baselinesf94_female<-(logoddsmort1-intercept5- (coefage5 * age_value_5)- (0 * coefsex5))/coefday5
   baselinesf94<-(baselinesf94_male * male_perc) + (baselinesf94_female * female_perc)
   sf94_2<-baselinesf94+0.5
-  logoddsmort2<-intercept5+ (coefday5 * sf94_2) + (coefage5 * age_value_5) + (sex_value_5 * coefsex5)
-  mort2OR<-exp(logoddsmort2) #to odds ratio
-  mort2<-mort2OR/ (1 +mort2OR)
+  logoddsmort2_male<-intercept5+ (coefday5 * sf94_2) + (coefage5 * age_value_5) + (1 * coefsex5)
+  logoddsmort2_female<-intercept5+ (coefday5 * sf94_2) + (coefage5 * age_value_5) + (0 * coefsex5)
+  mort2OR_male<-exp(logoddsmort2_male) #to odds ratio
+  mort2OR_female<-exp(logoddsmort2_female) #to odds ratio
+  mort2_male<-mort2OR_male/ (1 +mort2OR_male)
+  mort2_female<-mort2OR_female/ (1 +mort2OR_female)
+  mort2<-(mort2_male* male_perc) + (mort2_female * female_perc)
   mortdif<-mort1-mort2
   return(mortdif)
 }
@@ -658,9 +662,13 @@ absolute_mortdifD8<-function(mort1) {
   baselinesf94_female<-(logoddsmort1-intercept8- (coefage8 * age_value_8)- (0 * coefsex8))/coefday8
   baselinesf94<-(baselinesf94_male * male_perc) + (baselinesf94_female * female_perc)
   sf94_2<-baselinesf94+0.5
-  logoddsmort2<-intercept8+ (coefday8 * sf94_2) + (coefage8 * age_value_8) + (sex_value_8 * coefsex8)
-  mort2OR<-exp(logoddsmort2) #to odds ratio
-  mort2<-mort2OR/ (1 +mort2OR)
+  logoddsmort2_male<-intercept8+ (coefday8 * sf94_2) + (coefage8 * age_value_8) + (1 * coefsex8)
+  logoddsmort2_female<-intercept8+ (coefday8 * sf94_2) + (coefage8 * age_value_8) + (0 * coefsex8)
+  mort2OR_male<-exp(logoddsmort2_male) #to odds ratio
+  mort2OR_female<-exp(logoddsmort2_female) #to odds ratio
+  mort2_male<-mort2OR_male/ (1 +mort2OR_male)
+  mort2_female<-mort2OR_female/ (1 +mort2OR_female)
+  mort2<-(mort2_male* male_perc) + (mort2_female * female_perc)
   mortdif<-mort1-mort2
   return(mortdif)
 }
