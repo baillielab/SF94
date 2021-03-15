@@ -476,7 +476,7 @@ saveRDS(sum_WHO_D5,"/home/skerr/Git/SF94/Outputs/sum_WHO_D5.rds")
 saveRDS(sum_WHO_D8,"/home/skerr/Git/SF94/Outputs/sum_WHO_D8.rds")
 saveRDS(OR_D5_WHO,"/home/skerr/Git/SF94/Outputs/OR_D5_WHO.rds")
 saveRDS(OR_D8_WHO,"/home/skerr/Git/SF94/Outputs/OR_D8_WHO.rds")
-readRDS("/Users/Maaike/Downloads/sum_WHO_D5.rds")
+readRDS("/Users/Maaike/Downloads/OR_D8_WHO (1).rds")
 
 #Proportional odds model with D5/D8 and D0 as separate predictors
 WHOD5_model_2<-polr(as.factor(WHOD5_P) ~ sf94_day5_P+sf94_day0+ age_estimateyears+ sex, data = regresson_df_P, Hess=T)
@@ -489,8 +489,8 @@ OR_D8_WHO_2<-exp(cbind(OR=coef(WHOD8_model_2),ci_8))
 
 saveRDS(OR_D5_WHO_2,"/home/skerr/Git/SF94/Outputs/OR_D5_WHO_2.rds")
 saveRDS(OR_D8_WHO_2,"/home/skerr/Git/SF94/Outputs/OR_D8_WHO_2.rds")
-readRDS("/Users/Maaike/Downloads/OR_D5_WHO_2.rds")
-readRDS("/Users/Maaike/Downloads/OR_D8_WHO_2.rds")
+readRDS("/Users/Maaike/Downloads/OR_D5_WHO_2 (1).rds")
+readRDS("/Users/Maaike/Downloads/OR_D8_WHO_2 (1).rds")
 
 #alternative WHO improvement
 regresson_df_P$WHOD5_P<-as.factor(regresson_df_P$WHOD5_P)
