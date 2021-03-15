@@ -386,7 +386,16 @@ day8_prop<-day8_prop%>% #remove some double subjects
 day8_prop<-data.frame(day8_prop)
 miss_day8<-miss_var_summary(day8_prop)
 write.csv(miss_day8,"/home/skerr/Git/SF94/Outputs/miss_day8.csv")
+#repeated d/d values
+df_1_basedd_sf94<-createDF(df_1, "base", "sf94", 16)
+dd_dataset<-df_1_basedd_sf94
+dd_dataset<-dd_dataset%>%
+group_by(subjid) %>% 
+  summarise_all(funs(f))
+dd_dataset<-data.frame(dd_dataset)
+miss_dd<-miss_var_summary(dd_dataset)
 
+head(dd_dataset)
 #add proportional D5 and D8 to D0
 sf94_D0<-day05[,c("subjid", "sf94_day0")] #only take necessary columns
 library(plyr)
@@ -395,6 +404,7 @@ detach("package:plyr", unload=T)
 #calculate delta variables
 sf94_D5_D8$delta_SF94_05<-sf94_D5_D8$sf94_day5_P - sf94_D5_D8$sf94_day0 #calculate difference from day 0 to day 5
 sf94_D5_D8$delta_SF94_08<-sf94_D5_D8$sf94_day8_P - sf94_D5_D8$sf94_day0 #same for D0-D8
+
 
 #create small df with the independent predictor variables (except sf94) and outcome variable
 predictor_variables<-df_1[,c("subjid", "sex", "age_estimateyears", "mortality_28")]
