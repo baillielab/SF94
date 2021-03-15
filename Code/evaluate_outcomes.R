@@ -394,6 +394,7 @@ group_by(subjid) %>%
   summarise_all(funs(f))
 dd_dataset<-data.frame(dd_dataset)
 miss_dd<-miss_var_summary(dd_dataset)
+write.csv(miss_dd,"/home/skerr/Git/SF94/Outputs/miss_dd.csv")
 
 head(dd_dataset)
 #add proportional D5 and D8 to D0
