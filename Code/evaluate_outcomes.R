@@ -363,7 +363,7 @@ detach("package:plyr", unload=T)
 #Missing data
 library(naniar)
 miss_var_summary(day05)
-day5_P<-sf94_D5_D8[,c("subjid","sf94_day5_P")] 
+day5_P<-sf94_D5_D8[,c("subjid","sf94_day5")] 
 prop_original<-left_join(day5_P, day05, by="subjid") #merge with daily values
 day5_prop<-subset(prop_original, !is.na(sf94_day5_P)) #starting set: D5 is known
 day5_prop<-day5_prop%>% #remove some double subjects
