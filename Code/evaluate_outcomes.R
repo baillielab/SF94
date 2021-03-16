@@ -372,29 +372,84 @@ day5_P<-sf94_D5_D8[,c("subjid","sf94_day5_P", "sf94_day8_P")]
 prop_original<-left_join(day5_P, day05, by="subjid") #merge with daily values
 missing_add_prop<-miss_var_summary(prop_original)
 write.csv(missing_add_prop,"/home/skerr/Git/SF94/Outputs/missing_add_prop.csv")
-day5_prop<-subset(prop_original, !is.na(sf94_day5_P)) #starting set: D5 is known
-day5_prop<-day5_prop%>% #remove some double subjects
-  group_by(subjid)%>%
-  slice(which.min(sf94_day5_P))
-day5_prop<-data.frame(day5_prop)
-miss_day5<-miss_var_summary(day5_prop)
-write.csv(miss_day5,"/home/skerr/Git/SF94/Outputs/miss_day5.csv")
-day8_prop<-subset(prop_original, !is.na(sf94_day8_P)) #starting set: D8 is known
-day8_prop<-day8_prop%>% #remove some double subjects
-  group_by(subjid)%>%
-  slice(which.min(sf94_day8_P))
-day8_prop<-data.frame(day8_prop)
-miss_day8<-miss_var_summary(day8_prop)
-write.csv(miss_day8,"/home/skerr/Git/SF94/Outputs/miss_day8.csv")
-#repeated d/d values
-df_1_basedd_sf94<-createDF(df_1, "basedd", "sf94", 16)
-dd_dataset<-df_1_basedd_sf94
-dd_dataset<-dd_dataset%>%
+day_of_outcome<-df_1[,c("subjid", "day_of_death", "day_of_discharge")] #add these to calculate deaths/discharges in cohort D5+D8
+day_of_outcome<-day_of_outcome%>% #1 value for each subject
 group_by(subjid) %>% 
+  summarise_all(funs(f))
+day_of_outcome<-data.frame(day_of_outcome)
+prop_original<-left_join(prop_original, day_of_outcome, by="subjid") #merge 2 dataframes
+prop_original<-prop_original%>% #1 value for each subject
+  group_by(subjid) %>% 
+  summarise_all(funs(f))
+prop_original<-data.frame(prop_original)
+
+
+#missing values complete dataset
+df_1_basedd_who<-createDF(df_1, "basedd", "severity_scale_ordinal", 16)
+dd_dataset<-df_1_basedd_who
+dd_dataset<-dd_dataset%>%
+  group_by(subjid) %>% 
   summarise_all(funs(f))
 dd_dataset<-data.frame(dd_dataset)
 miss_dd<-miss_var_summary(dd_dataset)
 write.csv(miss_dd,"/home/skerr/Git/SF94/Outputs/miss_dd.csv")
+cohort_size_total<-nrow(dd_dataset)
+#cohort D5
+day5_prop<-subset(prop_original, !is.na(sf94_day5_P)) #starting set: D5 is known
+dead_alive_function_D5<-function(day_of_interest){
+  dead<-(length(unique(day5_prop$subjid[(day5_prop$day_of_death < day_of_interest)])))/length(unique(day5_prop$subjid))
+  alive<-(length(unique(day5_prop$subjid[(day5_prop$day_of_discharge < day_of_interest)])))/length(unique(day5_prop$subjid))
+  summary_dead_alive_cohort<-c("% dead d5" = dead,"% alive d5"= alive)
+  return(summary_dead_alive_cohort)
+}
+d5_cohort_sumD5<-dead_alive_function_D8(5)
+d5_cohort_sumD8<-dead_alive_function_D8(8)
+d5_cohort_sumD10<-dead_alive_function_D8(10)
+d5_cohort_sumD11<-dead_alive_function_D8(11)
+d5_cohort_sumD12<-dead_alive_function_D8(12)
+d5_cohort_sumD13<-dead_alive_function_D8(13)
+d5_cohort_sumD14<-dead_alive_function_D8(14)
+d5_cohort_sumD15<-dead_alive_function_D8(15)
+d5_cohort_sumD16<-dead_alive_function_D8(16)
+cohort_size_d5<-nrow(day5_prop)
+
+miss_day5<-miss_var_summary(day5_prop)
+write.csv(miss_day5,"/home/skerr/Git/SF94/Outputs/miss_day5.csv")
+
+dead_alive_d5<-cbind(d5_cohort_sumD5, d5_cohort_sumD8, d5_cohort_sumD10, d5_cohort_sumD11, d5_cohort_sumD12, 
+                     d5_cohort_sumD13, d5_cohort_sumD14, d5_cohort_sumD15, d5_cohort_sumD16)
+write.csv(dead_alive_d5,"/home/skerr/Git/SF94/Outputs/dead_alive_d5.csv")
+
+#cohort D8
+day8_prop<-subset(prop_original, !is.na(sf94_day8_P)) #starting set: D8 is known
+dead_alive_function_D8<-function(day_of_interest){
+  dead<-(length(unique(day8_prop$subjid[(day8_prop$day_of_death < day_of_interest)])))/length(unique(day8_prop$subjid))
+  alive<-(length(unique(day8_prop$subjid[(day8_prop$day_of_discharge < day_of_interest)])))/length(unique(day8_prop$subjid))
+  summary_dead_alive_cohort<-c("% dead d8" = dead,"% alive d8"= alive)
+  return(summary_dead_alive_cohort)
+}
+d8_cohort_sumD5<-dead_alive_function_D8(5)
+d8_cohort_sumD8<-dead_alive_function_D8(8)
+d8_cohort_sumD10<-dead_alive_function_D8(10)
+d8_cohort_sumD11<-dead_alive_function_D8(11)
+d8_cohort_sumD12<-dead_alive_function_D8(12)
+d8_cohort_sumD13<-dead_alive_function_D8(13)
+d8_cohort_sumD14<-dead_alive_function_D8(14)
+d8_cohort_sumD15<-dead_alive_function_D8(15)
+d8_cohort_sumD16<-dead_alive_function_D8(16)
+cohort_size_d8<-nrow(day8_prop)
+
+miss_day8<-miss_var_summary(day8_prop)
+write.csv(miss_day8,"/home/skerr/Git/SF94/Outputs/miss_day8.csv")
+
+cohort_sizes<-cbind(cohort_size_total, cohort_size_d5, cohort_size_d8)
+write.csv(cohort_sizes,"/home/skerr/Git/SF94/Outputs/cohort_sizes.csv")
+
+dead_alive_d8<-cbind(d8_cohort_sumD5, d8_cohort_sumD8, d8_cohort_sumD10, d8_cohort_sumD11, d8_cohort_sumD12, 
+                     d8_cohort_sumD13, d8_cohort_sumD14, d8_cohort_sumD15, d8_cohort_sumD16)
+write.csv(dead_alive_d8,"/home/skerr/Git/SF94/Outputs/dead_alive_d8.csv")
+
+
 
 #add proportional D5 and D8 to D0
 sf94_D0<-day05[,c("subjid", "sf94_day0")] #only take necessary columns
