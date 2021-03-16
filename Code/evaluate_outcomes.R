@@ -387,7 +387,7 @@ day8_prop<-data.frame(day8_prop)
 miss_day8<-miss_var_summary(day8_prop)
 write.csv(miss_day8,"/home/skerr/Git/SF94/Outputs/miss_day8.csv")
 #repeated d/d values
-df_1_basedd_sf94<-createDF(df_1, "base", "sf94", 16)
+df_1_basedd_sf94<-createDF(df_1, "basedd", "sf94", 16)
 dd_dataset<-df_1_basedd_sf94
 dd_dataset<-dd_dataset%>%
 group_by(subjid) %>% 
