@@ -61,7 +61,7 @@ selectVars <- setdiff(colnames(df), c('daily_invasive_prtrt', 'daily_noninvasive
 df <- df[selectVars]
 
 # Write on argosafe
-write.csv(df ,"/home/skerr/SF94_api/ccp_subset_simulated.csv", row.names = FALSE)
+write.csv(df ,"/home/skerr/Data/ccp_subset_simulated_post.csv", row.names = FALSE)
 
 
 
