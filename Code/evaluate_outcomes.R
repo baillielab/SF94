@@ -841,6 +841,37 @@ sf94_25_D8<-abseffect_size(absolute_mort_reduction,0.25,sf94_d8_2)
 write.csv(sf94_25_D5,"/home/skerr/Git/SF94/Outputs/sf94_25_D5.csv")
 write.csv(sf94_25_D8,"/home/skerr/Git/SF94/Outputs/sf94_25_D8.csv")
 
+#############################################################################################################
+#Steven's code
+#SF94
+#day 0 as a separate predictor variable (instead of delta day5-day0)
+
+sf94_d5_2<-lrm(mortality_28 ~ sf94_day5_P+sf94_day0+ age_estimateyears+ sex, data = regresson_df_P)
+sf94_d8_2<-lrm(mortality_28 ~ sf94_day8_P+sf94_day0+ age_estimateyears+ sex, data = regresson_df_P)
+
+sf94_predictD5<-predict(sf94_d5_2, type = 'fitted'  )
+sf94_predictD8<-predict(sf94_d8_2, type = 'fitted'  )
+
+alpha_list<-c(0.80,0.85,0.875,0.90,0.95) #relative mortality difference of 5-20%
+
+coef_d5<-sf94_d5_2$coef[2] #is sf94 day 5 coefficient
+coef_d8<-sf94_d8_2$coef[2] #is sf94 day 8 coefficient
+
+effect_size_calc <- function(prob_pred, alpha, coef){
+  return( mean( log((alpha*(1-prob_pred)) / (1- alpha * prob_pred)) / coef , na.rm = TRUE) )
+}
+
+d5_sf94_effectsize_15<-effect_size_calc(sf94_predictD5, 0.85, coef_d5) #15% relative mortality difference
+d5_sf94_effectsize_10<-effect_size_calc(sf94_predictD5, 0.90, coef_d5) #10% relative mortality difference
+d5_sf94_effectsize_05<-effect_size_calc(sf94_predictD5, 0.95, coef_d5) #05% relative mortality difference
+d8_sf94_effectsize_15<-effect_size_calc(sf94_predictD8, 0.85, coef_d8) #15% relative mortality difference
+d8_sf94_effectsize_10<-effect_size_calc(sf94_predictD8, 0.90, coef_d8) #10% relative mortality difference
+d8_sf94_effectsize_05<-effect_size_calc(sf94_predictD8, 0.95, coef_d8) #05% relative mortality difference
+
+
+
+
+
 
 #############################################################################################################
 
