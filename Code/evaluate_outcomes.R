@@ -857,8 +857,8 @@ alpha_list<-c(0.80,0.85,0.875,0.90,0.95) #relative mortality difference of 5-20%
 coef_d5<-sf94_d5_2$coef[2] #is sf94 day 5 coefficient
 coef_d8<-sf94_d8_2$coef[2] #is sf94 day 8 coefficient
 
-effect_size_calc <- function(prob_pred, alpha, coef){
-  return( mean( log((alpha*(1-prob_pred)) / (1- alpha * prob_pred)) / coef , na.rm = TRUE) )
+effect_size_calc <- function(prob_pred, treatment, coef){
+  return( mean( log((treatment*(1-prob_pred)) / (1- treatment * prob_pred)) / coef , na.rm = TRUE) )
 }
 
 d5_sf94_effectsize_15<-effect_size_calc(sf94_predictD5, 0.85, coef_d5) #15% relative mortality difference
@@ -869,8 +869,24 @@ d8_sf94_effectsize_10<-effect_size_calc(sf94_predictD8, 0.90, coef_d8) #10% rela
 d8_sf94_effectsize_05<-effect_size_calc(sf94_predictD8, 0.95, coef_d8) #05% relative mortality difference
 
 
+#WHO
+WHOD5_model_S<-polr(as.factor(WHOD5_P) ~ age_estimateyears+ sex, data = regresson_df_P, Hess=T)
+WHOD8_model_S<-polr(as.factor(WHOD8_P) ~age_estimateyears+ sex, data = regresson_df_P, Hess=T)
 
+pred_D5 <- predict(WHOD5_model_S, newdata = regresson_df_P, type = 'probs')
+pred_D8 <- predict(WHOD8_model_S, newdata = regresson_df_P, type = 'probs')
 
+effect_size_calc_OR <- function(prob_pred, treatment){
+  mean_prob <- mean(prob_pred, na.rm = TRUE)
+  return( treatment*( 1- mean_prob) / (1 - treatment * mean_prob)  )
+}
+
+d5_effectsize_who_15<-effect_size_calc_OR(pred_D5[,"10"], 0.85)
+d5_effectsize_who_10<-effect_size_calc_OR(pred_D5[,"10"], 0.90)
+d5_effectsize_who_05<-effect_size_calc_OR(pred_D5[,"10"], 0.95)
+d8_effectsize_who_15<-effect_size_calc_OR(pred_D8[,"10"], 0.85)
+d8_effectsize_who_10<-effect_size_calc_OR(pred_D8[,"10"], 0.90)
+d8_effectsize_who_05<-effect_size_calc_OR(pred_D8[,"10"], 0.95)
 
 
 #############################################################################################################
