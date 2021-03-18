@@ -570,6 +570,26 @@ write.csv(sus_2L_D5['coefs'],"/home/skerr/Git/SF94/Outputs/sus_2L_D5.csv")
 write.csv(sus_2L_D8['coefs'],"/home/skerr/Git/SF94/Outputs/sus_2L_D8.csv")
 
 #############################################################################################################
+#Summary stats
+meanSD <- as.data.frame( rbind(sapply(regresson_df_P[c('sf94_day5_P','sf94_day5_P')], mean, na.rm=T),  
+                               sapply(regresson_df_P[c('sf94_day5_P','sf94_day5_P')], sd, na.rm=T)) )
+
+rownames(meanSD) <- c('mean', 'SD')
+
+#Correlation subsets: same subjects for different days
+correlation_subset<-regresson_df_P
+#make subsets of data in which all subjects have SF94 available for those 2 days
+correlation_subset_05<-subset(correlation_subset, ((!is.na(correlation_subset[,"sf94_day0"])&(!is.na(correlation_subset[,"sf94_day5_P"])))))
+correlation_subset_08<-subset(correlation_subset, ((!is.na(correlation_subset[,"sf94_day0"])&(!is.na(correlation_subset[,"sf94_day8_P"])))))
+# DAY 0/5
+w <-  correlation_subset_05[,"sf94_day0"]
+x <-  correlation_subset_05[,"sf94_day5_P"]
+day05_cor<-cor(w,x)
+# DAY 0/8
+y <-  correlation_subset_08[,"sf94_day0"]
+z <-  correlation_subset_08[,"sf94_day8_P"]
+day08_cor<-cor(y,z)
+
 #Steven's code
 #SF94
 #day 0 as a separate predictor variable (instead of delta day5-day0)
@@ -597,35 +617,31 @@ d8_sf94_effectsize_10<-effect_size_calc(sf94_predictD8, 0.90, coef_d8) #10% rela
 d8_sf94_effectsize_05<-effect_size_calc(sf94_predictD8, 0.95, coef_d8) #05% relative mortality difference
 
 ## INPUTS REQUIRED ##
-# alpha - significance level 
-# power - specified power
+# alpha - significance level =0.05
+# power - specified power =0.8
 # delta - difference between mean change scores
 # sd - standard deviation of the outcome measure
 # rho - correlation between the outcome measured at baseline and at follow-up
 
-alpha = 0.05
-power = 0.8
-delta = d5_sf94_effectsize_05 # this value will be calculated from the models once they have been finalised, but have assumed a difference of 0.5 for the moment
-sd = 1.8 # standard deviation of s/f94 at day 5 is 1.8 in the info provided to me
-rho = 0.44 # correlation between s/f94 at day 0 and day 5 in the info provided to me
-
 power_sf94<-function(alpha, power, delta, sd, rho){
-# calculate sample size for a t test
-power1 <- power.t.test(n=NULL, delta=delta, sd=sd, power=power, sig.level = alpha)
-# apply ANCOVA correction
-ntotal <- 2*round(((1-(rho^2))*power1$n))
+
+power1 <- power.t.test(n=NULL, delta=delta, sd=sd, power=power, sig.level = alpha) # calculate sample size for a t test
+
+ntotal <- 2*round(((1-(rho^2))*power1$n)) # apply ANCOVA correction
 return(ntotal)
 }
-sf94_05_samplesize<-power_sf94(0.05,0.8,d5_sf94_effectsize_05, 1.79, 0.44)
-sf94_10_samplesize<-power_sf94(0.05,0.8,d5_sf94_effectsize_10, 1.79, 0.44)
-sf94_15_samplesize<-power_sf94(0.05,0.8,d5_sf94_effectsize_15, 1.79, 0.44)
-sf94_05_samplesize_D8<-power_sf94(0.05,0.8,d8_sf94_effectsize_05, 1.8, 0.37)
-sf94_10_samplesize_D8<-power_sf94(0.05,0.8,d8_sf94_effectsize_10, 1.8, 0.37)
-sf94_15_samplesize_D8<-power_sf94(0.05,0.8,d8_sf94_effectsize_15, 1.8, 0.37)
+
+sf94_05_samplesize<-power_sf94(0.05,0.8,d5_sf94_effectsize_05, meanSD[2,1], day05_cor)
+sf94_10_samplesize<-power_sf94(0.05,0.8,d5_sf94_effectsize_10, meanSD[2,1], day05_cor)
+sf94_15_samplesize<-power_sf94(0.05,0.8,d5_sf94_effectsize_15, meanSD[2,1], day05_cor)
+sf94_05_samplesize_D8<-power_sf94(0.05,0.8,d8_sf94_effectsize_05, meanSD[2,2], day08_cor)
+sf94_10_samplesize_D8<-power_sf94(0.05,0.8,d8_sf94_effectsize_10, meanSD[2,2], day08_cor)
+sf94_15_samplesize_D8<-power_sf94(0.05,0.8,d8_sf94_effectsize_15, meanSD[2,2], day08_cor)
 
 sf94_samplesize<-cbind(sf94_05_samplesize,sf94_10_samplesize,sf94_15_samplesize,sf94_05_samplesize_D8,sf94_10_samplesize_D8,sf94_15_samplesize_D8)
 write.csv(sf94_samplesize,"/home/skerr/Git/SF94/Outputs/sf94_samplesize.csv")
 
+###########################################################################################################################
 #WHO
 WHOD5_model_S<-polr(as.factor(WHOD5_P) ~ age_estimateyears+ sex, data = regresson_df_P, Hess=T)
 WHOD8_model_S<-polr(as.factor(WHOD8_P) ~ age_estimateyears+ sex, data = regresson_df_P, Hess=T)
@@ -645,26 +661,22 @@ d8_effectsize_who_15<-effect_size_calc_OR(pred_D8[,"10"], 0.85)
 d8_effectsize_who_10<-effect_size_calc_OR(pred_D8[,"10"], 0.90)
 d8_effectsize_who_05<-effect_size_calc_OR(pred_D8[,"10"], 0.95)
 
-# use function posamsize in package Hmisc
 
+# use function posamsize in package Hmisc
 library(Hmisc)
 
 ## INPUTS REQUIRED ##
-# alpha - significance level 
-# power - specified power
+# alpha - significance level (=0.05)
+# power - specified power (=0.8)
 # OR - the odds ratio to be able to detect
 # pavg  - a vector of probabilities of being in each category of the ordinal scale (averaged over the two treatment groups), needs to sum to one
-alpha = 0.05
-power = 0.8
-OR = d5_effectsize_who_15 # this will need to be estimated from the models once finalised, but I have assumed a 15% reduction in odds for the moment 
+# OR= this will need to be estimated from the models once finalised, but I have assumed a 15% reduction in odds for the moment 
 # n= number of patients with non-missing values of WHO day 5 in the info I have
 # We can only estimate the vector of probabilities for control group, denoted by p1 (the numbers in each WHO category at day 5 have been taken from the info I have)
-n5=16996
-p1_D5 = c(7213/n5, 2758/n5, 2690/n5, 386/n5, 1142/n5, 432/n5, 2375/n5)
-n8=21352
-p1_D8 = c(12676/n8, 1679/n8, 1501/n8, 449/n8, 975/n8, 360/n8, 3712/n8)
-who_effectsize_function<-function(alpha, power, OR, p1){
-#here's how to compute the average over the two groups from p1 and OR
+p1_D5 <-table(regresson_df_P$WHOD5_P)/sum(!is.na(regresson_df_P$WHOD5_P))
+p1_D8 = table(regresson_df_P$WHOD8_P)/sum(!is.na(regresson_df_P$WHOD8_P))
+
+who_effectsize_function<-function(alpha, power, OR, p1){ #here's how to compute the average over the two groups from p1 and OR
 p2   <- pomodm(p=p1, odds.ratio=OR)
 pavg <- (p1 + p2) / 2
 posamsize(p=pavg, odds.ratio=OR, alpha=alpha, power=power)
@@ -677,7 +689,7 @@ who_effectsize_d8_15<-who_effectsize_function( 0.05, 0.8, d8_effectsize_who_15, 
 who_effectsize_d8_10<-who_effectsize_function( 0.05, 0.8, d8_effectsize_who_10, p1_D8)
 who_effectsize_d8_05<-who_effectsize_function( 0.05, 0.8, d8_effectsize_who_05, p1_D8)
 
-who_effectsize<-cbind(who_effectsize_d5_15,who_effectsize_d5_10,who_effectsize_d5_05,who_effectsize_d8_15,who_effectsize_d8_10,who_effectsize_d8_05)
+who_effectsize<-cbind(who_effectsize_d5_05,who_effectsize_d5_10,who_effectsize_d5_15,who_effectsize_d8_05,who_effectsize_d8_10,who_effectsize_d8_15)
 write.csv(who_effectsize,"/home/skerr/Git/SF94/Outputs/who_effectsize.csv")
 
 
