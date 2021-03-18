@@ -654,19 +654,31 @@ library(Hmisc)
 # power - specified power
 # OR - the odds ratio to be able to detect
 # pavg  - a vector of probabilities of being in each category of the ordinal scale (averaged over the two treatment groups), needs to sum to one
-
-
 alpha = 0.05
 power = 0.8
 OR = d5_effectsize_who_15 # this will need to be estimated from the models once finalised, but I have assumed a 15% reduction in odds for the moment 
-n =16271 # number of patients with non-missing values of WHO day 5 in the info I have
+# n= number of patients with non-missing values of WHO day 5 in the info I have
 # We can only estimate the vector of probabilities for control group, denoted by p1 (the numbers in each WHO category at day 5 have been taken from the info I have)
-p1 = c(6487/n, 2758/n, 2690/n, 386/n, 1142/n, 432/n, 2376/n) 
+n5=16996
+p1_D5 = c(7213/n5, 2758/n5, 2690/n5, 386/n5, 1142/n5, 432/n5, 2375/n5)
+n8=21352
+p1_D8 = c(12676/n8, 1679/n8, 1501/n8, 449/n8, 975/n8, 360/n8, 3712/n8)
+who_effectsize_function<-function(alpha, power, OR, p1){
 #here's how to compute the average over the two groups from p1 and OR
 p2   <- pomodm(p=p1, odds.ratio=OR)
 pavg <- (p1 + p2) / 2
-
 posamsize(p=pavg, odds.ratio=OR, alpha=alpha, power=power)
+}
+
+who_effectsize_d5_15<-who_effectsize_function( 0.05, 0.8, d5_effectsize_who_15, p1_D5)
+who_effectsize_d5_10<-who_effectsize_function( 0.05, 0.8, d5_effectsize_who_10, p1_D5)
+who_effectsize_d5_05<-who_effectsize_function( 0.05, 0.8, d5_effectsize_who_05, p1_D5)
+who_effectsize_d8_15<-who_effectsize_function( 0.05, 0.8, d8_effectsize_who_15, p1_D8)
+who_effectsize_d8_10<-who_effectsize_function( 0.05, 0.8, d8_effectsize_who_10, p1_D8)
+who_effectsize_d8_05<-who_effectsize_function( 0.05, 0.8, d8_effectsize_who_05, p1_D8)
+
+who_effectsize<-cbind(who_effectsize_d5_15,who_effectsize_d5_10,who_effectsize_d5_05,who_effectsize_d8_15,who_effectsize_d8_10,who_effectsize_d8_05)
+write.csv(who_effectsize,"/home/skerr/Git/SF94/Outputs/who_effectsize.csv")
 
 
 #############################################################################################################

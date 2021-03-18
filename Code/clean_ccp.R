@@ -67,7 +67,6 @@ unitVars <- c('daily_temp_vsorresu', "daily_bun_lborresu", "daily_creat_lborresu
 #read for maaike
 #df <-fread("/home/u034/mcswets/ccp_data.csv", select = allVars, data.table = FALSE)
 
-
 # Read on argosafe
 datadir = "/home/common/covid/cleaned/full/"
 timestamp = "2021-02-05_1049"
