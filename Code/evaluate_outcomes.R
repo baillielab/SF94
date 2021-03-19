@@ -600,8 +600,6 @@ sf94_d8_2<-lrm(mortality_28 ~ sf94_day8_P+sf94_day0+ age_estimateyears+ sex, dat
 sf94_predictD5<-predict(sf94_d5_2, type = 'fitted'  )
 sf94_predictD8<-predict(sf94_d8_2, type = 'fitted'  )
 
-alpha_list<-c(0.80,0.85,0.875,0.90,0.95) #relative mortality difference of 5-20%
-
 coef_d5<-sf94_d5_2$coef[2] #is sf94 day 5 coefficient
 coef_d8<-sf94_d8_2$coef[2] #is sf94 day 8 coefficient
 
