@@ -533,13 +533,40 @@ ddist <- datadist(sf94_day0,sf94_day5_P,sf94_day8_P, delta_SF94_05,delta_SF94_08
 options(datadist='ddist')
 detach(regresson_df_P)
 
-
-
 #WHO time to improvement
 sus_1L_D5<-lrm(sustained_1L_improvement ~ sf94_day5_P + sf94_day0 + age_estimateyears+ sex, data = regresson_df_P)
 sus_1L_D8<-lrm(sustained_1L_improvement ~ sf94_day8_P + sf94_day0 + age_estimateyears+ sex, data = regresson_df_P)
 sus_2L_D5<-lrm(sustained_2L_improvement ~ sf94_day5_P + sf94_day0 + age_estimateyears+ sex, data = regresson_df_P)
 sus_2L_D8<-lrm(sustained_2L_improvement ~ sf94_day8_P + sf94_day0 + age_estimateyears+ sex, data = regresson_df_P)
+
+#######################################################################
+## Sample size formulae for analyses using difference in proportions ##
+#######################################################################
+
+## these sample size calculations are done using the R function power.prop.test but with a continuity correction applied 
+## see Sample Size Calculations for Randomized Controlled Trials, Wittes, Epidemiol Rev Vol. 24, No. 1, 2002 for details of formulae for continuity correction
+head(regresson_df_P$sustained_1L_improvement)
+table(regresson_df_P$sustained_1L_improvement)
+prop_1L_sustained<-sum(regresson_df_P$sustained_1L_improvement == 1, na.rm=T)/ sum(!is.na(regresson_df_P$sustained_1L_improvement))
+## INPUTS REQUIRED ##
+# alpha - significance level 
+# power - specified power
+# p1 - proportion experiencing event within specified time frame in control arm
+# p2 - proportion experiencing event within specified time frame in active arm
+
+ncorrect <- function(n,p1,p2){
+  round((n/4)*(1+sqrt(1+(4/(n*(p1-p2)))))^2)
+}
+
+alpha = 0.05
+power = 0.8
+p1 = 0.25
+p2 = 0.20
+# check the risk ratio assumed from the proportions specified
+p2/p1
+
+sample <- power.prop.test(n=NULL,p1=p1,p2=p2,power=power,sig.level=alpha)
+2*ncorrect(sample$n,sample$p1,sample$p2)
 
 library(stringr)
 #parser
