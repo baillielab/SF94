@@ -385,15 +385,15 @@ prop_original<-data.frame(prop_original)
 
 
 #missing values complete dataset
-df_1_basedd_who<-createDF(df_1, "basedd", "severity_scale_ordinal", 16)
-dd_dataset<-df_1_basedd_who
-dd_dataset<-dd_dataset%>%
-  group_by(subjid) %>% 
-  summarise_all(funs(f))
-dd_dataset<-data.frame(dd_dataset)
-miss_dd<-miss_var_summary(dd_dataset)
-write.csv(miss_dd,"/home/skerr/Git/SF94/Outputs/miss_dd.csv")
-cohort_size_total<-nrow(dd_dataset)
+#df_1_basedd_who<-createDF(df_1, "basedd", "severity_scale_ordinal", 16)
+#dd_dataset<-df_1_basedd_who
+#dd_dataset<-dd_dataset%>%
+#  group_by(subjid) %>% 
+#  summarise_all(funs(f))
+#dd_dataset<-data.frame(dd_dataset)
+#miss_dd<-miss_var_summary(dd_dataset)
+#write.csv(miss_dd,"/home/skerr/Git/SF94/Outputs/miss_dd.csv")
+#cohort_size_total<-nrow(dd_dataset)
 #cohort D5
 day5_prop<-subset(prop_original, !is.na(sf94_day5_P)) #starting set: D5 is known
 dead_alive_function_D5<-function(day_of_interest){

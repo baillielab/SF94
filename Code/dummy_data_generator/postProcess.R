@@ -20,6 +20,12 @@ df$sfr<- df$sao2/df$fio2
 
 df <- mutate(df, sf94 = case_when(sao2 <= 0.94  | fio2 == 0.21 ~ sfr))  
 
+# Add respiratory support column
+df <- mutate(df,  respiratory_support = case_when(
+  daily_invasive_prtrt == 'YES'   ~ 'IMV',
+  daily_noninvasive_prtrt == 'YES'    ~ 'NIV',
+  daily_nasaloxy_cmtrt == 'YES'  ~ 'HFNC',
+  TRUE ~ 'None') )
 
 # Add sf94 day 0,5,8 columns
 df[which( df['days_since_start'] == 0 ), 'sf94_day0' ] <- df[ which( df['days_since_start'] == 0 ), 'sf94']
@@ -54,11 +60,6 @@ df$sf94_delta_08 <- df$sf94_day8 - df$sf94_day0
 # Add mortality variable for day28
 df <- mutate(df, day28_mortality = case_when(day_of_death <= 28 ~ "YES",
                                                                    TRUE ~ 'NO' ))
-
-selectVars <- setdiff(colnames(df), c('daily_invasive_prtrt', 'daily_noninvasive_prtrt', 'daily_inotrope_cmyn',    
-        'daily_ecmo_prtrt', 'daily_rrt_cmtrt', 'daily_nasaloxy_cmtrt', 'days_since_start'))
-
-df <- df[selectVars]
 
 # Write on argosafe
 write.csv(df ,"/home/skerr/Data/ccp_subset_simulated_post.csv", row.names = FALSE)
