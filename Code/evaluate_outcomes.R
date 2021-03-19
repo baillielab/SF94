@@ -536,10 +536,10 @@ detach(regresson_df_P)
 
 
 #WHO time to improvement
-sus_1L_D5<-lrm(sustained_1L_improvement ~ delta_SF94_05+ age_estimateyears+ sex, data = regresson_df_P)
-sus_1L_D8<-lrm(sustained_1L_improvement ~ delta_SF94_08+ age_estimateyears+ sex, data = regresson_df_P)
-sus_2L_D5<-lrm(sustained_2L_improvement ~ delta_SF94_05+ age_estimateyears+ sex, data = regresson_df_P)
-sus_2L_D8<-lrm(sustained_2L_improvement ~ delta_SF94_08+ age_estimateyears+ sex, data = regresson_df_P)
+sus_1L_D5<-lrm(sustained_1L_improvement ~ sf94_day5_P + sf94_day0 + age_estimateyears+ sex, data = regresson_df_P)
+sus_1L_D8<-lrm(sustained_1L_improvement ~ sf94_day8_P + sf94_day0 + age_estimateyears+ sex, data = regresson_df_P)
+sus_2L_D5<-lrm(sustained_2L_improvement ~ sf94_day5_P + sf94_day0 + age_estimateyears+ sex, data = regresson_df_P)
+sus_2L_D8<-lrm(sustained_2L_improvement ~ sf94_day8_P + sf94_day0 + age_estimateyears+ sex, data = regresson_df_P)
 
 library(stringr)
 #parser
