@@ -560,7 +560,7 @@ ncorrect <- function(n,p1,p2){
 
 alpha = 0.05
 power = 0.8
-p1 = 0.25
+p1 = prop_1L_sustained
 p2 = 0.20
 # check the risk ratio assumed from the proportions specified
 p2/p1
