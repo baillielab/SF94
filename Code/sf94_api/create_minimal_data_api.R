@@ -9,7 +9,7 @@
 library(data.table)
 library(dplyr)
 
-df<-fread("/home/skerr/Data/ccp_subset_simulated_post.csv", data.table = FALSE )
+df<-fread('/home/skerr/Data/ccp_subset_simulated_post.csv', data.table = FALSE )
 
 df <- mutate_at(df, 'sex', ~case_when(  sex == 'Male' ~ 1,
                                       sex == 'Female' ~ 0))
@@ -77,17 +77,14 @@ sus_2L_d8_model_coef <- c(-0.11560870, 0.23233468, -0.47970481, -0.01755118, 0.1
 #0.01987002        0.23623191
 #4|5       5|6       6|7       7|8       8|9      9|10 
 #0.6017289 1.6012292 2.6964929 2.8625757 3.4732608 3.8456992
-who_d5_model_coef <- c(1,2,3,4)
+who_d5_model_coef <- c(3.8456992, -0.01987002, -0.23623191)
 
 
 #age_estimateyears           sexMale 
 #0.03000907        0.20834102
 #4|5      5|6      6|7      7|8      8|9     9|10 
 #1.751196 2.466708 3.134009 3.306187 3.788585 4.005230
-who_d8_model_coef <- c(1,2,3,4)
-
-
-
+who_d8_model_coef <- c(4.005230, -0.03000907, -0.20834102)
 
 
 
@@ -95,14 +92,14 @@ who_d8_model_coef <- c(1,2,3,4)
 df$sf94_d5_model_pred <- logistic(df[c('sf94_day5', 'sf94_day0', 'age_estimateyears', 'sex')], sf94_d5_model_coef)
 df$sf94_d8_model_pred <- logistic(df[c('sf94_day8', 'sf94_day0', 'age_estimateyears', 'sex')], sf94_d8_model_coef)
 
-df$sus_1L_d5_model_pred <- logistic(df[c('sf94_delta_05', 'age_estimateyears', 'sex')], sus_1L_d5_model_coef)
-df$sus_1L_d8_model_pred <- logistic(df[c('sf94_delta_08', 'age_estimateyears', 'sex')], sus_1L_d8_model_coef)
+df$sus_1L_d5_model_pred <- logistic(df[c('sf94_day5', 'sf94_day0', 'age_estimateyears', 'sex')], sus_1L_d5_model_coef)
+df$sus_1L_d8_model_pred <- logistic(df[c('sf94_day8', 'sf94_day0', 'age_estimateyears', 'sex')], sus_1L_d8_model_coef)
 
-df$sus_2L_d5_model_pred <- logistic(df[c('sf94_delta_05', 'age_estimateyears', 'sex')], sus_2L_d5_model_coef)
-df$sus_2L_d8_model_pred <- logistic(df[c('sf94_delta_08', 'age_estimateyears', 'sex')], sus_2L_d8_model_coef)
+df$sus_2L_d5_model_pred <- logistic(df[c('sf94_day5', 'sf94_day0', 'age_estimateyears', 'sex')], sus_2L_d5_model_coef)
+df$sus_2L_d8_model_pred <- logistic(df[c('sf94_day8', 'sf94_day0', 'age_estimateyears', 'sex')], sus_2L_d8_model_coef)
 
-df$who_d5_model_pred <- logistic(df[c('sf94_delta_05', 'age_estimateyears', 'sex')], who_d5_model_coef)
-df$who_d8_model_pred <- logistic(df[c('sf94_delta_08', 'age_estimateyears', 'sex')], who_d8_model_coef)
+df$who_d5_model_pred <- 1 - logistic(df[c('age_estimateyears', 'sex')], who_d5_model_coef)
+df$who_d8_model_pred <- 1 - logistic(df[c('age_estimateyears', 'sex')], who_d8_model_coef)
 
 ##############################################################################################
 
@@ -110,5 +107,5 @@ df$who_d8_model_pred <- logistic(df[c('sf94_delta_08', 'age_estimateyears', 'sex
 df <- select(df, c('age_estimateyears', selectionVars, utilityVars) | ends_with('model_pred') )
 
 # Save minimal dataset to be used for web API
-write.csv(df ,"/home/skerr/SF94_api/ccp_subset_simulated_api.csv", row.names = FALSE)
+write.csv(df ,"/home/skerr/Git/SF94/Code/sf94_api/ccp_subset_simulated_api.csv", row.names = FALSE)
 
