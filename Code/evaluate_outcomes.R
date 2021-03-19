@@ -663,9 +663,13 @@ sf94_05_samplesize_D8<-power_sf94(0.05,0.8,d8_sf94_effectsize_05, meanSD[2,2], d
 sf94_10_samplesize_D8<-power_sf94(0.05,0.8,d8_sf94_effectsize_10, meanSD[2,2], day08_cor)
 sf94_15_samplesize_D8<-power_sf94(0.05,0.8,d8_sf94_effectsize_15, meanSD[2,2], day08_cor)
 
-sf94_samplesize<-cbind(sf94_05_samplesize,sf94_10_samplesize,sf94_15_samplesize,sf94_05_samplesize_D8,sf94_10_samplesize_D8,sf94_15_samplesize_D8)
+sf94_samplesize<-cbind(sf94_05_samplesize,sf94_10_samplesize,sf94_15_samplesize,sf94_05_samplesize_D8,
+                       sf94_10_samplesize_D8,sf94_15_samplesize_D8, day05_cor, day08_cor)
+sf94_effectsize<-cbind(d5_sf94_effectsize_15,d5_sf94_effectsize_10, d5_sf94_effectsize_05,
+                       d8_sf94_effectsize_15, d8_sf94_effectsize_10, d8_sf94_effectsize_05)
 write.csv(sf94_samplesize,"/home/skerr/Git/SF94/Outputs/sf94_samplesize.csv")
-
+write.csv(sf94_effectsize,"/home/skerr/Git/SF94/Outputs/sf94_effectsize.csv")
+write.csv(meanSD,"/home/skerr/Git/SF94/Outputs/meanSD.csv")
 ###########################################################################################################################
 #WHO
 WHOD5_model_S<-polr(as.factor(WHOD5_P) ~ age_estimateyears+ sex, data = regresson_df_P, Hess=T)
@@ -707,15 +711,19 @@ pavg <- (p1 + p2) / 2
 posamsize(p=pavg, odds.ratio=OR, alpha=alpha, power=power)
 }
 
-who_effectsize_d5_15<-who_effectsize_function( 0.05, 0.8, d5_effectsize_who_15, p1_D5)
-who_effectsize_d5_10<-who_effectsize_function( 0.05, 0.8, d5_effectsize_who_10, p1_D5)
-who_effectsize_d5_05<-who_effectsize_function( 0.05, 0.8, d5_effectsize_who_05, p1_D5)
-who_effectsize_d8_15<-who_effectsize_function( 0.05, 0.8, d8_effectsize_who_15, p1_D8)
-who_effectsize_d8_10<-who_effectsize_function( 0.05, 0.8, d8_effectsize_who_10, p1_D8)
-who_effectsize_d8_05<-who_effectsize_function( 0.05, 0.8, d8_effectsize_who_05, p1_D8)
+who_samplesize_d5_15<-who_effectsize_function( 0.05, 0.8, d5_effectsize_who_15, p1_D5)
+who_samplesize_d5_10<-who_effectsize_function( 0.05, 0.8, d5_effectsize_who_10, p1_D5)
+who_samplesize_d5_05<-who_effectsize_function( 0.05, 0.8, d5_effectsize_who_05, p1_D5)
+who_samplesize_d8_15<-who_effectsize_function( 0.05, 0.8, d8_effectsize_who_15, p1_D8)
+who_samplesize_d8_10<-who_effectsize_function( 0.05, 0.8, d8_effectsize_who_10, p1_D8)
+who_samplesize_d8_05<-who_effectsize_function( 0.05, 0.8, d8_effectsize_who_05, p1_D8)
 
-who_effectsize<-cbind(who_effectsize_d5_05,who_effectsize_d5_10,who_effectsize_d5_15,who_effectsize_d8_05,who_effectsize_d8_10,who_effectsize_d8_15)
+who_effectsize<-cbind(d5_effectsize_who_15, d5_effectsize_who_10, d5_effectsize_who_05,
+              d8_effectsize_who_15, d8_effectsize_who_10, d8_effectsize_who_05)
 write.csv(who_effectsize,"/home/skerr/Git/SF94/Outputs/who_effectsize.csv")
+who_samplesize<-cbind(who_samplesize_d5_05,who_samplesize_d5_10,who_samplesize_d5_15,
+                      who_samplesize_d8_05,who_samplesize_d8_10,who_samplesize_d8_15)
+write.csv(who_samplesize,"/home/skerr/Git/SF94/Outputs/who_samplesize.csv")
 
 
 #############################################################################################################
