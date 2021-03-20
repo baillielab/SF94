@@ -10,6 +10,7 @@ library(plumber)
 library(data.table)
 library(stringr)
 library(Hmisc)
+library(dplyr)
 
 ####################################################################
 
@@ -17,20 +18,18 @@ df<-fread("/home/skerr/Git/SF94/Code/sf94_api/ccp_subset_simulated_api.csv", dat
 
 ####################### NON-API FUNCTIONS ################################
 
-apply_exclusion <- function(df, age_lb, age_up, frailty_lb, frailty_ub, resp_None, resp_HNFC, resp_NIV, resp_IMV){
-  
-  resp_supp_include <- resp_supp_levels[c(resp_None, resp_HNFC, resp_NIV, resp_IMV)]
-  
+apply_exclusion <- function(df, age_lb, age_up, frailty_lb, frailty_ub, resp_supp_include ){
+
   return(filter(df, age_estimateyears >= age_lb & age_estimateyears <= age_ub  
           &  clinical_frailty >= frailty_lb & clinical_frailty <= frailty_ub &
           respiratory_support %in% resp_supp_include))
 }
 
+
 # Effect size calculator for logistic regression
 effect_size_calc <- function(prob_pred, treatment, coef){
   return( mean( log((treatment*(1-prob_pred)) / (1- treatment * prob_pred)) / coef , na.rm = TRUE) )
 }
-
 
 # Effect size calculator for odds ratio in proportional odds model
 effect_size_calc_OR <- function(prob_pred, treatment){
@@ -56,11 +55,11 @@ coefs <- data.frame( sf94_d5 = -1.64419961,
 
 ###################### API FUNCTION #######################################
 
-#* Return the sum of two numbers
+#* Calculate required sample size
 #* @param model What is the model?
 #* @param treatment What is the target multiplier of day 28 mortality?
 #* @param power What is the desired statistical power? 
-#* @param alpha What is the desired significance level? 
+#* @param confidence What is the desired confidence level? 
 #* @param age_lb What is the lower bound for age?
 #* @param age_ub What is the upper bound for age?
 #* @param frailty_lb What is the lower bound for frailty?
@@ -69,24 +68,27 @@ coefs <- data.frame( sf94_d5 = -1.64419961,
 #* @param resp_HNFC Include people who are are on HNFC?
 #* @param resp_NIV Include people who are are on NIV?
 #* @param resp_IMV Include people who are are on IMV?
-#* @get /sampleSize
-function(model, treatment, power, alpha, age_lb, age_ub, frailty_lb, frailty_ub, resp_None, resp_HNFC, resp_NIV, resp_IMV) {
+#* @get /sample_size_calc
+function(model, treatment, power, confidence, age_lb, age_ub, frailty_lb, frailty_ub, resp_None, resp_HNFC, resp_NIV, resp_IMV) {
   
+  treatment <- as.numeric(treatment)
+  power <- as.numeric(power)
+  confidence <- as.numeric(confidence)
   age_lb <- as.numeric(age_lb)
   age_ub <- as.numeric(age_ub)
-  frailty_lb <- as.numeric(age_lb)
-  frailty_ub <- as.numeric(age_ub)
+  frailty_lb <- as.numeric(frailty_lb)
+  frailty_ub <- as.numeric(frailty_ub)
   
+  resp_supp_include <- resp_supp_levels[as.logical(as.numeric(c( resp_None, resp_HNFC, resp_NIV, resp_IMV)))]
   
+  alpha <- 1 - confidence
   
   day <- as.numeric(str_sub(model,-1))
   
   col <- paste(model, '_model_pred', sep = '')
   
-  subset <- apply_exclusion(df, age_lb, age_up, frailty_lb, frailty_ub, resp_None, resp_HNFC, resp_NIV, resp_IMV)
-  
-  # Now calculate required sample size here
-  
+  subset <- apply_exclusion(df, age_lb, age_up, frailty_lb, frailty_ub, resp_supp_include)
+
   if(model %in%  logisticModels){
     
     if(  day == 5){
@@ -99,14 +101,11 @@ function(model, treatment, power, alpha, age_lb, age_ub, frailty_lb, frailty_ub,
     
     coef <- pull(coefs, model)
     
-    # Calculate effect size
     effect_size <- effect_size_calc( pull(subset, col), treatment, coef)
   
     # calculate sample size for a t test
     power1 <- power.t.test(n=NULL, delta=effect_size, sd=SD, power=power, sig.level = alpha)
     # apply ANCOVA correction
-    power <- 2*round(((1-(rho^2))*power1$n))
-    
     ntotal <- 2*round(((1-(rho^2))*power1$n))
     
     }else if (model %in% propOddsModels  ){
@@ -119,26 +118,26 @@ function(model, treatment, power, alpha, age_lb, age_ub, frailty_lb, frailty_ub,
     pavg <- (p1 + p2) / 2
       
     ntotal <- round( as.numeric(posamsize(p=pavg, odds.ratio=oddsRatio, alpha=alpha, power=power)[1] )  )
-      
     }
   
   return(ntotal)
 }
 
 
-#model <- 'who_d8'
-#treatment <- 0.85
-#power <- 0.8
-#age_lb <- 20
-#age_ub <- 80
-#frailty_lb <- 0
-#frailty_ub <- 10
-#resp_None <- TRUE
-#resp_HNFC <- TRUE
-#resp_NIV <- TRUE
-#resp_IMV <- TRUE
-#alpha <- 0.05
+
+#model <- 'sf94_d5'
+#treatment <- '0.85'
+#power <- '0.8'
+#age_lb <- '20'
+#age_ub <- '80'
+#frailty_lb <- '0'
+#frailty_ub <- '10'
+#resp_None <- '1'
+#resp_HNFC <- '0'
+#resp_NIV <- '1'
+#resp_IMV <- '1'
+#confidence <- '0.95'
+
+#sample_size_calc(model, treatment, power, confidence, age_lb, age_ub, frailty_lb, frailty_ub, resp_None, resp_HNFC, resp_NIV, resp_IMV)
 
 
-#power_calc(model, treatment, power, age_lb, age_up, frailty_lb, frailty_ub, 
-#           resp_None, resp_HNFC, resp_NIV, resp_IMV, alpha)
