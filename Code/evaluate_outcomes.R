@@ -507,6 +507,11 @@ time_to_improvement<-data.frame(time_to_improvement)
 #bind to rest of data
 regresson_df_P<-left_join(regresson_df_P, time_to_improvement, by="subjid")
 
+attach(regresson_df_P)
+ddist <- datadist(sf94_day5_P, sf94_day8_P, sf94_day0, sex, age_estimateyears, mortality_28, WHOD5_P, WHOD8_P,
+                  sustained_1L_improvement, sustained_2L_improvement)
+options(datadist='ddist')
+detach(regresson_df_P)
 
 #apply age filter and supp oxygen filter
 subjects_to_include <- filter(df_1, ( fio2 >=0.22 & days_since_start %in% c(0,1,2)  & age_estimateyears >19 & age_estimateyears <76 ) )['subjid']
