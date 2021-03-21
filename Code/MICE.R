@@ -584,3 +584,28 @@ sf94_25_D8<-abseffect_size(absolute_mort_reduction,0.25,sf94_d8_2)
 
 write.csv(sf94_25_D5,"/home/skerr/Git/SF94/Outputs/sf94_25_D5.csv")
 write.csv(sf94_25_D8,"/home/skerr/Git/SF94/Outputs/sf94_25_D8.csv")
+
+#############################################################################################################
+
+#Then fit models (splines using 4 knots here)
+linear_model_P <- lrm(mortality_28 ~ sf94_day0 + sf94_day5_P, regresson_df_P, x=TRUE, y=TRUE)
+linear_uni_model<-lrm(mortality_28 ~ sf94_day5_P, regresson_df_P, x=TRUE, y=TRUE)
+linear_uni_model_D8<-lrm(mortality_28 ~ sf94_day8_P, regresson_df_P, x=TRUE, y=TRUE)
+univariate_model<-lrm(mortality_28 ~ sf94_day0, regresson_df_P, x=TRUE, y=TRUE)
+#Visualise using exp scale
+plot_associations_linear_exp_P <- ggplot(Predict(linear_model_P, fun=plogis), sepdiscrete='vertical',
+                                         ylab= "Risk of 28-day mortality")
+
+plot_linear_exp_p<-plot_associations_linear_exp_P + labs(title= "Relationship between S/F94 and mortality")
+#change label names
+plot_linear_exp_p$data$.predictor.<-factor(plot_linear_exp_p$data$.predictor., labels= c("Day 0 S/F94",
+                                                                                         "Day 5 S/F94"))
+plot_linear_exp_p + facet_grid(.~ .predictor., labeller = label_value)
+
+#univariable model
+plot_linear_uni<-ggplot(Predict(univariate_model))
+plot_linear_exp_uni<-ggplot(Predict(univariate_model, fun=plogis), ylab= "Risk of 28-day mortality")
+plot_linear_exp_uni
+
+#OUTPUT 
+#2 graphs
