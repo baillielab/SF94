@@ -523,6 +523,21 @@ subjects_to_include <- filter(df_1, (age_estimateyears >19 & age_estimateyears <
 subset3<-regresson_df_P[regresson_df_P$subjid %in% subjects_to_include$subjid,] 
 subset3 <- as.data.frame(subset3)
 
+#######################################Mortality##################################################
+mortality_power<-function(subset_df, mort_dif){
+  p1 <- sum(subset_df$mortality_28 == 1, na.rm = T)/ sum(!is.na(subset_df$mortality_28))
+  p2=p1*mort_dif
+  ss_mortality<-power.prop.test(power=0.8, p1=p1, p2=p2)
+  return(ss_mortality)
+}
+
+subset1_mort_SS<-mortality_power(subset1, 0.85)
+subset2_mort_SS<-mortality_power(subset2, 0.85)
+subset3_mort_SS<-mortality_power(subset3, 0.85)
+saveRDS(subset1_mort_SS,"/home/skerr/Git/SF94/Outputs/subset1_mort_SS.rds")
+saveRDS(subset2_mort_SS,"/home/skerr/Git/SF94/Outputs/subset2_mort_SS.rds")
+saveRDS(subset3_mort_SS,"/home/skerr/Git/SF94/Outputs/subset3_mort_SS.rds")
+
 #############################################################################################################
 #Summary stats
 function_mean_sd<-function(subset_df){
@@ -668,16 +683,16 @@ who_samplesize<-cbind(who_samplesize_SS1,who_samplesize_SS2,who_samplesize_SS3)
 write.csv(who_effectsize,"/home/skerr/Git/SF94/Outputs/who_effectsize.csv")
 write.csv(who_samplesize,"/home/skerr/Git/SF94/Outputs/who_samplesize.csv")
 
-#WHO time to improvement
-sus_1L_D5<-lrm(sustained_1L_improvement ~ sf94_day5_P + sf94_day0 + age_estimateyears+ sex, data = regresson_df_P)
-sus_1L_D8<-lrm(sustained_1L_improvement ~ sf94_day8_P + sf94_day0 + age_estimateyears+ sex, data = regresson_df_P)
-sus_2L_D5<-lrm(sustained_2L_improvement ~ sf94_day5_P + sf94_day0 + age_estimateyears+ sex, data = regresson_df_P)
-sus_2L_D8<-lrm(sustained_2L_improvement ~ sf94_day8_P + sf94_day0 + age_estimateyears+ sex, data = regresson_df_P)
 
-#######################################################################
+####################################################################################################################################
 ## Sample size formulae for analyses using difference in proportions ##
-#######################################################################
 
+sustained_improvement_function<-function(subset_df){
+  sus_1L<-lrm(day28mortality ~ sustained_1L_improvement + age_estimateyears+ sex, data = subset_df)
+  sus_2L<-lrm(day28mortality ~ sustained_2L_improvement + age_estimateyears+ sex, data = subset_df)
+  
+}
+lrm(day28mortality ~ sustained_1L_improvement + age_estimateyears+ sex, data = regresson_df_P)
 ## these sample size calculations are done using the R function power.prop.test but with a continuity correction applied 
 ## see Sample Size Calculations for Randomized Controlled Trials, Wittes, Epidemiol Rev Vol. 24, No. 1, 2002 for details of formulae for continuity correction
 prop_1L_sustained<-sum(regresson_df_P$sustained_1L_improvement == 1, na.rm=T)/ sum(!is.na(regresson_df_P$sustained_1L_improvement))
