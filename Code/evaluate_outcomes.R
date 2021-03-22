@@ -674,6 +674,20 @@ library(Hmisc)
 # n= number of patients with non-missing values of WHO day 5 in the info I have
 # We can only estimate the vector of probabilities for control group, denoted by p1 (the numbers in each WHO category at day 5 have been taken from the info I have)
 
+who_prop<-function(subset_df){
+  p1_D5 <-table(subset_df[,"WHOD5_P"])/sum(!is.na(subset_df[,"WHOD5_P"]))
+  p1_D8 <-table(subset_df[,"WHOD8_P"])/sum(!is.na(subset_df[,"WHOD8_P"]))
+  prop_who<-cbind(p1_D5,p1_D8)
+  return(prop_who)
+}
+who_prop_ss1<-who_prop(subset1)
+who_prop_ss2<-who_prop(subset2)
+who_prop_ss3<-who_prop(subset3)
+who_prop_output<-cbind(who_prop_ss1, who_prop_ss2, who_prop_ss3)
+write.csv(who_prop_output,"/home/skerr/Git/SF94/Outputs/who_prop_output.csv")
+
+
+
 who_effectsize_function_ss<-function(subset_df, who_subset_df){
   p1_D5 <-table(subset_df[,"WHOD5_P"])/sum(!is.na(subset_df[,"WHOD5_P"]))
   p1_D8 = table(subset_df[,"WHOD8_P"])/sum(!is.na(subset_df[,"WHOD8_P"]))
