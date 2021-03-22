@@ -169,6 +169,8 @@ df$daily_bun_lborres<-ifelse(df$daily_bun_lborresu == "mg/dL",
 
 df['daily_bun_lborresu'][ !is.na( df['daily_bun_lborresu'])  ] <- 'mmol/L'
 
+df$daily_bun_lborresu <- ifelse( is.na(df$daily_bun_lborres), NA, df$daily_bun_lborresu)
+
 #creatinin measured as mg/dl or umol/L 
 #to convert from mg/dl to umol/L, multiply by 88.4
 df$daily_creat_lborres<-ifelse(df$daily_creat_lborresu == "mg/dl", 
@@ -177,6 +179,7 @@ df$daily_creat_lborres<-ifelse(df$daily_creat_lborresu == "mg/dl",
 
 df['daily_creat_lborresu'][ !is.na( df['daily_creat_lborresu'])  ] <- 'umol/L'
 
+df$daily_creat_lborresu <- ifelse( is.na(df$daily_creat_lborres), NA, df$daily_creat_lborresu)
 
 #crp measured in 3 ways: mg/dL, mg/L (majority) and ug/ml. mg/L=ug/ml
 df$daily_crp_lborres<-ifelse(df$daily_crp_lborresu == "mg/dL",
@@ -184,12 +187,15 @@ df$daily_crp_lborres<-ifelse(df$daily_crp_lborresu == "mg/dL",
 
 df['daily_crp_lborresu'][ !is.na( df['daily_crp_lborresu'])  ] <- 'ug/ml'
 
+df$daily_crp_lborresu <- ifelse( is.na(df$daily_crp_lborres), NA, df$daily_crp_lborresu)
 
 # Celsius = (Farrenheit - 32) *5/9
 df$daily_temp_vsorres<-ifelse(df$daily_temp_vsorresu == "°F",
                               (df$daily_temp_vsorres - 32) * 5/9, df$daily_temp_vsorres)
 
 df['daily_temp_vsorresu'][ !is.na( df['daily_temp_vsorresu'])  ] <- '°C'
+
+df$daily_temp_vsorresu <- ifelse( is.na(df$daily_temp_vsorres), NA, df$daily_temp_vsorresu)
 
 ####################################### CLEANING: #######################################
 
