@@ -329,37 +329,30 @@ proportional_numbers<-cbind(sum_d5[c(1,2)], sum_d8[c(1,2)],sum_d10[c(1,2)],sum_d
 write.csv(proportional_numbers,"/home/skerr/Git/SF94/Outputs/proportional_numbers.csv")
 
 day05_P<-day05 #for proportional deaths
-mortality<-df_1[,c("subjid","mortality_28")]
+mortality<-df_1[,c("subjid","mortality_28", "day_of_death", "day_of_discharge")]
 mortality<-mortality%>%
   group_by(subjid)%>%
   slice(which.min(mortality_28))
 day05_P<-left_join(day05_P, mortality, by="subjid") #add mortality
-
-prop_added<- function(sf_day_to_replace, dead_to_add_fun, alive_to_add_fun){
+head(day05_P)
+prop_added<- function(sf_day_to_replace, dead_to_add_fun, alive_to_add_fun, day_of_interest){
   set.seed(1234)
-  rows_to_replace<-which(is.na(day05_P[[sf_day_to_replace]]) & day05_P$mortality_28 == 1) #find rows with missing values and who died
+  rows_to_replace<-which(is.na(day05_P[[sf_day_to_replace]]) &
+                           day05_P$mortality_28 == 1 & day05_P$day_of_death < day_of_interest ) #find rows with missing values and who died
   day05_P[[sf_day_to_replace]][sample(rows_to_replace, dead_to_add_fun)]<- 0.5 #and add correct number of dead patients
-  rows_to_replace<-which(is.na(day05_P[[sf_day_to_replace]]) & day05_P$mortality_28 == 0) #same for patients who lived
+  rows_to_replace<-which(is.na(day05_P[[sf_day_to_replace]]) 
+                         & day05_P$mortality_28 == 0 & day05_P$day_of_discharge < day_of_interest) #same for patients who lived
   day05_P[[sf_day_to_replace]][sample(rows_to_replace, alive_to_add_fun)]<- 4.76
   day05_P<-data.frame(day05_P)
   day05_P<-day05_P[c("subjid", sf_day_to_replace)]
   return(day05_P)
 }
 
-sf94_day5_P<-prop_added("sf94_day5", sum_d5[("dead to add")], sum_d5[("alive to add")])
-sf94_day8_P<-prop_added("sf94_day8", sum_d8[("dead to add")], sum_d8[("alive to add")])
-sf94_day10_P<-prop_added("sf94_day10", sum_d10[("dead to add")], sum_d10[("alive to add")])
-sf94_day11_P<-prop_added("sf94_day11", sum_d11[("dead to add")], sum_d11[("alive to add")])
-sf94_day12_P<-prop_added("sf94_day12", sum_d12[("dead to add")], sum_d12[("alive to add")])
-sf94_day13_P<-prop_added("sf94_day13", sum_d13[("dead to add")], sum_d13[("alive to add")])
-sf94_day14_P<-prop_added("sf94_day14", sum_d14[("dead to add")], sum_d14[("alive to add")])
-sf94_day15_P<-prop_added("sf94_day15", sum_d15[("dead to add")], sum_d15[("alive to add")])
-sf94_day16_P<-prop_added("sf94_day16", sum_d16[("dead to add")], sum_d16[("alive to add")])
+sf94_day5_P<-prop_added("sf94_day5", sum_d5[("dead to add")], sum_d5[("alive to add")], 5)
+sf94_day8_P<-prop_added("sf94_day8", sum_d8[("dead to add")], sum_d8[("alive to add")], 8)
 
 #merge dataframes together
 #library(plyr)
-sf94_d10_d16<-join_all(list(sf94_day5_P, sf94_day8_P, sf94_day10_P,sf94_day11_P,sf94_day12_P,sf94_day13_P,
-                            sf94_day14_P,sf94_day15_P,sf94_day16_P), by="subjid", type="full")
 sf94_D5_D8<-join_all(list(sf94_day5_P, sf94_day8_P), by="subjid", type="full") #if we want to add additional days to the analysis
 sf94_D5_D8<-sf94_D5_D8%>%
   dplyr::rename(sf94_day5_P= sf94_day5, sf94_day8_P=sf94_day8) #change names to differentiate from un-edited values
