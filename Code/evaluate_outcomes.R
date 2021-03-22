@@ -526,6 +526,16 @@ subset3<-regresson_df_P[regresson_df_P$subjid %in% subjects_to_include$subjid,]
 subset3 <- as.data.frame(subset3)
 
 #######################################Mortality##################################################
+mortality_proportion<-function(subset_df){
+  p1 <- sum(subset_df$mortality_28 == 1, na.rm = T)/ sum(!is.na(subset_df$mortality_28))
+  return(p1)
+}
+mort_prop_1<-mortality_proportion(subset1)
+mort_prop_2<-mortality_proportion(subset2)
+mort_prop_3<-mortality_proportion(subset3)
+mort_prop<-cbind(mort_prop_1, mort_prop_2, mort_prop_3)
+write.csv(mort_prop,"/home/skerr/Git/SF94/Outputs/mort_prop.csv")
+
 mortality_power<-function(subset_df, mort_dif){
   p1 <- sum(subset_df$mortality_28 == 1, na.rm = T)/ sum(!is.na(subset_df$mortality_28))
   p2=p1*mort_dif
@@ -539,7 +549,7 @@ subset3_mort_SS<-mortality_power(subset3, 0.85)
 saveRDS(subset1_mort_SS,"/home/skerr/Git/SF94/Outputs/subset1_mort_SS.rds")
 saveRDS(subset2_mort_SS,"/home/skerr/Git/SF94/Outputs/subset2_mort_SS.rds")
 saveRDS(subset3_mort_SS,"/home/skerr/Git/SF94/Outputs/subset3_mort_SS.rds")
-
+readRDS("/Users/Maaike/Downloads/subset3_mort_SS.rds")
 #############################################################################################################
 #Summary stats
 function_mean_sd<-function(subset_df){
@@ -552,6 +562,7 @@ meanSD_subset1<-function_mean_sd(subset1)
 meanSD_subset2<-function_mean_sd(subset2)
 meanSD_subset3<-function_mean_sd(subset3)
 meanSD_output<-cbind(meanSD_subset1,meanSD_subset2, meanSD_subset3)
+
 
 correlation_function<-function(subset_df) {
   correlation_subset_05<-subset(subset_df, ((!is.na(subset_df[,"sf94_day0"])&(!is.na(subset_df[,"sf94_day5_P"])))))
@@ -590,9 +601,6 @@ sf94_regression<-function(subset_df, mort_difference){
   d5_d8_effectsize<-cbind(d5_sf94_effectsize, d8_sf94_effectsize)
   return(d5_d8_effectsize)
 }
-
-
-
 
 sf94_regression_subset1<-sf94_regression(subset1,0.85)
 sf94_regression_subset2<-sf94_regression(subset2,0.85)
@@ -711,6 +719,6 @@ sustained_improvement_subset3<-sustained_improvement_power(subset3, 0.85)
 saveRDS(sustained_improvement_subset1,"/home/skerr/Git/SF94/Outputs/sustained_improvement_subset1.rds")
 saveRDS(sustained_improvement_subset2,"/home/skerr/Git/SF94/Outputs/sustained_improvement_subset2.rds")
 saveRDS(sustained_improvement_subset3,"/home/skerr/Git/SF94/Outputs/sustained_improvement_subset3.rds")
-
+readRDS("/Users/Maaike/Downloads/sustained_improvement_subset3.rds")
 
 
