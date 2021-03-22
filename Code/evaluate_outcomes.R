@@ -14,8 +14,6 @@ subjects_to_include <- filter(df_1, ( fio2 >=0.22 & days_since_start %in% c(0,1,
 subset1<-df_1[df_1$subjid %in% subjects_to_include$subjid,] 
 subset1 <- as.data.frame(subset1)
 
-bob <- lrm(mortality_28 ~ age_estimateyears, data=subset1)
-
 #OUTPUT
 #number of subjects before and after filters
 
