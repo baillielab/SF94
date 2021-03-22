@@ -572,6 +572,8 @@ cor_subset2<-correlation_function(subset2)
 cor_subset3<-correlation_function(subset3)
 correlation_output<-cbind(cor_subset1, cor_subset2, cor_subset3)
 
+
+
 sf94_regression<-function(subset_df, mort_difference){
   sf94_d5<-lrm(mortality_28 ~ sf94_day5_P+sf94_day0+ age_estimateyears+ sex, data = subset_df)
   sf94_d8<-lrm(mortality_28 ~ sf94_day8_P+sf94_day0+ age_estimateyears+ sex, data = subset_df)

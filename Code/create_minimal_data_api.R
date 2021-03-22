@@ -21,10 +21,10 @@ df[df == 'NO'] <- 0
 selectionVars <-  c('clinical_frailty', 'respiratory_support')
 
 # Ppredictor variables in the various models
-indVars <- c('sf94_day0', 'sf94_day5', 'sf94_day8', 'whoImprovement1', 'whoImprovement2', 'age_estimateyears', 'sex')
+indVars <- c('sf94_day0', 'sf94_day5', 'sf94_day8', 'age_estimateyears', 'sex')
 
 # Dependent variables in the various models
-depVars <- c('day28_mortality', 'whoImprovement1', 'whoImprovement2', 'who_day5', 'who_day8')
+depVars <- c('day28_mortality', 'who_day5', 'who_day8')
 
 # Variables that will be used in power calculations
 utilityVars <- c('who_day0')
@@ -46,57 +46,34 @@ logistic <- function(x, coef){
 
 # Model coefficients
 #Intercept       sf94_day5_P         sf94_day0 age_estimateyears          sex=Male 
-#-1.89117524       -1.64419961       -0.04653267        0.07267907        0.20714655 
-sf94_day5_model_coef <- c(-1.89117524, -1.64419961, -0.04653267, 0.07267907, 0.20714655 )
+#-2.80402241       -1.36874782        0.11562657        0.06837051        0.15284334 
+sf94_day5_model_coef <- c(-2.80402241 , -1.36874782, 0.11562657, 0.06837051, 0.15284334 )
 
 #Intercept       sf94_day8_P         sf94_day0 age_estimateyears          sex=Male 
-#-0.98185830       -2.04131763       -0.06151697        0.07250340        0.21240031 
-sf94_day8_model_coef <- c(-0.98185830, -2.04131763, -0.06151697, 0.07250340, 0.21240031)
+#-2.39597844       -1.63192149        0.11583817        0.07057511        0.03101884 
+sf94_day8_model_coef <- c(-2.39597844 , -1.63192149 , 0.11583817, 0.07057511, 0.03101884)
 
-#Intercept       sf94_day5_P         sf94_day0 age_estimateyears          sex=Male 
-#-0.088478842       0.460245766      -0.004033554      -0.019552229      -0.109547236 
-sus_1L_day5_model_coef <- c(-0.088478842, 0.460245766, -0.004033554, -0.019552229, -0.109547236)
 
-#Intercept       sf94_day8_P         sf94_day0 age_estimateyears          sex=Male 
-#-1.006224691       0.537649175      -0.075947423      -0.007904097       0.03161860
-sus_1L_day8_model_coef <- c(-1.006224691, 0.537649175, -0.075947423, -0.007904097, 0.03161860)
-
-#Intercept       sf94_day5_P         sf94_day0 age_estimateyears          sex=Male 
-#0.31970770        0.12559804       -0.40591675       -0.02084021        0.06568982 
-sus_2L_day5_model_coef <- c(0.31970770, 0.12559804, -0.40591675, -0.02084021, 0.06568982)
-
-#Intercept       sf94_day8_P         sf94_day0 age_estimateyears          sex=Male 
-#-0.11560870        0.23233468       -0.47970481       -0.01755118        0.17794323 
-sus_2L_day8_model_coef <- c(-0.11560870, 0.23233468, -0.47970481, -0.01755118, 0.17794323 )
-  
 # These are propotional odds models
 # For these ones, the intercept (first component) must be set as the threshold value between who levels 9 and 10
 # The rest should be MINUS the coefficients from the model.
 
 #age_estimateyears           sexMale 
-#0.01987002        0.23623191
+#0.02220284        0.30985545 
 #4|5       5|6       6|7       7|8       8|9      9|10 
-#0.6017289 1.6012292 2.6964929 2.8625757 3.4732608 3.8456992
-who_day5_model_coef <- c(3.8456992, -0.01987002, -0.23623191)
+#0.8992445 1.8169024 2.8521141 3.0405687 3.8400794 4.3587487 
+who_day5_model_coef <- c(4.3587487 , -0.02220284 , -0.30985545)
 
-
-#age_estimateyears           sexMale 
-#0.03000907        0.20834102
+# age_estimateyears           sexMale 
+# 0.02646835        0.27379549
 #4|5      5|6      6|7      7|8      8|9     9|10 
-#1.751196 2.466708 3.134009 3.306187 3.788585 4.005230
-who_day8_model_coef <- c(4.005230, -0.03000907, -0.20834102)
-
+#1.571906 2.259101 2.925450 3.154584 3.853252 4.252926 
+who_day8_model_coef <- c(4.252926, -0.02646835 , -0.27379549)
 
 
 # model predictions
 df$sf94_day5_model_pred <- logistic(df[c('sf94_day5', 'sf94_day0', 'age_estimateyears', 'sex')], sf94_day5_model_coef)
 df$sf94_day8_model_pred <- logistic(df[c('sf94_day8', 'sf94_day0', 'age_estimateyears', 'sex')], sf94_day8_model_coef)
-
-df$sus_1L_day5_model_pred <- logistic(df[c('sf94_day5', 'sf94_day0', 'age_estimateyears', 'sex')], sus_1L_day5_model_coef)
-df$sus_1L_day8_model_pred <- logistic(df[c('sf94_day8', 'sf94_day0', 'age_estimateyears', 'sex')], sus_1L_day8_model_coef)
-
-df$sus_2L_day5_model_pred <- logistic(df[c('sf94_day5', 'sf94_day0', 'age_estimateyears', 'sex')], sus_2L_day5_model_coef)
-df$sus_2L_day8_model_pred <- logistic(df[c('sf94_day8', 'sf94_day0', 'age_estimateyears', 'sex')], sus_2L_day8_model_coef)
 
 df$who_day5_model_pred <- 1 - logistic(df[c('age_estimateyears', 'sex')], who_day5_model_coef)
 df$who_day8_model_pred <- 1 - logistic(df[c('age_estimateyears', 'sex')], who_day8_model_coef)
@@ -104,8 +81,8 @@ df$who_day8_model_pred <- 1 - logistic(df[c('age_estimateyears', 'sex')], who_da
 ##############################################################################################
 
 # Choose only model prediction variables, selection variables, and utility variables
-df <- select(df, c('age_estimateyears', 'clinical_frailty', 'respiratory_support', 'sf94_day0', 'sf94_day5', 
-                   'sf94_day8', 'who_day0', 'whoImprovement1', 'whoImprovement2') | ends_with('model_pred') )
+df <- select(df, c('day28_mortality', 'age_estimateyears', 'clinical_frailty', 'respiratory_support', 'sf94_day0', 'sf94_day5', 
+                   'sf94_day8', 'who_day0') | ends_with('model_pred') )
 
 # Save minimal dataset to be used for web API
 write.csv(df ,"/home/skerr/Git/SF94_API/ccp_subset_simulated_api.csv", row.names = FALSE)
