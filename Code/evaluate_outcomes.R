@@ -337,11 +337,9 @@ day05_P<-left_join(day05_P, mortality, by="subjid") #add mortality
 head(day05_P)
 prop_added<- function(sf_day_to_replace, dead_to_add_fun, alive_to_add_fun, day_of_interest){
   set.seed(1234)
-  rows_to_replace<-which(is.na(day05_P[[sf_day_to_replace]]) &
-                           day05_P$mortality_28 == 1 & day05_P$day_of_death < day_of_interest ) #find rows with missing values and who died
+  rows_to_replace<-which(is.na(day05_P[[sf_day_to_replace]]) &day05_P$day_of_death < day_of_interest ) #find rows with missing values and who died
   day05_P[[sf_day_to_replace]][sample(rows_to_replace, dead_to_add_fun)]<- 0.5 #and add correct number of dead patients
-  rows_to_replace<-which(is.na(day05_P[[sf_day_to_replace]]) 
-                         & day05_P$mortality_28 == 0 & day05_P$day_of_discharge < day_of_interest) #same for patients who lived
+  rows_to_replace<-which(is.na(day05_P[[sf_day_to_replace]]) & day05_P$day_of_discharge < day_of_interest) #same for patients who lived
   day05_P[[sf_day_to_replace]][sample(rows_to_replace, alive_to_add_fun)]<- 4.76
   day05_P<-data.frame(day05_P)
   day05_P<-day05_P[c("subjid", sf_day_to_replace)]
