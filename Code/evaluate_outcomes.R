@@ -3,7 +3,6 @@ library(ggplot2)
 library(data.table)
 library(tidyr)
 library(rms)
-library(dplyr)
 
 df_1<-fread("/home/skerr/Data/ccp_subset_derived.csv", data.table = FALSE )
 
@@ -14,6 +13,7 @@ subjects_to_include <- filter(df_1, ( fio2 >=0.22 & days_since_start %in% c(0,1,
 subset1<-df_1[df_1$subjid %in% subjects_to_include$subjid,] 
 subset1 <- as.data.frame(subset1)
 
+bob <- lrm(mortality_28 ~ age_estimateyears, data=subset1)
 
 #OUTPUT
 #number of subjects before and after filters
@@ -358,7 +358,7 @@ sf94_day15_P<-prop_added("sf94_day15", sum_d15[("dead to add")], sum_d15[("alive
 sf94_day16_P<-prop_added("sf94_day16", sum_d16[("dead to add")], sum_d16[("alive to add")])
 
 #merge dataframes together
-library(plyr)
+#library(plyr)
 sf94_d10_d16<-join_all(list(sf94_day5_P, sf94_day8_P, sf94_day10_P,sf94_day11_P,sf94_day12_P,sf94_day13_P,
                             sf94_day14_P,sf94_day15_P,sf94_day16_P), by="subjid", type="full")
 sf94_D5_D8<-join_all(list(sf94_day5_P, sf94_day8_P), by="subjid", type="full") #if we want to add additional days to the analysis
@@ -442,7 +442,7 @@ cohort_size_d8<-nrow(day8_prop)
 miss_day8<-miss_var_summary(day8_prop)
 write.csv(miss_day8,"/home/skerr/Git/SF94/Outputs/miss_day8.csv")
 
-cohort_sizes<-cbind(cohort_size_total, cohort_size_d5, cohort_size_d8)
+#cohort_sizes<-cbind(cohort_size_total, cohort_size_d5, cohort_size_d8)
 write.csv(cohort_sizes,"/home/skerr/Git/SF94/Outputs/cohort_sizes.csv")
 
 dead_alive_d8<-cbind(d8_cohort_sumD5, d8_cohort_sumD8, d8_cohort_sumD10, d8_cohort_sumD11, d8_cohort_sumD12, 
@@ -453,7 +453,7 @@ write.csv(dead_alive_d8,"/home/skerr/Git/SF94/Outputs/dead_alive_d8.csv")
 
 #add proportional D5 and D8 to D0
 sf94_D0<-day05[,c("subjid", "sf94_day0")] #only take necessary columns
-library(plyr)
+#library(plyr)
 sf94_D5_D8<-merge(sf94_D5_D8, sf94_D0, by="subjid") #combine 2 dataframes by subjid
 detach("package:plyr", unload=T)
 #calculate delta variables
@@ -591,6 +591,9 @@ sf94_regression<-function(subset_df, mort_difference){
   d5_d8_effectsize<-cbind(d5_sf94_effectsize, d8_sf94_effectsize)
   return(d5_d8_effectsize)
 }
+
+
+
 
 sf94_regression_subset1<-sf94_regression(subset1,0.85)
 sf94_regression_subset2<-sf94_regression(subset2,0.85)
