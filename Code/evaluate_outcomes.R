@@ -508,6 +508,12 @@ time_to_improvement<-data.frame(time_to_improvement)
 
 #bind to rest of data
 regresson_df_P<-left_join(regresson_df_P, time_to_improvement, by="subjid")
+regresson_df_P<-regresson_df_P %>%
+  group_by(subjid)%>%
+  summarise_all(funs(f))
+regresson_df_P<-regresson_df_P %>%
+  group_by(subjid)%>%
+  slice(which(WHOD5_P==min(WHOD5_P)|is.na(WHOD5_P)))
 
 #attach(regresson_df_P)
 #ddist <- datadist(sf94_day5_P, sf94_day8_P, sf94_day0, sex, age_estimateyears, mortality_28, WHOD5_P, WHOD8_P,
