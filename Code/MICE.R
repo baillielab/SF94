@@ -609,3 +609,55 @@ plot_linear_exp_uni
 
 #OUTPUT 
 #2 graphs
+
+lrm(day28mortality ~ sustained_1L_improvement + age_estimateyears+ sex, data = regresson_df_P)
+## these sample size calculations are done using the R function power.prop.test but with a continuity correction applied 
+## see Sample Size Calculations for Randomized Controlled Trials, Wittes, Epidemiol Rev Vol. 24, No. 1, 2002 for details of formulae for continuity correction
+prop_1L_sustained<-sum(regresson_df_P$sustained_1L_improvement == 1, na.rm=T)/ sum(!is.na(regresson_df_P$sustained_1L_improvement))
+## INPUTS REQUIRED ##
+# alpha - significance level 
+# power - specified power
+# p1 - proportion experiencing event within specified time frame in control arm
+# p2 - proportion experiencing event within specified time frame in active arm
+
+ncorrect <- function(n,p1,p2){
+  round((n/4)*(1+sqrt(1+(4/(n*(p1-p2)))))^2)
+}
+
+alpha = 0.05
+power = 0.8
+p1 = prop_1L_sustained
+p2 = 0.20
+# check the risk ratio assumed from the proportions specified
+p2/p1
+
+sample <- power.prop.test(n=NULL,p1=p1,p2=p2,power=power,sig.level=alpha)
+2*ncorrect(sample$n,sample$p1,sample$p2)
+
+library(stringr)
+#parser
+get_model_stats = function(x) {
+  cap = capture.output(print(x))
+  #model stats
+  stats = c()
+  stats$R2.adj = str_match(cap, "R2 adj\\s+ (\\d\\.\\d+)") %>% na.omit() %>% .[, 2] %>% as.numeric()
+  #coef stats lines
+  coef_lines = cap[which(str_detect(cap, "Coef\\s+S\\.E\\.")):(length(cap) - 1)]
+  #parse
+  coef_lines_table = suppressWarnings(readr::read_table(coef_lines %>% stringr::str_c(collapse = "\n")))
+  colnames(coef_lines_table)[1] = "Predictor"
+  list(
+    stats = stats,
+    coefs = coef_lines_table
+  )
+}
+#switch to a tibble as output format
+sus_1L_D5<-get_model_stats(sus_1L_D5)
+sus_1L_D8<-get_model_stats(sus_1L_D8)
+sus_2L_D5<-get_model_stats(sus_2L_D5)
+sus_2L_D8<-get_model_stats(sus_2L_D8)
+
+write.csv(sus_1L_D5['coefs'],"/home/skerr/Git/SF94/Outputs/sus_1L_D5.csv")
+write.csv(sus_1L_D8['coefs'],"/home/skerr/Git/SF94/Outputs/sus_1L_D8.csv")
+write.csv(sus_2L_D5['coefs'],"/home/skerr/Git/SF94/Outputs/sus_2L_D5.csv")
+write.csv(sus_2L_D8['coefs'],"/home/skerr/Git/SF94/Outputs/sus_2L_D8.csv")
