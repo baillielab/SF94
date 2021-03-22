@@ -1,3 +1,4 @@
+library(plyr)
 library(dplyr)
 library(ggplot2)
 library(data.table)
@@ -365,7 +366,7 @@ sf94_D5_D8<-join_all(list(sf94_day5_P, sf94_day8_P), by="subjid", type="full") #
 sf94_D5_D8<-sf94_D5_D8%>%
   dplyr::rename(sf94_day5_P= sf94_day5, sf94_day8_P=sf94_day8) #change names to differentiate from un-edited values
 #change this variable to include another day ^
-detach("package:plyr", unload=T)
+#detach("package:plyr", unload=T)
 #Missing data
 library(naniar)
 day5_P<-sf94_D5_D8[,c("subjid","sf94_day5_P", "sf94_day8_P")]
@@ -443,7 +444,7 @@ miss_day8<-miss_var_summary(day8_prop)
 write.csv(miss_day8,"/home/skerr/Git/SF94/Outputs/miss_day8.csv")
 
 #cohort_sizes<-cbind(cohort_size_total, cohort_size_d5, cohort_size_d8)
-write.csv(cohort_sizes,"/home/skerr/Git/SF94/Outputs/cohort_sizes.csv")
+#write.csv(cohort_sizes,"/home/skerr/Git/SF94/Outputs/cohort_sizes.csv")
 
 dead_alive_d8<-cbind(d8_cohort_sumD5, d8_cohort_sumD8, d8_cohort_sumD10, d8_cohort_sumD11, d8_cohort_sumD12, 
                      d8_cohort_sumD13, d8_cohort_sumD14, d8_cohort_sumD15, d8_cohort_sumD16)
@@ -455,7 +456,7 @@ write.csv(dead_alive_d8,"/home/skerr/Git/SF94/Outputs/dead_alive_d8.csv")
 sf94_D0<-day05[,c("subjid", "sf94_day0")] #only take necessary columns
 #library(plyr)
 sf94_D5_D8<-merge(sf94_D5_D8, sf94_D0, by="subjid") #combine 2 dataframes by subjid
-detach("package:plyr", unload=T)
+#detach("package:plyr", unload=T)
 #calculate delta variables
 sf94_D5_D8$delta_SF94_05<-sf94_D5_D8$sf94_day5_P - sf94_D5_D8$sf94_day0 #calculate difference from day 0 to day 5
 sf94_D5_D8$delta_SF94_08<-sf94_D5_D8$sf94_day8_P - sf94_D5_D8$sf94_day0 #same for D0-D8
@@ -508,11 +509,11 @@ time_to_improvement<-data.frame(time_to_improvement)
 #bind to rest of data
 regresson_df_P<-left_join(regresson_df_P, time_to_improvement, by="subjid")
 
-attach(regresson_df_P)
-ddist <- datadist(sf94_day5_P, sf94_day8_P, sf94_day0, sex, age_estimateyears, mortality_28, WHOD5_P, WHOD8_P,
-                  sustained_1L_improvement, sustained_2L_improvement)
-options(datadist='ddist')
-detach(regresson_df_P)
+#attach(regresson_df_P)
+#ddist <- datadist(sf94_day5_P, sf94_day8_P, sf94_day0, sex, age_estimateyears, mortality_28, WHOD5_P, WHOD8_P,
+#                  sustained_1L_improvement, sustained_2L_improvement)
+#options(datadist='ddist')
+#detach(regresson_df_P)
 
 #apply age filter and supp oxygen filter
 subjects_to_include <- filter(df_1, ( fio2 >=0.22 & days_since_start %in% c(0,1,2)  & age_estimateyears >19 & age_estimateyears <76 ) )['subjid']
