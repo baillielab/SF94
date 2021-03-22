@@ -503,7 +503,7 @@ regresson_df_P<-regresson_df_P %>%
 regresson_df_P<-regresson_df_P %>%
   group_by(subjid)%>%
   slice(which(WHOD5_P==min(WHOD5_P)|is.na(WHOD5_P)))
-
+#write.csv(regresson_df_P,"regresson_df_P.csv")
 #attach(regresson_df_P)
 #ddist <- datadist(sf94_day5_P, sf94_day8_P, sf94_day0, sex, age_estimateyears, mortality_28, WHOD5_P, WHOD8_P,
 #                  sustained_1L_improvement, sustained_2L_improvement)
@@ -671,6 +671,7 @@ library(Hmisc)
 # OR= this will need to be estimated from the models once finalised, but I have assumed a 15% reduction in odds for the moment 
 # n= number of patients with non-missing values of WHO day 5 in the info I have
 # We can only estimate the vector of probabilities for control group, denoted by p1 (the numbers in each WHO category at day 5 have been taken from the info I have)
+
 
 who_effectsize_function_ss<-function(subset_df, who_subset_df){
   p1_D5 <-table(subset_df[,"WHOD5_P"])/sum(!is.na(subset_df[,"WHOD5_P"]))
