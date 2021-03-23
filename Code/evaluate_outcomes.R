@@ -524,36 +524,52 @@ subset3<-regresson_df_P[regresson_df_P$subjid %in% subjects_to_include$subjid,]
 subset3 <- as.data.frame(subset3)
 
 #######################################Mortality##################################################
-mortality_proportion<-function(subset_df){
-  p1 <- sum(subset_df$mortality_28 == 1, na.rm = T)/ sum(!is.na(subset_df$mortality_28))
-  return(p1)
-}
-mort_prop_1<-mortality_proportion(subset1)
-mort_prop_2<-mortality_proportion(subset2)
-mort_prop_3<-mortality_proportion(subset3)
-mort_prop<-cbind(mort_prop_1, mort_prop_2, mort_prop_3)
-write.csv(mort_prop,"/home/skerr/Git/SF94/Outputs/mort_prop.csv")
+## INPUTS REQUIRED ##
+# alpha - significance level 
+# power - specified power
+# p1 - proportion experiencing event within specified time frame in control arm
+# p2 - proportion experiencing event within specified time frame in active arm
 
-mortality_power<-function(subset_df, mort_dif){
+riskratio_function<-function(subset_df,mort_dif){
   p1 <- sum(subset_df$mortality_28 == 1, na.rm = T)/ sum(!is.na(subset_df$mortality_28))
   p2=p1*mort_dif
-  ss_mortality<-power.prop.test(power=0.8, p1=p1, p2=p2)
-  return(ss_mortality)
+  riskratio_mort<-p1/p2
+  riskratio_output<-cbind(p1,p2,riskratio_mort)
+  return(riskratio_output)
 }
+rr_subset1<-riskratio_function(subset1, 0.85)
+rr_subset2<-riskratio_function(subset2, 0.85)
+rr_subset3<-riskratio_function(subset3, 0.85)
+rr_mort<-rbind(rr_subset1, rr_subset2, rr_subset3)
+write.csv(rr_mort,"/home/skerr/Git/SF94/Outputs/rr_mort.csv")
 
-subset1_mort_SS<-mortality_power(subset1, 0.85)
-subset2_mort_SS<-mortality_power(subset2, 0.85)
-subset3_mort_SS<-mortality_power(subset3, 0.85)
-saveRDS(subset1_mort_SS,"/home/skerr/Git/SF94/Outputs/subset1_mort_SS.rds")
-saveRDS(subset2_mort_SS,"/home/skerr/Git/SF94/Outputs/subset2_mort_SS.rds")
-saveRDS(subset3_mort_SS,"/home/skerr/Git/SF94/Outputs/subset3_mort_SS.rds")
-readRDS("/Users/Maaike/Downloads/subset3_mort_SS.rds")
+sample_function<-function(subset_df, mort_dif){
+  p1 <- sum(subset_df$mortality_28 == 1, na.rm = T)/ sum(!is.na(subset_df$mortality_28))
+  p2=p1*mort_dif
+  sample <- power.prop.test(n=NULL,p1=p1,p2=p2,power=0.8)
+  return(sample)
+}
+sample_subset1<-sample_function(subset1,0.85)
+sample_subset2<-sample_function(subset2,0.85)
+sample_subset3<-sample_function(subset3,0.85)
+
+cont_cor_function<-function(samplefunc){
+  ncorrect <- function(n,p1,p2){
+    round((n/4)*(1+sqrt(1+(4/(n*(p1-p2)))))^2)
+  } 
+  2*ncorrect(samplefunc$n, samplefunc$p1, samplefunc$p2)
+}
+sample_cont_correction_1<-cont_cor_function(sample_subset1)
+sample_cont_correction_2<-cont_cor_function(sample_subset2)
+sample_cont_correction_3<-cont_cor_function(sample_subset3)
+samplesize_mortality<-cbind(sample_cont_correction_1,sample_cont_correction_2, sample_cont_correction_3)
+write.csv(samplesize_mortality,"/home/skerr/Git/SF94/Outputs/samplesize_mortality.csv")
 
 mort_table_function<-function(subset_df){
   mortTable <- table(subset_df[["mortality_28"]])
   return(mortTable)
 }
-
+#proportion who died/ who lived
 mort_table_1<-mort_table_function(subset1)
 mort_table_2<-mort_table_function(subset2)
 mort_table_3<-mort_table_function(subset3)
@@ -757,4 +773,14 @@ saveRDS(sustained_improvement_subset2,"/home/skerr/Git/SF94/Outputs/sustained_im
 saveRDS(sustained_improvement_subset3,"/home/skerr/Git/SF94/Outputs/sustained_improvement_subset3.rds")
 readRDS("/Users/Maaike/Downloads/sustained_improvement_subset3.rds")
 
-
+table_sus_imp<-function(subset_df){
+  susimp_1L<-table(subset_df$sustained_1L_improvement)
+  susimp_2L<-table(subset_df$sustained_2L_improvement)
+  sus_imp<-cbind(susimp_1L, susimp_2L)
+  return(sus_imp)
+}
+sus_imp_ss1<-table_sus_imp(subset1)
+sus_imp_ss2<-table_sus_imp(subset2)
+sus_imp_ss3<-table_sus_imp(subset3)
+sus_imp_output<-cbind(sus_imp_ss1, sus_imp_ss2, sus_imp_ss3)
+write.csv(sus_imp_output,"/home/skerr/Git/SF94/Outputs/sus_imp_output.csv")
