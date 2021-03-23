@@ -223,9 +223,7 @@ missing <- data.frame(  variable =   c('sf94_day5', 'sf94_day8', 'who_day5', 'wh
 write.csv(missing,"/home/skerr/Git/SF94/Outputs/missing.csv")
 
 
-whoTable <- rbind( table(day8_who$who_day5), table(day8_who$who_day8)   )
 
-write.csv(whoTable,"/home/skerr/Git/SF94/Outputs/whoTable.csv")
 
 write.csv(table(mort$mortality_28),"/home/skerr/Git/SF94/Outputs/mort28Table.csv")
 
@@ -550,6 +548,17 @@ saveRDS(subset1_mort_SS,"/home/skerr/Git/SF94/Outputs/subset1_mort_SS.rds")
 saveRDS(subset2_mort_SS,"/home/skerr/Git/SF94/Outputs/subset2_mort_SS.rds")
 saveRDS(subset3_mort_SS,"/home/skerr/Git/SF94/Outputs/subset3_mort_SS.rds")
 readRDS("/Users/Maaike/Downloads/subset3_mort_SS.rds")
+
+mort_table_function<-function(subset_df){
+  mortTable <- table(subset_df[["mortality_28"]])
+  return(mortTable)
+}
+
+mort_table_1<-mort_table_function(subset1)
+mort_table_2<-mort_table_function(subset2)
+mort_table_3<-mort_table_function(subset3)
+mort_table_output<-rbind(mort_table_1, mort_table_2, mort_table_3)
+write.csv(mort_table_output,"/home/skerr/Git/SF94/Outputs/mort_table_output.csv")
 #############################################################################################################
 #Summary stats
 function_mean_sd<-function(subset_df){
@@ -661,6 +670,18 @@ who_subset1<-who_function(subset1, 0.85)
 who_subset2<-who_function(subset2, 0.85)
 who_subset3<-who_function(subset3, 0.85)
 who_effectsize<-rbind(who_subset1, who_subset2, who_subset3)
+
+
+who_table_function<-function(subset_df){
+  whoTable <- rbind( table(subset_df[["WHOD5_P"]]), table(subset_df[["WHOD8_P"]])   )
+  return(whoTable)
+}
+
+who_table_1<-who_table_function(subset1)
+who_table_2<-who_table_function(subset2)
+who_table_3<-who_table_function(subset3)
+who_table_output<-rbind(who_table_1, who_table_2, who_table_3)
+write.csv(who_table_output,"/home/skerr/Git/SF94/Outputs/who_table_output.csv")
 
 # use function posamsize in package Hmisc
 library(Hmisc)
