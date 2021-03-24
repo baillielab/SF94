@@ -569,6 +569,8 @@ mort_table_function<-function(subset_df){
   mortTable <- table(subset_df[["mortality_28"]])
   return(mortTable)
 }
+mort_table_1 <- as.data.frame(mort_table_1)
+
 #proportion who died/ who lived
 mort_table_1<-mort_table_function(subset1)
 mort_table_2<-mort_table_function(subset2)
