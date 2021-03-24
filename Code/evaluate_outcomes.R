@@ -10,10 +10,6 @@ df_1<-fread("/home/skerr/Data/ccp_subset_derived.csv", data.table = FALSE )
 #df_1<-fread("/home/u034/mcswets/df_20211402.csv", data.table = FALSE)
 #df_1<-df_1[,c(2:90)]
 
-subjects_to_include <- filter(df_1, ( fio2 >=0.22 & days_since_start %in% c(0,1,2)  & age_estimateyears >19 & age_estimateyears <76 ) )['subjid']
-subset1<-df_1[df_1$subjid %in% subjects_to_include$subjid,] 
-subset1 <- as.data.frame(subset1)
-
 #OUTPUT
 #number of subjects before and after filters
 
