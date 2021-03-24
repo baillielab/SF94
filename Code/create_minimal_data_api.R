@@ -31,9 +31,12 @@ utilityVars <- c('who_day0')
 
 df <- df[ c( 'subjid', depVars, indVars, selectionVars, utilityVars) ]
 
+
+sapply(df, class)
+
 # Make data types correct
-df <- mutate_at(df, indVars, as.numeric )
-df <- mutate_at(df, c(depVars, utilityVars), as.factor )
+df <- mutate_at(df, c('age_estimateyears', 'sex', 'whoImprovement1', 'whoImprovement2'), as.numeric )
+df <- mutate_at(df, c('day28_mortality', 'who_day5', 'who_day8', utilityVars), as.factor )
 
 ############################## FUNCTIONS #################################
 
@@ -54,6 +57,13 @@ sf94_day5_model_coef <- c(-2.80402241 , -1.36874782, 0.11562657, 0.06837051, 0.1
 #-2.39597844       -1.63192149        0.11583817        0.07057511        0.03101884 
 sf94_day8_model_coef <- c(-2.39597844 , -1.63192149 , 0.11583817, 0.07057511, 0.03101884)
 
+
+# FILL IN THESE COEFFICIENTS PROPERLY
+sus_1L_model_coef <- c(-2.80402241 , 0.11562657, 0.06837051, 0.15284334 )
+
+sus_2L_model_coef <- c(-2.80402241 , 0.11562657, 0.06837051, 0.15284334 ) 
+  
+sapply(df['whoImprovement1'], class)
 
 # These are propotional odds models
 # For these ones, the intercept (first component) must be set as the threshold value between who levels 9 and 10
@@ -80,6 +90,9 @@ df$sf94_day8_model_pred <- logistic(df[c('sf94_day8', 'sf94_day0', 'age_estimate
 df$who_day5_model_pred <- 1 - logistic(df[c('age_estimateyears', 'sex')], who_day5_model_coef)
 df$who_day8_model_pred <- 1 - logistic(df[c('age_estimateyears', 'sex')], who_day8_model_coef)
 
+df$sus_1L_model_pred <- logistic(df[c('whoImprovement1', 'age_estimateyears', 'sex')], sus_1L_model_coef)
+df$sus_2L_model_pred <- logistic(df[c('whoImprovement2', 'age_estimateyears', 'sex')], sus_2L_model_coef)
+  
 ##############################################################################################
 
 # Choose only model prediction variables, selection variables, and utility variables

@@ -560,9 +560,9 @@ sample_subset3<-sample_function(subset3,0.85)
 
 cont_cor_function<-function(samplefunc){
   ncorrect <- function(n,p1,p2){
-    round((n/4)*(1+sqrt(1+(4/(n*(p1-p2)))))^2)
+    round(2 * (n/4)*(1+sqrt(1+(4/(n*(p1-p2)))))^2)
   } 
-  2*ncorrect(samplefunc$n, samplefunc$p1, samplefunc$p2)
+  ncorrect(samplefunc$n, samplefunc$p1, samplefunc$p2)
 }
 sample_cont_correction_1<-cont_cor_function(sample_subset1)
 sample_cont_correction_2<-cont_cor_function(sample_subset2)

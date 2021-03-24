@@ -64,9 +64,3 @@ df <- mutate(df, day28_mortality = case_when(day_of_death <= 28 ~ "YES",
 # Write on argosafe
 write.csv(df ,"/home/skerr/Data/ccp_subset_simulated_post.csv", row.names = FALSE)
 
-
-
-
-
-
-

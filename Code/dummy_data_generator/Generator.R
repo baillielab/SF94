@@ -427,6 +427,10 @@ who2['who_days_to_improve2'] <- who2['who_days_to_improve1'] + who2['who12diff']
 who2$who12diff <- NULL
 
 
+# Set whoImprovement1, whoImprovement2 to No for those who died by day 28
+dead28[c('whoImprovement1', 'whoImprovement2')] <- 'NO'
+
+
 
 fulldf<- rbind(notwho, who1)
 fulldf <- rbind(fulldf, who2)
@@ -443,7 +447,8 @@ simulated_ccp <- filter(fulldf, str_sub(subjid ,1, 9) == 'Simulated')
 # Fill values for who_days_to_improve1 and who_days_to_improve2
 simulated_ccp <- simulated_ccp %>% group_by(subjid) %>% fill( c('who_days_to_improve1','who_days_to_improve2'), .direction = 'downup')
 
-simulated_ccp['age_estimateyears'] <- lapply( simulated_ccp['age_estimateyears'], as.integer  )
+simulated_ccp['age_estimateyears'] <- lapply( simulated_ccp['age_estimateyears'], as.integer)
+
 
 ####################################### WRITE DATA: #######################################
 
