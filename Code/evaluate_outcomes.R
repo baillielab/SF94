@@ -18,6 +18,10 @@ numberSubs <- data.frame( before_filter =  length(unique(df_1$subjid)) ,
 
 write.csv(numberSubs,"/home/skerr/Git/SF94/Outputs/numberSubs.csv")
 
+
+
+########################## FUNCTIONS ############################
+
 # variable should be either  'sf94' or 'severity_scale_ordinal'
 # group should be 'base' if you want to include everyone except those who died or were discharged
 # 'basedd' if you want to include those who died or were discharged
@@ -75,6 +79,16 @@ createDF <- function(df, group, variable, time){
   return(derived)
 }
 
+
+#Correlation subsets: same subjects for different days
+#keep only 1 row for each subject
+f <- function(x) {
+  x <- na.omit(x)
+  if (length(x) > 0) unique(x) else NA
+}
+
+####################################################################################
+
 #if error message try detaching plyr:
 #detach("package:plyr", unload=T)
 
@@ -91,12 +105,7 @@ rownames(meanSD) <- c('mean', 'SD')
 write.csv(meanSD,"/home/skerr/Git/SF94/Outputs/meanSD.csv")
 
 #correlation
-#Correlation subsets: same subjects for different days
-#keep only 1 row for each subject
-f <- function(x) {
-  x <- na.omit(x)
-  if (length(x) > 0) unique(x) else NA
-}
+
 correlation_subset<-basedd_sf94_10
 correlation_subset<-correlation_subset %>% 
   group_by(subjid) %>% 

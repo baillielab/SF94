@@ -24,7 +24,7 @@ selectionVars <-  c('clinical_frailty', 'respiratory_support')
 indVars <- c('sf94_day0', 'sf94_day5', 'sf94_day8', 'age_estimateyears', 'sex')
 
 # Dependent variables in the various models
-depVars <- c('day28_mortality', 'who_day5', 'who_day8')
+depVars <- c('day28_mortality', 'who_day5', 'who_day8', 'whoImprovement1', 'whoImprovement2')
 
 # Variables that will be used in power calculations
 utilityVars <- c('who_day0')
@@ -42,7 +42,8 @@ logistic <- function(x, coef){
   return(   1/(1 + exp( -coef[1]  - as.matrix(x) %*% coef[-1] ) ))
 }  
 
-###################################################################
+############################ SET COEFFICIENTS ##########################
+#These coefficients are from models fit on the real data.
 
 # Model coefficients
 #Intercept       sf94_day5_P         sf94_day0 age_estimateyears          sex=Male 
@@ -70,6 +71,7 @@ who_day5_model_coef <- c(4.3587487 , -0.02220284 , -0.30985545)
 #1.571906 2.259101 2.925450 3.154584 3.853252 4.252926 
 who_day8_model_coef <- c(4.252926, -0.02646835 , -0.27379549)
 
+############################ GET PREDICTIONS #############################
 
 # model predictions
 df$sf94_day5_model_pred <- logistic(df[c('sf94_day5', 'sf94_day0', 'age_estimateyears', 'sex')], sf94_day5_model_coef)
