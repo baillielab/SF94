@@ -582,6 +582,60 @@ mort_table_2<-mort_table_function(subset2)
 mort_table_3<-mort_table_function(subset3)
 mort_table_output<-rbind(mort_table_1, mort_table_2, mort_table_3)
 write.csv(mort_table_output,"/home/skerr/Git/SF94/Outputs/mort_table_output.csv")
+
+
+##############################################################
+## Sample size formulae for analyses using log-rank methods ##
+##############################################################
+
+# taken from formulae described in Chapter 10 of Modelling Survival Data in Medical Research, 2nd Edition, Collett
+
+## INPUTS REQUIRED ##
+# alpha - significance level 
+# power - specified power
+# HR - assumed rate ratio for treatment effect
+# hazc - baseline hazard in control arm (this is equal to the proportion that would be expected to experience the event during ONE unit of follow-up)
+# a - length of recruitment period (defaults to 0 here as patients are to be followed for a set period of time, e.g. 28 days, which means the length of the recruitment period will not affect the median duration of follow-up
+# f - length of follow-up (defaults to 28)
+
+lrsamplesize <- function(subset_df,alpha,power,HR,a,f){
+  # this function calculates the TOTAL sample size needed for a study that is to be analysed using log-rank methods
+  p1 <- sum(subset_df$mortality_28 == 1, na.rm = T)/ sum(!is.na(subset_df$mortality_28))
+  hazc = (1-exp(log(1-p1)/f)) 
+  hazt <- hazc*HR
+  d <- (4*((qnorm(1-alpha/2)+qnorm(power))^2))/((log(HR))^2)
+  P_event <- 1-(1/6)*(avsurv(f,hazc,hazt)+4*avsurv(0.5*a+f,hazc,hazt)+avsurv(a+f,hazc,hazt))
+  n <- d/P_event
+  return(n)
+}
+
+avsurv <- function(time,haz1,haz2){
+  (survfunc(time,haz1)+survfunc(time,haz2))/2
+}
+
+survfunc <- function(time,haz){
+  (1-haz)^time
+}
+# calculate the rate ratio that is equivalent to the risk ratio assumed in the code above for sample size calculations based on difference in proportions
+# p1 and p2 are proportions experiencing the event within specified time frame in control and active arms as defined above
+HR_func<-function(subset_df,mort_dif, f=28){
+  p1 <- sum(subset_df$mortality_28 == 1, na.rm = T)/ sum(!is.na(subset_df$mortality_28))
+  p2=p1*mort_dif
+  HR = (1-exp(log(1-p2)/f))/(1-exp(log(1-p1)/f))
+  return(HR)
+}
+
+HR_ss_1<-HR_func(subset1, 0.85)
+HR_ss_2<-HR_func(subset2, 0.85)
+HR_ss_3<-HR_func(subset3, 0.85)
+HR_mort<-cbind(HR_ss_1,HR_ss_2,HR_ss_3)
+write.csv(HR_mort,"/home/skerr/Git/SF94/Outputs/HR_mort.csv")
+ss_logrank_ss1<-round(lrsamplesize(subset1,0.05,0.8,HR_ss_1,0,28))
+ss_logrank_ss2<-round(lrsamplesize(subset1,0.05,0.8,HR_ss_2,0,28))
+ss_logrank_ss3<-round(lrsamplesize(subset1,0.05,0.8,HR_ss_3,0,28))
+samplesize_logrank_mort<-cbind(ss_logrank_ss1,ss_logrank_ss2,ss_logrank_ss3)
+write.csv(samplesize_logrank_mort,"/home/skerr/Git/SF94/Outputs/samplesize_logrank_mort.csv")
+
 #############################################################################################################
 #Summary stats
 function_mean_sd<-function(subset_df){
