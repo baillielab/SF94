@@ -59,9 +59,9 @@ sf94_day8_model_coef <- c(-2.39597844 , -1.63192149 , 0.11583817, 0.07057511, 0.
 
 
 # FILL IN THESE COEFFICIENTS PROPERLY
-sus_1L_model_coef <- c(-2.80402241 , 0.11562657, 0.06837051, 0.15284334 )
+sus_1_model_coef <- c(-2.80402241 , 0.11562657, 0.06837051, 0.15284334 )
 
-sus_2L_model_coef <- c(-2.80402241 , 0.11562657, 0.06837051, 0.15284334 ) 
+sus_2_model_coef <- c(-2.80402241 , 0.11562657, 0.06837051, 0.15284334 ) 
   
 sapply(df['whoImprovement1'], class)
 
@@ -90,14 +90,14 @@ df$sf94_day8_model_pred <- logistic(df[c('sf94_day8', 'sf94_day0', 'age_estimate
 df$who_day5_model_pred <- 1 - logistic(df[c('age_estimateyears', 'sex')], who_day5_model_coef)
 df$who_day8_model_pred <- 1 - logistic(df[c('age_estimateyears', 'sex')], who_day8_model_coef)
 
-df$sus_1L_model_pred <- logistic(df[c('whoImprovement1', 'age_estimateyears', 'sex')], sus_1L_model_coef)
-df$sus_2L_model_pred <- logistic(df[c('whoImprovement2', 'age_estimateyears', 'sex')], sus_2L_model_coef)
+df$sus_1_model_pred <- logistic(df[c('whoImprovement1', 'age_estimateyears', 'sex')], sus_1_model_coef)
+df$sus_2_model_pred <- logistic(df[c('whoImprovement2', 'age_estimateyears', 'sex')], sus_2_model_coef)
   
 ##############################################################################################
 
 # Choose only model prediction variables, selection variables, and utility variables
 df <- select(df, c('day28_mortality', 'age_estimateyears', 'clinical_frailty', 'respiratory_support', 'sf94_day0', 'sf94_day5', 
-                   'sf94_day8', 'who_day0') | ends_with('model_pred') )
+                   'sf94_day8', 'who_day0', 'whoImprovement1', 'whoImprovement2') | ends_with('model_pred') )
 
 # Save minimal dataset to be used for web API
 write.csv(df ,"/home/skerr/Git/SF94_API/ccp_subset_simulated_api.csv", row.names = FALSE)

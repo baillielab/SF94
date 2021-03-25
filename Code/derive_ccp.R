@@ -21,7 +21,6 @@ df<-fread("/home/skerr/Data/ccp_subset_clean.csv", data.table = FALSE, )
 #df <-fread("/home/u034/mcswets/df_20211402.csv")
 #df <-fread("/home/u034/mcswets/df_20211402-backup.csv") #as in end of clean_ccp
 
-
 ####################################### FUNCTIONS THAT WILL BE USED: #######################################
 
 # This function add a column for the minimum time for a sustained improvement in severity_scale_ordinal of diff.

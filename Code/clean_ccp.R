@@ -76,7 +76,7 @@ ccp_data = read_rds(paste0(datadir, "ccp_data_", timestamp, "_full.rds"))
 df <- ccp_data[allVars]
 
 # Take a sample. 
-#df <- sample_n(bob, 1000)
+#df <- sample_n(df, 1000)
 
 ####################################### FUNCTIONS THAT WILL BE USED: #######################################
 
@@ -240,7 +240,8 @@ limits <- data.frame( 'daily_sao2_lborres' = c( 100, 100, 50, 50),
                       'daily_crp_lborres'= c(700,700,5,5),
                       'rr_vsorres' = c(70,70,5,5),
                       'onset2admission' = c(100,100,-100,-100),
-                      'hodur' = c(200,200,0,0))
+                      'hodur' = c(200,200,0,0),
+                      'age_estimateyears' = c(110, 110, 0, 0))
 
 df <- squeeze(df, limits)
 
