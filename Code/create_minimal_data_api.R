@@ -50,36 +50,37 @@ logistic <- function(x, coef){
 
 # Model coefficients
 #Intercept       sf94_day5_P         sf94_day0 age_estimateyears          sex=Male 
-#-2.80402241       -1.36874782        0.11562657        0.06837051        0.15284334 
-sf94_day5_model_coef <- c(-2.80402241 , -1.36874782, 0.11562657, 0.06837051, 0.15284334 )
+#-2.45762310       -1.53026304        0.03639850        0.06910471        0.12419596 
+sf94_day5_model_coef <- c(-2.45762310  , -1.53026304, 0.03639850, 0.06910471, 0.12419596 )
 
 #Intercept       sf94_day8_P         sf94_day0 age_estimateyears          sex=Male 
-#-2.39597844       -1.63192149        0.11583817        0.07057511        0.03101884 
-sf94_day8_model_coef <- c(-2.39597844 , -1.63192149 , 0.11583817, 0.07057511, 0.03101884)
+#-1.97214706       -1.83464770        0.03184873        0.07034787        0.05161162 
+sf94_day8_model_coef <- c(-1.97214706 , -1.83464770 , 0.03184873, 0.07034787, 0.05161162)
 
 
-# FILL IN THESE COEFFICIENTS PROPERLY
-sus_1_model_coef <- c(-2.80402241 , 0.11562657, 0.06837051, 0.15284334 )
+# STILL NEEDS UPDATED
+sus_1_model_coef <- c(-5.24650031, -13.49099253 , 0.06773265 , 0.19383108 )
+
 
 sus_2_model_coef <- c(-2.80402241 , 0.11562657, 0.06837051, 0.15284334 ) 
   
-sapply(df['whoImprovement1'], class)
+
 
 # These are propotional odds models
 # For these ones, the intercept (first component) must be set as the threshold value between who levels 9 and 10
 # The rest should be MINUS the coefficients from the model.
 
 #age_estimateyears           sexMale 
-#0.02220284        0.30985545 
+#0.01996716        0.27125033 
 #4|5       5|6       6|7       7|8       8|9      9|10 
-#0.8992445 1.8169024 2.8521141 3.0405687 3.8400794 4.3587487 
-who_day5_model_coef <- c(4.3587487 , -0.02220284 , -0.30985545)
+#0.2912119 1.3564190 2.4491752 2.6491326 3.4950492 4.0460459 
+who_day5_model_coef <- c(4.0460459  , -0.01996716  , -0.27125033)
 
-# age_estimateyears           sexMale 
-# 0.02646835        0.27379549
+#age_estimateyears           sexMale 
+#0.02575375        0.22636142 
 #4|5      5|6      6|7      7|8      8|9     9|10 
-#1.571906 2.259101 2.925450 3.154584 3.853252 4.252926 
-who_day8_model_coef <- c(4.252926, -0.02646835 , -0.27379549)
+#1.228147 1.950264 2.633149 2.880049 3.626227 4.050183 
+who_day8_model_coef <- c(4.050183 , -0.02575375 , -0.22636142)
 
 ############################ GET PREDICTIONS #############################
 
