@@ -497,15 +497,11 @@ time_to_improvement<-time_to_improvement %>%
       !is.na(who_days_to_improve2) ~ 1, is.na(who_days_to_improve2) ~ 0 ))
 time_to_improvement<-time_to_improvement[,c("subjid", "sustained_1L_improvement", "sustained_2L_improvement")]
 time_to_improvement<-data.frame(time_to_improvement)
+table(time_to_improvement$sustained_1L_improvement)
 
 #bind to rest of data
 regresson_df_P<-left_join(regresson_df_P, time_to_improvement, by="subjid")
-regresson_df_P<-regresson_df_P %>%
-  group_by(subjid)%>%
-  summarise_all(funs(f))
-regresson_df_P<-regresson_df_P %>%
-  group_by(subjid)%>%
-  slice(which(WHOD5_P==min(WHOD5_P)|is.na(WHOD5_P)))
+
 #write.csv(regresson_df_P,"regresson_df_P.csv")
 #regresson_df_P<-read.csv("/home/u034/mcswets/regresson_df_P.csv")
 #attach(regresson_df_P)
@@ -515,7 +511,6 @@ regresson_df_P<-regresson_df_P %>%
 #detach(regresson_df_P)
 regresson_df_P$sustained_1L_improvement <- sapply(regresson_df_P$sustained_1L_improvement, as.factor)
 regresson_df_P$sustained_2L_improvement <- sapply(regresson_df_P$sustained_2L_improvement, as.factor)
-regresson_df_P$sustained_1L_improvement<-as.factor(regresson_df_P$sustained_2L_improvement)
 
 #apply age filter and supp oxygen filter
 subjects_to_include <- filter(df_1, ( fio2 >=0.22 & days_since_start %in% c(0,1,2)  & age_estimateyears >19 & age_estimateyears <76 ) )['subjid']
@@ -835,6 +830,7 @@ susimpfunc<-function(subset_df){
   susimp_effectsize<-cbind(susimp_1L_effectsize, susimp_2L_effectsize)
   return(susimp_effectsize)
 }
+
 
 effectsize_susump1<-susimpfunc(subset1)
 effectsize_susump2<-susimpfunc(subset2)
