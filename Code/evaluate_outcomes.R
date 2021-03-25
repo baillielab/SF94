@@ -507,11 +507,15 @@ regresson_df_P<-regresson_df_P %>%
   group_by(subjid)%>%
   slice(which(WHOD5_P==min(WHOD5_P)|is.na(WHOD5_P)))
 #write.csv(regresson_df_P,"regresson_df_P.csv")
+#regresson_df_P<-read.csv("/home/u034/mcswets/regresson_df_P.csv")
 #attach(regresson_df_P)
 #ddist <- datadist(sf94_day5_P, sf94_day8_P, sf94_day0, sex, age_estimateyears, mortality_28, WHOD5_P, WHOD8_P,
 #                  sustained_1L_improvement, sustained_2L_improvement)
 #options(datadist='ddist')
 #detach(regresson_df_P)
+regresson_df_P$sustained_1L_improvement <- sapply(regresson_df_P$sustained_1L_improvement, as.factor)
+regresson_df_P$sustained_2L_improvement <- sapply(regresson_df_P$sustained_2L_improvement, as.factor)
+regresson_df_P$sustained_1L_improvement<-as.factor(regresson_df_P$sustained_2L_improvement)
 
 #apply age filter and supp oxygen filter
 subjects_to_include <- filter(df_1, ( fio2 >=0.22 & days_since_start %in% c(0,1,2)  & age_estimateyears >19 & age_estimateyears <76 ) )['subjid']
@@ -631,8 +635,8 @@ HR_ss_3<-HR_func(subset3, 0.85)
 HR_mort<-cbind(HR_ss_1,HR_ss_2,HR_ss_3)
 write.csv(HR_mort,"/home/skerr/Git/SF94/Outputs/HR_mort.csv")
 ss_logrank_ss1<-round(lrsamplesize(subset1,0.05,0.8,HR_ss_1,0,28))
-ss_logrank_ss2<-round(lrsamplesize(subset1,0.05,0.8,HR_ss_2,0,28))
-ss_logrank_ss3<-round(lrsamplesize(subset1,0.05,0.8,HR_ss_3,0,28))
+ss_logrank_ss2<-round(lrsamplesize(subset2,0.05,0.8,HR_ss_2,0,28))
+ss_logrank_ss3<-round(lrsamplesize(subset3,0.05,0.8,HR_ss_3,0,28))
 samplesize_logrank_mort<-cbind(ss_logrank_ss1,ss_logrank_ss2,ss_logrank_ss3)
 write.csv(samplesize_logrank_mort,"/home/skerr/Git/SF94/Outputs/samplesize_logrank_mort.csv")
 
@@ -815,6 +819,28 @@ write.csv(who_samplesize,"/home/skerr/Git/SF94/Outputs/who_samplesize.csv")
 ####################################################################################################################################
 ## Sample size formulae for analyses using difference in proportions ##
 
+susimpfunc<-function(subset_df){
+  susimp_1L<-lrm(mortality_28 ~ sustained_1L_improvement + age_estimateyears+ sex, data = subset_df,maxit=1000)
+  susimp_2L<-lrm(mortality_28 ~ sustained_2L_improvement + age_estimateyears+ sex, data = subset_df,maxit=1000)
+  predict_susimp_1L<-predict(susimp_1L, type = 'fitted'  )
+  predict_susimp_2L<-predict(susimp_2L, type = 'fitted'  )
+  coef_1L<-susimp_1L$coef[2] 
+  coef_2L<-susimp_2L$coef[2] 
+  
+  effect_size_calc <- function(prob_pred, treatment, coef){
+    return( mean( log((treatment*(1-prob_pred)) / (1- treatment * prob_pred)) / coef , na.rm = TRUE) )
+  }
+  susimp_1L_effectsize<-effect_size_calc(predict_susimp_1L, 0.85, coef_1L)
+  susimp_2L_effectsize<-effect_size_calc(predict_susimp_2L, 0.85, coef_2L)
+  susimp_effectsize<-cbind(susimp_1L_effectsize, susimp_2L_effectsize)
+  return(susimp_effectsize)
+}
+
+sustained_improvement_subset1<-susimpfunc(subset1)
+sustained_improvement_subset2<-susimpfunc(subset2)
+sustained_improvement_subset3<-susimpfunc(subset3)
+effectsize_sus_improvement<-rbind(sustained_improvement_subset1,sustained_improvement_subset2,sustained_improvement_subset3)
+
 sustained_improvement_power<-function(subset_df, mort_dif){
   p1_1L <- sum(subset_df$sustained_1L_improvement == 1, na.rm = T)/ sum(!is.na(subset_df$sustained_1L_improvement))
   p2_1L=p1_1L*mort_dif
@@ -845,3 +871,58 @@ sus_imp_ss2<-table_sus_imp(subset2)
 sus_imp_ss3<-table_sus_imp(subset3)
 sus_imp_output<-cbind(sus_imp_ss1, sus_imp_ss2, sus_imp_ss3)
 write.csv(sus_imp_output,"/home/skerr/Git/SF94/Outputs/sus_imp_output.csv")
+
+## INPUTS REQUIRED ##
+# alpha - significance level 
+# power - specified power
+# HR - assumed rate ratio for treatment effect
+# hazc - baseline hazard in control arm (this is equal to the proportion that would be expected to experience the event during ONE unit of follow-up)
+# a - length of recruitment period (defaults to 0 here as patients are to be followed for a set period of time, e.g. 28 days, which means the length of the recruitment period will not affect the median duration of follow-up
+# f - length of follow-up (defaults to 28)
+
+lrsamplesize_susimp <- function(subset_df,level_imp,alpha,power,HR,a,f){
+  # this function calculates the TOTAL sample size needed for a study that is to be analysed using log-rank methods
+  p1 <- sum(subset_df[[level_imp]] == 1, na.rm = T)/ sum(!is.na(subset_df[[level_imp]]))
+  hazc = (1-exp(log(1-p1)/f)) 
+  hazt <- hazc*HR
+  d <- (4*((qnorm(1-alpha/2)+qnorm(power))^2))/((log(HR))^2)
+  P_event <- 1-(1/6)*(avsurv(f,hazc,hazt)+4*avsurv(0.5*a+f,hazc,hazt)+avsurv(a+f,hazc,hazt))
+  n <- d/P_event
+  return(n)
+}
+
+avsurv <- function(time,haz1,haz2){
+  (survfunc(time,haz1)+survfunc(time,haz2))/2
+}
+
+survfunc <- function(time,haz){
+  (1-haz)^time
+}
+# calculate the rate ratio that is equivalent to the risk ratio assumed in the code above for sample size calculations based on difference in proportions
+# p1 and p2 are proportions experiencing the event within specified time frame in control and active arms as defined above
+susimp_HR_func<-function(subset_df,level_imp,mort_dif=0.85, f=28){
+  p1 <- sum(subset_df[[level_imp]] == 1, na.rm = T)/ sum(!is.na(subset_df[[level_imp]]))
+  p2=p1*mort_dif
+  HR = (1-exp(log(1-p2)/f))/(1-exp(log(1-p1)/f))
+  return(HR)
+}
+
+susimp_HR_1_1L<-susimp_HR_func(subset1, "sustained_1L_improvement")
+susimp_HR_2_1L<-susimp_HR_func(subset2, "sustained_1L_improvement")
+susimp_HR_3_1L<-susimp_HR_func(subset3, "sustained_1L_improvement")
+susimp_HR_1_2L<-susimp_HR_func(subset1, "sustained_2L_improvement")
+susimp_HR_2_2L<-susimp_HR_func(subset2, "sustained_2L_improvement")
+susimp_HR_3_2L<-susimp_HR_func(subset3, "sustained_2L_improvement")
+
+HR_mort_susimp<-cbind(susimp_HR_1_1L,susimp_HR_2_1L,susimp_HR_3_1L,susimp_HR_1_2L,susimp_HR_2_2L,susimp_HR_3_2L)
+write.csv(HR_mort_susimp,"/home/skerr/Git/SF94/Outputs/HR_mort_susimp.csv")
+#                                       subset_df,level_imp,                alpha,power,HR,         a,f
+ss_logrank_1_susimp1L<-round(lrsamplesize_susimp(subset1,"sustained_1L_improvement",0.05,0.8,susimp_HR_1_1L,0,28))
+ss_logrank_2_susimp1L<-round(lrsamplesize_susimp(subset2,"sustained_1L_improvement",0.05,0.8,susimp_HR_2_1L,0,28))
+ss_logrank_3_susimp1L<-round(lrsamplesize_susimp(subset3,"sustained_1L_improvement",0.05,0.8,susimp_HR_3_1L,0,28))
+ss_logrank_1_susimp2L<-round(lrsamplesize_susimp(subset1,"sustained_2L_improvement",0.05,0.8,susimp_HR_1_2L,0,28))
+ss_logrank_2_susimp2L<-round(lrsamplesize_susimp(subset2,"sustained_2L_improvement",0.05,0.8,susimp_HR_2_2L,0,28))
+ss_logrank_3_susimp2L<-round(lrsamplesize_susimp(subset3,"sustained_2L_improvement",0.05,0.8,susimp_HR_3_2L,0,28))
+samplesize_logrank_susimp<-cbind(ss_logrank_1_susimp1L,ss_logrank_2_susimp1L,ss_logrank_3_susimp1L,
+                               ss_logrank_1_susimp2L,ss_logrank_2_susimp2L,ss_logrank_3_susimp2L)
+write.csv(samplesize_logrank_susimp,"/home/skerr/Git/SF94/Outputs/samplesize_logrank_susimp.csv")
