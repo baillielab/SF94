@@ -836,29 +836,29 @@ susimpfunc<-function(subset_df){
   return(susimp_effectsize)
 }
 
-sustained_improvement_subset1<-susimpfunc(subset1)
-sustained_improvement_subset2<-susimpfunc(subset2)
-sustained_improvement_subset3<-susimpfunc(subset3)
-effectsize_sus_improvement<-rbind(sustained_improvement_subset1,sustained_improvement_subset2,sustained_improvement_subset3)
+effectsize_susump1<-susimpfunc(subset1)
+effectsize_susump2<-susimpfunc(subset2)
+effectsize_susump3<-susimpfunc(subset3)
+effectsize_sus_improvement<-rbind(effectsize_susump1,effectsize_susump2,effectsize_susump3)
 
-sustained_improvement_power<-function(subset_df, mort_dif){
+susimp_pwr_func<-function(subset_df, effectsize_1L, effectsize_2L){
   p1_1L <- sum(subset_df$sustained_1L_improvement == 1, na.rm = T)/ sum(!is.na(subset_df$sustained_1L_improvement))
-  p2_1L=p1_1L*mort_dif
+  p2_1L=p1_1L+effectsize_1L
   ss_sustained_improvement_1L<-power.prop.test(power=0.8, p1=p1_1L, p2=p2_1L)
   p1_2L <- sum(subset_df$sustained_2L_improvement == 1, na.rm = T)/ sum(!is.na(subset_df$sustained_2L_improvement))
-  p2_2L=p1_2L*mort_dif
+  p2_2L=p1_2L+effectsize_2L
   ss_sustained_improvement_2L<-power.prop.test(power=0.8, p1=p1_2L, p2=p2_2L)
   ss_sustained_improvement<-cbind(ss_sustained_improvement_1L, ss_sustained_improvement_2L)
   return(ss_sustained_improvement)
 }
-sustained_improvement_subset1<-sustained_improvement_power(subset1, 0.85)
-sustained_improvement_subset2<-sustained_improvement_power(subset2, 0.85)
-sustained_improvement_subset3<-sustained_improvement_power(subset3, 0.85)
+samplesize_susimp_pwr1<-susimp_pwr_func(subset1, effectsize_susump1[,1],effectsize_susump1[,2])
+samplesize_susimp_pwr2<-susimp_pwr_func(subset2, effectsize_susump2[,1],effectsize_susump2[,2])
+samplesize_susimp_pwr3<-susimp_pwr_func(subset3, effectsize_susump3[,1],effectsize_susump3[,2])
 
-saveRDS(sustained_improvement_subset1,"/home/skerr/Git/SF94/Outputs/sustained_improvement_subset1.rds")
-saveRDS(sustained_improvement_subset2,"/home/skerr/Git/SF94/Outputs/sustained_improvement_subset2.rds")
-saveRDS(sustained_improvement_subset3,"/home/skerr/Git/SF94/Outputs/sustained_improvement_subset3.rds")
-readRDS("/Users/Maaike/Downloads/sustained_improvement_subset3.rds")
+saveRDS(samplesize_susimp_pwr1,"/home/skerr/Git/SF94/Outputs/samplesize_susimp_pwr1.rds")
+saveRDS(samplesize_susimp_pwr1,"/home/skerr/Git/SF94/Outputs/samplesize_susimp_pwr1.rds")
+saveRDS(samplesize_susimp_pwr1,"/home/skerr/Git/SF94/Outputs/samplesize_susimp_pwr1.rds")
+#readRDS("/Users/Maaike/Downloads/samplesize_susimp_pwr1.rds")
 
 table_sus_imp<-function(subset_df){
   susimp_1L<-table(subset_df$sustained_1L_improvement)
