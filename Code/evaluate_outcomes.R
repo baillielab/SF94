@@ -837,6 +837,7 @@ effectsize_susump2<-susimpfunc(subset2)
 effectsize_susump3<-susimpfunc(subset3)
 effectsize_sus_improvement<-rbind(effectsize_susump1,effectsize_susump2,effectsize_susump3)
 
+
 susimp_pwr_func<-function(subset_df, effectsize_1L, effectsize_2L){
   p1_1L <- sum(subset_df$sustained_1L_improvement == 1, na.rm = T)/ sum(!is.na(subset_df$sustained_1L_improvement))
   p2_1L=p1_1L+effectsize_1L
