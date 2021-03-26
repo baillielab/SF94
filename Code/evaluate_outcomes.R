@@ -852,8 +852,8 @@ samplesize_susimp_pwr2<-susimp_pwr_func(subset2, effectsize_susump2[,1],effectsi
 samplesize_susimp_pwr3<-susimp_pwr_func(subset3, effectsize_susump3[,1],effectsize_susump3[,2])
 
 saveRDS(samplesize_susimp_pwr1,"/home/skerr/Git/SF94/Outputs/samplesize_susimp_pwr1.rds")
-saveRDS(samplesize_susimp_pwr1,"/home/skerr/Git/SF94/Outputs/samplesize_susimp_pwr1.rds")
-saveRDS(samplesize_susimp_pwr1,"/home/skerr/Git/SF94/Outputs/samplesize_susimp_pwr1.rds")
+saveRDS(samplesize_susimp_pwr2,"/home/skerr/Git/SF94/Outputs/samplesize_susimp_pwr2.rds")
+saveRDS(samplesize_susimp_pwr3,"/home/skerr/Git/SF94/Outputs/samplesize_susimp_pwr3.rds")
 #readRDS("/Users/Maaike/Downloads/samplesize_susimp_pwr1.rds")
 
 table_sus_imp<-function(subset_df){
