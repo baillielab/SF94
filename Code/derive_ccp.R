@@ -197,7 +197,7 @@ df<-data.frame(df)
 write.csv(df,"/home/skerr/Data/ccp_subset_derived.csv", row.names = FALSE)
 
 # Write for Maaike
-#df<-df[,c(1:3,5:89)]
+
 #write.csv(df,"df_20211402.csv")
 
 

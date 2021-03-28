@@ -837,6 +837,7 @@ effectsize_susump2<-susimpfunc(subset2)
 effectsize_susump3<-susimpfunc(subset3)
 effectsize_sus_improvement<-rbind(effectsize_susump1,effectsize_susump2,effectsize_susump3)
 
+
 susimp_pwr_func<-function(subset_df, effectsize_1L, effectsize_2L){
   p1_1L <- sum(subset_df$sustained_1L_improvement == 1, na.rm = T)/ sum(!is.na(subset_df$sustained_1L_improvement))
   p2_1L=p1_1L+effectsize_1L
@@ -896,19 +897,19 @@ survfunc <- function(time,haz){
 }
 # calculate the rate ratio that is equivalent to the risk ratio assumed in the code above for sample size calculations based on difference in proportions
 # p1 and p2 are proportions experiencing the event within specified time frame in control and active arms as defined above
-susimp_HR_func<-function(subset_df,level_imp,mort_dif=0.85, f=28){
+susimp_HR_func<-function(subset_df,level_imp,effect_size, f=28){
   p1 <- sum(subset_df[[level_imp]] == 1, na.rm = T)/ sum(!is.na(subset_df[[level_imp]]))
-  p2=p1*mort_dif
+  p2=p1+effect_size
   HR = (1-exp(log(1-p2)/f))/(1-exp(log(1-p1)/f))
   return(HR)
 }
 
-susimp_HR_1_1L<-susimp_HR_func(subset1, "sustained_1L_improvement")
-susimp_HR_2_1L<-susimp_HR_func(subset2, "sustained_1L_improvement")
-susimp_HR_3_1L<-susimp_HR_func(subset3, "sustained_1L_improvement")
-susimp_HR_1_2L<-susimp_HR_func(subset1, "sustained_2L_improvement")
-susimp_HR_2_2L<-susimp_HR_func(subset2, "sustained_2L_improvement")
-susimp_HR_3_2L<-susimp_HR_func(subset3, "sustained_2L_improvement")
+susimp_HR_1_1L<-susimp_HR_func(subset1, "sustained_1L_improvement",effectsize_susump1[,1] )
+susimp_HR_2_1L<-susimp_HR_func(subset2, "sustained_1L_improvement",effectsize_susump2[,1] )
+susimp_HR_3_1L<-susimp_HR_func(subset3, "sustained_1L_improvement",effectsize_susump3[,1]  )
+susimp_HR_1_2L<-susimp_HR_func(subset1, "sustained_2L_improvement",effectsize_susump1[,2]  )
+susimp_HR_2_2L<-susimp_HR_func(subset2, "sustained_2L_improvement",effectsize_susump2[,2]  )
+susimp_HR_3_2L<-susimp_HR_func(subset3, "sustained_2L_improvement",effectsize_susump3[,2]  )
 
 HR_mort_susimp<-cbind(susimp_HR_1_1L,susimp_HR_2_1L,susimp_HR_3_1L,susimp_HR_1_2L,susimp_HR_2_2L,susimp_HR_3_2L)
 write.csv(HR_mort_susimp,"/home/skerr/Git/SF94/Outputs/HR_mort_susimp.csv")
