@@ -67,14 +67,17 @@ geom_split_violin <- function(mapping = NULL, data = NULL, stat = "ydensity", po
 
 #split violin plot
 p1 <- ggplot(long_dfsf94_12, aes(x=days_since_start, y=sf94, fill=mortality_28)) +
-  geom_split_violin(width=1)+
+  geom_split_violin(width=1.5)+
   xlab("Day")+
   ylab("S/F94")+
   ggtitle("")+
   theme_bw()+
   scale_fill_discrete(name="28-day outcome", labels=c("Discharged alive", "Death"))
 
-ggsave(plot=p1, width=10, dpi=300, filename="12_days.pdf")
+
+show(p1)
+
+ggsave(plot=p1, width=10, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="12_days.pdf")
 
 base_sf94_28<-createDF(subset_violin, "base", "sf94", 28)
 #transform to long format 
@@ -100,7 +103,7 @@ long_dfsf94_28$days_since_start<-factor(long_dfsf94_28$days_since_start,
                                                  "19", "20", "21", "22", "23", "24", 
                                                  "25", "26", "27", "28"))
 violin_28days <- ggplot(long_dfsf94_28, aes(x=days_since_start, y=sf94, fill=mortality_28)) +
-  geom_split_violin(width=1)+
+  geom_split_violin(width=1.5)+
   xlab("Day")+
   ylab("S/F94")+
   ggtitle("")+
