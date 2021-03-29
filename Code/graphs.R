@@ -124,17 +124,48 @@ timeseries_sf94<-ggplot(long_dfsf94_12, aes(x=days_since_start, y=sf94,
   scale_color_discrete(name= "Outcome", labels=c("Discharged alive", "Death"))
 timeseries_sf94
 
-#OUTPUT
-#3 graphs
+#example final graph
+dummy_treatment<-c(rep("0.80",4),rep("0.85",4),rep("0.90",4),rep("0.95",4) )
+dummy_values<-c(8000,2500,1000,3000,10000,3000,1200,3500,11000,3200,1500,4000,12000,3500,1900,4800)
+dummy_effect<-c("sustained improvement", "WHO", "S/F94", "mortality",
+                "sustained improvement", "WHO", "S/F94", "mortality",
+                "sustained improvement", "WHO", "S/F94", "mortality",
+                "sustained improvement", "WHO", "S/F94", "mortality")
+dummydata<-cbind(dummy_effect,dummy_treatment, dummy_values)
+dummydata<-data.frame(dummydata)
+dummydata$dummy_values<-as.numeric(as.character(dummydata$dummy_values))
+dummy_plot<-ggplot(dummydata, aes(x=dummy_treatment, y=dummy_values,
+                                  group= dummy_effect, colour=dummy_effect))
+dummy_plot + geom_path() + xlab("Treatment effect") + ylab("Sample size") +
+  ggtitle("example graph, power=0.8, alpha=0.05")+
+  scale_color_discrete(name="outcome measure")+ theme_bw()
 
-#------------------------ TO RUN ------------------------------
+dummy_values2<-c(1900,3500,4800,12000)
+dummy_effect2<-c( "S/F94","WHO", "mortality","sustained improvement")
+dummydata2<-cbind(dummy_values2, dummy_effect2)
+dummydata2<-data.frame(dummydata2)
+dummydata2$dummy_values2<-as.numeric(as.character(dummydata2$dummy_values2))
+dummyplot2<-ggplot(dummydata2, aes(x=dummy_effect2, y=dummy_values2)) + 
+  geom_point()+geom_segment(aes(x=dummy_effect2, xend=dummy_effect2, y=0, yend=dummy_values2))+theme_bw()
+dummyplot2
+
+subset_graph<-subset_violin
 #Respiratory rate and SF9/4 function, including regression line (Sup figure 5)
-ggplot(df_1, aes(x=sf94, y=rr_vsorres)) +
-  geom_point()+
-  geom_smooth(method=lm)+
+library(ggplot2)
+rr_graph<-ggplot(subset_graph, aes(x=sf94, y=rr_vsorres, colour=sao2)) +
+  geom_point(size=1.5, shape=16, stroke=0)+
+  geom_smooth(method=lm, colour="black")+
   xlab("S/F94")+
   ylab("Respiratory Rate")+
-  theme_bw()
+  theme_bw()+
+  scale_colour_gradient2(midpoint = 0.75,
+                         low = "blue",
+                         mid = "black",
+                         high = "red",
+                         limits=c(min(0.5),
+                                  max(1.0)),
+                         name="SaO2")
+rr_graph
 #title: rr_sf94_regression
 
 # WHO and SF94 
