@@ -171,7 +171,7 @@ rr_graph
 # WHO and SF94 
 #data = subset 1 + filters
 # take day 5 from WHO and SF data 
-who_sf_5<-subset(subset1, days_since_start==5)
+who_sf_5<-subset(subset_graph, days_since_start==5)
 who_sf_5<-subset(who_sf_5, !is.na(severity_scale_ordinal))
 who_sf_5$severity_scale_ordinal<- paste("WHO level", who_sf_5$severity_scale_ordinal, sep = " ")
 who_sf_5$severity_scale_ordinal<-factor(who_sf_5$severity_scale_ordinal,
@@ -192,9 +192,10 @@ who_sf_5plot+ geom_violin()+ #remove outliers
         plot.title = element_text (hjust = 0.5))+ #remove legend + center title
   scale_x_discrete(labels=c("4 Hosp", "5 Ox", "6 CPAP", "7 IMV", "8 IMV S/F<2", "9 MOF", "10 Dead"))
 
+library(RColorBrewer)
 #mortality and SF94 on day 0 and day 5
 #for day 0 
-sfmort_day0<-subset(subset1, (days_since_admission == 0 & !is.na(outcome)))
+sfmort_day0<-subset(subset_graph, (days_since_admission == 0 & !is.na(outcome)))
 #violin plots
 #distribution of SF94 values on day 0 for unselected population
 sfmort_day0plot<-ggplot(sfmort_day0,
