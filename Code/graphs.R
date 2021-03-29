@@ -7,14 +7,24 @@ library(tidyr)
 #----------------------------------- GRAPHS --------------------------------
 #split violin plot
 #data
-base_sf94_12<-createDF(subset1, "base", "sf94", 12)
+subjects_to_include <- filter(df_1, ( fio2 >=0.22 & days_since_start %in% c(0,1,2)  & age_estimateyears >19 & age_estimateyears <76 ) )['subjid']
+subset_violin<-df_1[df_1$subjid %in% subjects_to_include$subjid,]
+subset_violin <- as.data.frame(subset_violin)
+base_sf94_12<-createDF(subset_violin, "base", "sf94", 12)
+base_sf94_12<-distinct(base_sf94_12)
+base_sf94_12<-setDT(base_sf94_12)[, lapply(.SD, na.omit), by=subjid] #keep 1 entry/subject
+library(tidyr)
 #transform to long format 
-long_dfsf94_12<-gather(base_sf94_12, days_since_start, sf94, 2:14, factor_key=T)
+long_dfsf94_12<-base_sf94_12%>%
+  pivot_longer(!subjid, names_to= "days_since_start", values_to= "sf94")
 #removing rows without SF94 value
 long_dfsf94_12 <- subset(long_dfsf94_12, !is.na(sf94))
-#add 30 day mortality data
-long_dfsf94_12<-left_join(long_dfsf94_12, mort, by="subjid")
-long_dfsf94_12 <- subset(long_dfsf94_12, !is.na(mortality_28))
+#add 28 day mortality data
+mortality<-df_1[,c("subjid","mortality_28")]
+mortality<-mortality%>%
+  group_by(subjid)%>%
+  slice(which.min(mortality_28))
+long_dfsf94_12<-left_join(long_dfsf94_12, mortality, by="subjid")
 #change to character and set correct order
 long_dfsf94_12$mortality_28<-as.character(long_dfsf94_12$mortality_28)
 long_dfsf94_12$mortality_28<-factor(long_dfsf94_12$mortality_28,
@@ -57,23 +67,48 @@ geom_split_violin <- function(mapping = NULL, data = NULL, stat = "ydensity", po
 
 #split violin plot
 p1 <- ggplot(long_dfsf94_12, aes(x=days_since_start, y=sf94, fill=mortality_28)) +
-  geom_split_violin()+
-  coord_flip()+
+  geom_split_violin(width=1)+
   xlab("Day")+
   ylab("S/F94")+
   ggtitle("")+
   theme_bw()+
   scale_fill_discrete(name="28-day outcome", labels=c("Discharged alive", "Death"))
-p1
-#non split violin (not decided yet which one to use out of p1 and p2)
-p2 <- ggplot(long_dfsf94_12, aes(x=days_since_start, y=sf94, fill=mortality_28)) +
-  geom_violin()+
+
+ggsave(plot=p1, width=10, dpi=300, filename="12_days.pdf")
+
+base_sf94_28<-createDF(subset_violin, "base", "sf94", 28)
+#transform to long format 
+long_dfsf94_28<-base_sf94_28%>%
+  pivot_longer(!subjid, names_to= "days_since_start", values_to= "sf94")
+#removing rows without SF94 value
+long_dfsf94_28 <- subset(long_dfsf94_28, !is.na(sf94))
+#add 28 day mortality data
+mortality<-df_1[,c("subjid","mortality_28")]
+mortality<-mortality%>%
+  group_by(subjid)%>%
+  slice(which.min(mortality_28))
+long_dfsf94_28<-left_join(long_dfsf94_28, mortality, by="subjid")
+#change to character and set correct order
+long_dfsf94_28$mortality_28<-as.character(long_dfsf94_28$mortality_28)
+long_dfsf94_28$mortality_28<-factor(long_dfsf94_28$mortality_28,
+                                    levels=c("0","1"))
+long_dfsf94_28$days_since_start<-as.character(long_dfsf94_28$days_since_start)
+long_dfsf94_28$days_since_start<-factor(long_dfsf94_28$days_since_start,
+                                        levels=c("0","1","2","3","4","5",
+                                                 "6","7","8","9","10", "11", "12",
+                                                 "13", "14", "15", "16", "17", "18",
+                                                 "19", "20", "21", "22", "23", "24", 
+                                                 "25", "26", "27", "28"))
+violin_28days <- ggplot(long_dfsf94_28, aes(x=days_since_start, y=sf94, fill=mortality_28)) +
+  geom_split_violin(width=1)+
   xlab("Day")+
   ylab("S/F94")+
   ggtitle("")+
   theme_bw()+
-  scale_fill_discrete(name="28-day outcome", labels= c("Discharged alive", "Death"))
-p2
+  scale_fill_discrete(name="28-day outcome", labels=c("Discharged alive", "Death"))+
+  scale_x_discrete(expand = c(0,0))
+
+ggsave(plot=violin_28days, width=12, dpi=300, filename="28-days.pdf")
 
 #time series SF94 for each day split by outcome
 timeseries_sf94<-ggplot(long_dfsf94_12, aes(x=days_since_start, y=sf94,
