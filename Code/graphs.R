@@ -108,7 +108,7 @@ violin_28days <- ggplot(long_dfsf94_28, aes(x=days_since_start, y=sf94, fill=mor
   scale_fill_discrete(name="28-day outcome", labels=c("Discharged alive", "Death"))+
   scale_x_discrete(expand = c(0,0))
 
-ggsave(plot=violin_28days, width=12, dpi=300, filename="28-days.pdf")
+ggsave(plot=violin_28days, width=12, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="28-days.pdf")
 
 #time series SF94 for each day split by outcome
 timeseries_sf94<-ggplot(long_dfsf94_12, aes(x=days_since_start, y=sf94,
