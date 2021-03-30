@@ -168,44 +168,79 @@ who_a_0.80<-who_function(subset1, 0.80)
 who_a_0.85<-who_function(subset1, 0.85)
 who_a_0.90<-who_function(subset1, 0.90)
 who_a_0.95<-who_function(subset1, 0.95)
-who_0.80<-who_effectsize_function_ss(subset1, who_a_0.80)
-who_0.85<-who_effectsize_function_ss(subset1, who_a_0.85)
-who_0.90<-who_effectsize_function_ss(subset1, who_a_0.90)
-who_0.95<-who_effectsize_function_ss(subset1, who_a_0.95)
+who_0.80<-who_effectsize_function_ss(subset1, who_a_0.80[2,1], who_a_0.80[2,2])
+who_0.85<-who_effectsize_function_ss(subset1, who_a_0.85[2,1], who_a_0.85[2,2])
+who_0.90<-who_effectsize_function_ss(subset1, who_a_0.90[2,1], who_a_0.90[2,2])
+who_0.95<-who_effectsize_function_ss(subset1, who_a_0.95[2,1], who_a_0.95[2,2])
 
 who_values<- rbind(who_0.80[1,1], who_0.85[1,1], who_0.90[1,1], who_0.95[1,1])
+who_0.80_upper<-who_effectsize_function_ss(subset1, who_a_0.80[1,1], who_a_0.80[1,2])
+who_0.85_upper<-who_effectsize_function_ss(subset1, who_a_0.85[1,1], who_a_0.85[1,2])
+who_0.90_upper<-who_effectsize_function_ss(subset1, who_a_0.90[1,1], who_a_0.90[1,2])
+who_0.95_upper<-who_effectsize_function_ss(subset1, who_a_0.95[1,1], who_a_0.95[1,2])
+
+who_values_upper<- rbind(who_0.80_upper[1,1], who_0.85_upper[1,1],
+                         who_0.90_upper[1,1], who_0.95_upper[1,1])
+
+who_0.80_lower<-who_effectsize_function_ss(subset1, who_a_0.80[3,1], who_a_0.80[3,2])
+who_0.85_lower<-who_effectsize_function_ss(subset1, who_a_0.85[3,1], who_a_0.85[3,2])
+who_0.90_lower<-who_effectsize_function_ss(subset1, who_a_0.90[3,1], who_a_0.90[3,2])
+who_0.95_lower<-who_effectsize_function_ss(subset1, who_a_0.95[3,1], who_a_0.95[3,2])
+
+who_values_lower<- rbind(who_0.80_lower[1,1], who_0.85_lower[1,1],
+                         who_0.90_lower[1,1], who_0.95_lower[1,1])
+
+
 
 #sus imp
 susimp_a_0.80<-susimpfunc(subset1,0.80)
 susimp_a_0.85<-susimpfunc(subset1,0.85)
 susimp_a_0.90<-susimpfunc(subset1,0.90)
 susimp_a_0.95<-susimpfunc(subset1,0.95)
-susimp_0.80<-susimp_pwr_func(subset1, susimp_a_0.80[,1],susimp_a_0.80[,2])
-susimp_0.85<-susimp_pwr_func(subset1, susimp_a_0.85[,1],susimp_a_0.85[,2])
-susimp_0.90<-susimp_pwr_func(subset1, susimp_a_0.90[,1],susimp_a_0.90[,2])
-susimp_0.95<-susimp_pwr_func(subset1, susimp_a_0.95[,1],susimp_a_0.95[,2])
+susimp_0.80<-susimp_pwr_func(subset1, susimp_a_0.80[2,1],susimp_a_0.80[2,2])
+susimp_0.85<-susimp_pwr_func(subset1, susimp_a_0.85[2,1],susimp_a_0.85[2,2])
+susimp_0.90<-susimp_pwr_func(subset1, susimp_a_0.90[2,1],susimp_a_0.90[2,2])
+susimp_0.95<-susimp_pwr_func(subset1, susimp_a_0.95[2,1],susimp_a_0.95[2,2])
 
 susimp_value<-rbind(susimp_0.80[1,1],susimp_0.85[1,1],susimp_0.90[1,1],susimp_0.95[1,1])
 
-#bind values
+susimp_0.80_upper<-susimp_pwr_func(subset1, susimp_a_0.80[1,1],susimp_a_0.80[1,2])
+susimp_0.85_upper<-susimp_pwr_func(subset1, susimp_a_0.85[1,1],susimp_a_0.85[1,2])
+susimp_0.90_upper<-susimp_pwr_func(subset1, susimp_a_0.90[1,1],susimp_a_0.90[1,2])
+susimp_0.95_upper<-susimp_pwr_func(subset1, susimp_a_0.95[1,1],susimp_a_0.95[1,2])
+susimp_values_upper<-rbind(susimp_0.80_upper[1,1],susimp_0.85_upper[1,1],
+                           susimp_0.90_upper[1,1],susimp_0.95_upper[1,1])
+susimp_0.80_lower<-susimp_pwr_func(subset1, susimp_a_0.80[3,1],susimp_a_0.80[3,2])
+susimp_0.85_lower<-susimp_pwr_func(subset1, susimp_a_0.85[3,1],susimp_a_0.85[3,2])
+susimp_0.90_lower<-susimp_pwr_func(subset1, susimp_a_0.90[3,1],susimp_a_0.90[3,2])
+susimp_0.95_lower<-susimp_pwr_func(subset1, susimp_a_0.95[3,1],susimp_a_0.95[3,2])
+susimp_values_lower<-rbind(susimp_0.80_lower[1,1],susimp_0.85_lower[1,1],
+                           susimp_0.90_lower[1,1],susimp_0.95_lower[1,1])
+
+#combine values
 ss_values<-rbind(mort_values, sf94_values, who_values, susimp_value)
+ss_upper<-rbind(NA, NA, NA, NA, sf94_values_upper, who_values_upper, susimp_values_upper)
+ss_lower<-rbind(NA, NA, NA, NA, sf94_values_lower, who_values_lower, susimp_values_lower)
 ss_outcomemeasure<-c(rep("28-day mortality",4),rep("S/F94 day 5",4),rep("WHO day 5",4),rep("Sustained 1 level improvement",4) )
 ss_treatmenteffect<-c("0.80", "0.85", "0.90", "0.95",
                       "0.80", "0.85", "0.90", "0.95",
                       "0.80", "0.85", "0.90", "0.95",
                       "0.80", "0.85", "0.90", "0.95")
-samplesize_dataframe<-cbind(ss_values, ss_outcomemeasure, ss_treatmenteffect)
+samplesize_dataframe<-cbind(ss_values, ss_outcomemeasure, ss_treatmenteffect, ss_upper, ss_lower)
 
 
 samplesize_dataframe<-data.frame(samplesize_dataframe)
 row.names(samplesize_dataframe)<-NULL
-colnames(samplesize_dataframe)<-c("values", "outcome_measure", "treatment_effect")
+colnames(samplesize_dataframe)<-c("values", "outcome_measure", "treatment_effect", "upper_limits", "lower_limits")
 samplesize_dataframe<-as.data.frame(lapply(samplesize_dataframe, unlist))
 samplesize_dataframe$values<-as.numeric(as.character(samplesize_dataframe$values))
 samplesize_dataframe$outcome_measure<-as.factor(samplesize_dataframe$outcome_measure)
+s2c(samplesize_dataframe)
 samplesize_graph<-ggplot(samplesize_dataframe, aes(x=treatment_effect, y=values,
                                   group= outcome_measure, colour=outcome_measure))
-s1<-samplesize_graph + geom_path() + xlab("Treatment effect (predicited 28-day mortality relative risk ratio)")+ 
+s1<-samplesize_graph + geom_path() + 
+  geom_ribbon(aes(ymin=lower_limits, ymax=upper_limits), fill="grey70")+
+  xlab("Treatment effect (predicited 28-day mortality relative risk ratio)")+ 
   ylab("Sample size") +
   ggtitle("")+
   scale_color_discrete(name="Outcome measure")+ theme_bw()

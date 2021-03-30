@@ -685,8 +685,8 @@ who_function<-function(subset_df, mortality_diff){
   pred_D8 <- predict(WHOD8_model_S, newdata = subset_df, type = 'probs')
   
   effect_size_calc_OR <- function(prob_pred, treatment){
-    mean_prob <- mean(prob_pred, na.rm = TRUE)
-    return( treatment*( 1- mean_prob) / (1 - treatment * mean_prob)  )
+    ci_prob <- CI(na.omit(prob_pred))
+    return( treatment*( 1- ci_prob) / (1 - treatment * ci_prob)  )
   }
   d5_effectsize_who<-effect_size_calc_OR(pred_D5[,"10"], mortality_diff)
   d8_effectsize_who<-effect_size_calc_OR(pred_D8[,"10"], mortality_diff)
@@ -697,7 +697,6 @@ who_subset1<-who_function(subset1, 0.85)
 who_subset2<-who_function(subset2, 0.85)
 who_subset3<-who_function(subset3, 0.85)
 who_effectsize<-rbind(who_subset1, who_subset2, who_subset3)
-
 
 who_table_function<-function(subset_df){
   whoTable <- rbind( table(subset_df[["WHOD5_P"]]), table(subset_df[["WHOD8_P"]])   )
@@ -737,7 +736,7 @@ write.csv(who_prop_output,"/home/skerr/Git/SF94/Outputs/who_prop_output.csv")
 
 
 
-who_effectsize_function_ss<-function(subset_df, who_subset_df){
+who_effectsize_function_ss<-function(subset_df, who_subset_df_1, who_subset_df_2){
   p1_D5 <-table(subset_df[,"WHOD5_P"])/sum(!is.na(subset_df[,"WHOD5_P"]))
   p1_D8 = table(subset_df[,"WHOD8_P"])/sum(!is.na(subset_df[,"WHOD8_P"]))
   
@@ -747,14 +746,14 @@ who_effectsize_function_ss<-function(subset_df, who_subset_df){
     posamsize(p=pavg, odds.ratio=OR, alpha=alpha, power=power)
   }
   
-  who_samplesize_d5<-who_effectsize_function( 0.05, 0.8, who_subset_df[[1]], p1_D5)
-  who_samplesize_d8<-who_effectsize_function( 0.05, 0.8, who_subset_df[[2]], p1_D8)
+  who_samplesize_d5<-who_effectsize_function( 0.05, 0.8, who_subset_df_1, p1_D5)
+  who_samplesize_d8<-who_effectsize_function( 0.05, 0.8, who_subset_df_2, p1_D8)
   who_samplesize<-cbind(who_samplesize_d5, who_samplesize_d8)
   return(who_samplesize)
 }
-who_samplesize_SS1<-who_effectsize_function_ss(subset1, who_subset1)
-who_samplesize_SS2<-who_effectsize_function_ss(subset2, who_subset2)
-who_samplesize_SS3<-who_effectsize_function_ss(subset3, who_subset3)
+who_samplesize_SS1<-who_effectsize_function_ss(subset1, who_subset1[2,1], who_subset1[2,2])
+who_samplesize_SS2<-who_effectsize_function_ss(subset2, who_subset2[2,1], who_subset2[2,2])
+who_samplesize_SS3<-who_effectsize_function_ss(subset3, who_subset3[2,1], who_subset3[2,2])
 
 who_samplesize<-cbind(who_samplesize_SS1,who_samplesize_SS2,who_samplesize_SS3)
 
@@ -774,7 +773,7 @@ susimpfunc<-function(subset_df, mortdif){
   coef_2L<-susimp_2L$coef[2] 
   
   effect_size_calc <- function(prob_pred, treatment, coef){
-    return( mean( log((treatment*(1-prob_pred)) / (1- treatment * prob_pred)) / coef , na.rm = TRUE) )
+    return(CI(na.omit( log((treatment*(1-prob_pred)) / (1- treatment * prob_pred)) / coef),ci=0.95) )
   }
   susimp_1L_effectsize<-effect_size_calc(predict_susimp_1L, mortdif, coef_1L)
   susimp_2L_effectsize<-effect_size_calc(predict_susimp_2L, mortdif, coef_2L)
