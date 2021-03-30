@@ -175,13 +175,13 @@ who_sf_5<-subset(subset_graph, days_since_start==5)
 who_sf_5<-subset(who_sf_5, !is.na(severity_scale_ordinal))
 who_sf_5$severity_scale_ordinal<- paste("WHO level", who_sf_5$severity_scale_ordinal, sep = " ")
 who_sf_5$severity_scale_ordinal<-factor(who_sf_5$severity_scale_ordinal,
-                                               levels=c("WHO level 4","WHO level 5",
-                                                        "WHO level 6","WHO level 7",
-                                                        "WHO level 8","WHO level 9","WHO level 10"))
+                                        levels=c("WHO level 4","WHO level 5",
+                                                 "WHO level 6","WHO level 7",
+                                                 "WHO level 8","WHO level 9","WHO level 10"))
 title_who5<-as.character(sum(!is.na(who_sf_5$sf94))) 
 title_who5<-paste("WHO ordinal severity scale and S/F94 (N=", title_who5, ")", sep = "")
 who_sf_5plot<-ggplot(who_sf_5,
-                      aes(x=severity_scale_ordinal, y=sf94, fill=severity_scale_ordinal ))
+                     aes(x=severity_scale_ordinal, y=sf94, fill=severity_scale_ordinal ))
 who_sf_5plot+ geom_violin()+ #remove outliers
   theme_bw()+
   ggtitle(title_who5)+ 
@@ -195,11 +195,11 @@ who_sf_5plot+ geom_violin()+ #remove outliers
 library(RColorBrewer)
 #mortality and SF94 on day 0 and day 5
 #for day 0 
-sfmort_day0<-subset(subset_graph, (days_since_admission == 0 & !is.na(outcome)))
+sfmort_day0<-subset(subset_graph, (days_since_admission == 0))
 #violin plots
 #distribution of SF94 values on day 0 for unselected population
 sfmort_day0plot<-ggplot(sfmort_day0,
-                             aes(x=outcome, y=sf94, fill=outcome ))
+                        aes(x=as.factor(mortality_28), y=sf94, fill=mortality_28 ))
 title_0<-as.character(sum(!is.na(sfmort_day0$sf94))) 
 title_0<-paste("(N=", title_0, ")", sep = "")
 sfmort_day0plot + geom_violin()+ 
@@ -212,11 +212,11 @@ sfmort_day0plot + geom_violin()+
         plot.title = element_text (hjust = 0.5)) #remove legend + center title
 
 #for day 5 
-sfmort_day5<-subset(subset1, (days_since_admission == 5 & !is.na(outcome)))
+sfmort_day5<-subset(subset_graph, (days_since_admission == 5))
 #violin plots
 #distribution of SF94 values on day 5 for unselected population
 sfmort_day5plot<-ggplot(sfmort_day5,
-                        aes(x=outcome, y=sf94, fill=outcome ))
+                        aes(x=as.factor(mortality_28), y=sf94, fill=mortality_28 ))
 title_5<-as.character(sum(!is.na(sfmort_day5$sf94))) 
 title_5<-paste("(N=", title_5, ")", sep = "")
 sfmort_day5plot + geom_violin()+ 
@@ -236,9 +236,9 @@ unselectedwho_day5<-subset(df_1, days_since_start == 5)
 unselectedwho_day5<-subset(unselected_day5, (!is.na(severity_scale_ordinal)))
 unselectedwho_day5$severity_scale_ordinal<- paste("WHO level", unselectedwho_day5$severity_scale_ordinal, sep = " ")
 unselectedwho_day5$severity_scale_ordinal<-factor(unselectedwho_day5$severity_scale_ordinal,
-                                               levels=c("WHO level 4","WHO level 5",
-                                                        "WHO level 6","WHO level 7",
-                                                        "WHO level 8","WHO level 9","WHO level 10"))
+                                                  levels=c("WHO level 4","WHO level 5",
+                                                           "WHO level 6","WHO level 7",
+                                                           "WHO level 8","WHO level 9","WHO level 10"))
 title_un_who5<-as.character(sum(!is.na(unselectedwho_day5$sf94))) 
 title_un_who5<-paste("WHO ordinal severity scale for unselected subjects (N=", title_un_who5, ")", sep = "")
 #violin plots (figure 7a)
@@ -256,11 +256,11 @@ unselect_who5+ geom_violin()+ #remove outliers
 
 #make dataframe with SF94 day 0 and day 5 + outcome for violin plots (figure 7b+c)
 #for day 0 (unselected)
-unselected_day0<-subset(df_1, (days_since_admission == 0 & !is.na(outcome)))
+unselected_day0<-subset(df_1, (days_since_admission == 0))
 #violin plots
 #distribution of SF94 values on day 0 for unselected population
 unselected_outcome_0<-ggplot(unselected_day0,
-                             aes(x=outcome, y=sf94, fill=outcome ))
+                             aes(x=as.factor(mortality_28), y=sf94, fill=mortality_28 ))
 title_un0<-as.character(sum(!is.na(unselected_day0$sf94))) 
 title_un0<-paste("Unselected subjects (N=", title_un0, ")", sep = "")
 unselected_outcome_0 + geom_violin()+ 
@@ -273,10 +273,10 @@ unselected_outcome_0 + geom_violin()+
         plot.title = element_text (hjust = 0.5)) #remove legend + center title
 
 #Same for day 5 (figure 7c)
-unselected_day5<-subset(df_1, (days_since_admission == 5 & !is.na(outcome)))
+unselected_day5<-subset(df_1, (days_since_admission == 5))
 #violin plots
 unselected_outcome_5<-ggplot(unselected_day5,
-                             aes(x=outcome, y=sf94, fill=outcome ))
+                             aes(x=as.factor(mortality_28), y=sf94, fill=mortality_28 ))
 title_un5<-as.character(sum(!is.na(unselected_day5$sf94))) 
 title_un5<-paste("Unselected subjects (N=", title_un5, ")", sep = "")
 unselected_outcome_5 + geom_violin()+ 
