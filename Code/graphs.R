@@ -124,6 +124,8 @@ timeseries_sf94<-ggplot(long_dfsf94_12, aes(x=days_since_start, y=sf94,
   scale_color_discrete(name= "Outcome", labels=c("Discharged alive", "Death"))
 timeseries_sf94
 
+ggsave(plot=timeseries_sf94, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="timeseries_sf94.pdf")
+
 #example final graph
 #mortality
 mort_a_0.80<-sample_function(subset1,0.80)
@@ -191,11 +193,12 @@ samplesize_dataframe$values<-as.numeric(as.character(samplesize_dataframe$values
 samplesize_dataframe$outcome_measure<-as.factor(samplesize_dataframe$outcome_measure)
 samplesize_graph<-ggplot(samplesize_dataframe, aes(x=treatment_effect, y=values,
                                   group= outcome_measure, colour=outcome_measure))
-samplesize_graph + geom_path() + xlab("Treatment effect (predicited 28-day mortality relative risk ratio)")+ 
+s1<-samplesize_graph + geom_path() + xlab("Treatment effect (predicited 28-day mortality relative risk ratio)")+ 
   ylab("Sample size") +
   ggtitle("")+
   scale_color_discrete(name="Outcome measure")+ theme_bw()
-str(samplesize_dataframe)
+
+ggsave(plot=s1, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="samplesize_graph.pdf")
 
 subset_graph<-subset_violin
 #Respiratory rate and SF9/4 function, including regression line (Sup figure 5)
@@ -213,7 +216,8 @@ rr_graph<-ggplot(subset_graph, aes(x=sf94, y=rr_vsorres, colour=sao2)) +
                          limits=c(min(0.5),
                                   max(1.0)),
                          name="SaO2")
-rr_graph
+
+ggsave(plot=rr_graph, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="rr_graph.pdf")
 #title: rr_sf94_regression
 
 # WHO and SF94 
@@ -230,7 +234,7 @@ title_who5<-as.character(sum(!is.na(who_sf_5$sf94)))
 title_who5<-paste("WHO ordinal severity scale and S/F94 (N=", title_who5, ")", sep = "")
 who_sf_5plot<-ggplot(who_sf_5,
                      aes(x=severity_scale_ordinal, y=sf94, fill=severity_scale_ordinal ))
-who_sf_5plot+ geom_violin()+ #remove outliers
+sel_who5<-who_sf_5plot+ geom_violin()+ #remove outliers
   theme_bw()+
   ggtitle(title_who5)+ 
   scale_fill_brewer(palette = "Spectral")+
@@ -239,6 +243,8 @@ who_sf_5plot+ geom_violin()+ #remove outliers
   theme(legend.position = "none",
         plot.title = element_text (hjust = 0.5))+ #remove legend + center title
   scale_x_discrete(labels=c("4 Hosp", "5 Ox", "6 CPAP", "7 IMV", "8 IMV S/F<2", "9 MOF", "10 Dead"))
+
+ggsave(plot=sel_who5, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="selected_who5.pdf")
 
 library(RColorBrewer)
 #mortality and SF94 on day 0 and day 5
@@ -253,7 +259,7 @@ sfmort_day0plot<-ggplot(sfmort_day0,
                         aes(x=as.factor(mortality_28), y=sf94, fill=mortality_28 ))
 title_0<-as.character(sum(!is.na(sfmort_day0$sf94))) 
 title_0<-paste("(N=", title_0, ")", sep = "")
-sfmort_day0plot + geom_violin()+ 
+sel_0<-sfmort_day0plot + geom_violin()+ 
   theme_bw()+
   ggtitle(title_0)+
   scale_fill_brewer(palette = "Paired")+
@@ -262,6 +268,7 @@ sfmort_day0plot + geom_violin()+
   theme(legend.position = "none",
         plot.title = element_text (hjust = 0.5)) #remove legend + center title
 
+ggsave(plot=sel_0, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="selected_d0.pdf")
 
 #for day 5 
 sfmort_day5<-subset(subset_graph, (days_since_admission == 5))
@@ -271,7 +278,7 @@ sfmort_day5plot<-ggplot(sfmort_day5,
                         aes(x=as.factor(mortality_28), y=sf94, fill=mortality_28 ))
 title_5<-as.character(sum(!is.na(sfmort_day5$sf94))) 
 title_5<-paste("(N=", title_5, ")", sep = "")
-sfmort_day5plot + geom_violin()+ 
+sel_5<-sfmort_day5plot + geom_violin()+ 
   theme_bw()+
   ggtitle(title_5)+ 
   scale_fill_brewer(palette = "Paired")+
@@ -279,6 +286,8 @@ sfmort_day5plot + geom_violin()+
   ylab("S/F94 day5")+
   theme(legend.position = "none",
         plot.title = element_text (hjust = 0.5)) #remove legend + center title
+
+ggsave(plot=sel_5, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="selected_d5.pdf")
 
 # figure 7A: effect size with alternative outcome in an unselected population
 # data = df_1
@@ -296,7 +305,7 @@ title_un_who5<-paste("WHO ordinal severity scale for unselected subjects (N=", t
 #violin plots (figure 7a)
 unselect_who5<-ggplot(unselectedwho_day5,
                       aes(x=severity_scale_ordinal, y=sf94, fill=severity_scale_ordinal ))
-unselect_who5+ geom_violin()+ #remove outliers
+us_who5<-unselect_who5+ geom_violin()+ #remove outliers
   theme_bw()+
   ggtitle(title_un_who5)+ 
   scale_fill_brewer(palette = "Spectral")+
@@ -305,6 +314,8 @@ unselect_who5+ geom_violin()+ #remove outliers
   theme(legend.position = "none",
         plot.title = element_text (hjust = 0.5))+ #remove legend + center title
   scale_x_discrete(labels=c("4 Hosp", "5 Ox", "6 CPAP", "7 IMV", "8 IMV S/F<2", "9 MOF", "10 Dead"))
+
+ggsave(plot=us_who5, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="unselected_who5.pdf")
 
 #make dataframe with SF94 day 0 and day 5 + outcome for violin plots (figure 7b+c)
 #for day 0 (unselected)
@@ -315,7 +326,7 @@ unselected_outcome_0<-ggplot(unselected_day0,
                              aes(x=as.factor(mortality_28), y=sf94, fill=mortality_28 ))
 title_un0<-as.character(sum(!is.na(unselected_day0$sf94))) 
 title_un0<-paste("Unselected subjects (N=", title_un0, ")", sep = "")
-unselected_outcome_0 + geom_violin()+ 
+us_0<-unselected_outcome_0 + geom_violin()+ 
   theme_bw()+
   ggtitle(title_un0)+ 
   scale_fill_brewer(palette = "Paired")+
@@ -324,6 +335,8 @@ unselected_outcome_0 + geom_violin()+
   theme(legend.position = "none",
         plot.title = element_text (hjust = 0.5)) #remove legend + center title
 
+ggsave(plot=us_0, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="unselected_d0.pdf")
+
 #Same for day 5 (figure 7c)
 unselected_day5<-subset(df_1, (days_since_admission == 5))
 #violin plots
@@ -331,7 +344,7 @@ unselected_outcome_5<-ggplot(unselected_day5,
                              aes(x=as.factor(mortality_28), y=sf94, fill=mortality_28 ))
 title_un5<-as.character(sum(!is.na(unselected_day5$sf94))) 
 title_un5<-paste("Unselected subjects (N=", title_un5, ")", sep = "")
-unselected_outcome_5 + geom_violin()+ 
+us_5<-unselected_outcome_5 + geom_violin()+ 
   theme_bw()+
   ggtitle(title_un5)+ 
   scale_fill_brewer(palette = "Paired")+
@@ -340,6 +353,6 @@ unselected_outcome_5 + geom_violin()+
   theme(legend.position = "none",
         plot.title = element_text (hjust = 0.5)) #remove legend + center title
 
-
+ggsave(plot=us_5, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="unselected_d5.pdf")
 
 
