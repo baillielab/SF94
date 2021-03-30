@@ -125,29 +125,72 @@ timeseries_sf94<-ggplot(long_dfsf94_12, aes(x=days_since_start, y=sf94,
 timeseries_sf94
 
 #example final graph
-dummy_treatment<-c(rep("0.80",4),rep("0.85",4),rep("0.90",4),rep("0.95",4) )
-dummy_values<-c(8000,2500,1000,3000,10000,3000,1200,3500,11000,3200,1500,4000,12000,3500,1900,4800)
-dummy_effect<-c("sustained improvement", "WHO", "S/F94", "mortality",
-                "sustained improvement", "WHO", "S/F94", "mortality",
-                "sustained improvement", "WHO", "S/F94", "mortality",
-                "sustained improvement", "WHO", "S/F94", "mortality")
-dummydata<-cbind(dummy_effect,dummy_treatment, dummy_values)
-dummydata<-data.frame(dummydata)
-dummydata$dummy_values<-as.numeric(as.character(dummydata$dummy_values))
-dummy_plot<-ggplot(dummydata, aes(x=dummy_treatment, y=dummy_values,
-                                  group= dummy_effect, colour=dummy_effect))
-dummy_plot + geom_path() + xlab("Treatment effect") + ylab("Sample size") +
-  ggtitle("example graph, power=0.8, alpha=0.05")+
-  scale_color_discrete(name="outcome measure")+ theme_bw()
+#mortality
+mort_a_0.80<-sample_function(subset1,0.80)
+mort_0.80<-cont_cor_function(mort_a_0.80)
+mort_a_0.85<-sample_function(subset1,0.85)
+mort_0.85<-cont_cor_function(mort_a_0.85)
+mort_a_0.90<-sample_function(subset1,0.90)
+mort_0.90<-cont_cor_function(mort_a_0.90)
+mort_a_0.95<-sample_function(subset1,0.95)
+mort_0.95<-cont_cor_function(mort_a_0.95)
 
-dummy_values2<-c(1900,3500,4800,12000)
-dummy_effect2<-c( "S/F94","WHO", "mortality","sustained improvement")
-dummydata2<-cbind(dummy_values2, dummy_effect2)
-dummydata2<-data.frame(dummydata2)
-dummydata2$dummy_values2<-as.numeric(as.character(dummydata2$dummy_values2))
-dummyplot2<-ggplot(dummydata2, aes(x=dummy_effect2, y=dummy_values2)) + 
-  geom_point()+geom_segment(aes(x=dummy_effect2, xend=dummy_effect2, y=0, yend=dummy_values2))+theme_bw()
-dummyplot2
+mort_values<-rbind(mort_0.80,mort_0.85,mort_0.90,mort_0.95)
+
+#SF94
+
+sf94_ES_0.80<-sf94_regression(subset1,0.80)
+sf94_ES_0.85<-sf94_regression(subset1,0.85)
+sf94_ES_0.90<-sf94_regression(subset1,0.90)
+sf94_ES_0.95<-sf94_regression(subset1,0.95)
+sf94_0.80<-power_sf94(0.05,0.8,sf94_ES_0.80[,1], meanSD_subset1[2,1], cor_subset1[[1]])
+sf94_0.85<-power_sf94(0.05,0.8,sf94_ES_0.85[,1], meanSD_subset1[2,1], cor_subset1[[1]])
+sf94_0.90<-power_sf94(0.05,0.8,sf94_ES_0.90[,1], meanSD_subset1[2,1], cor_subset1[[1]])
+sf94_0.95<-power_sf94(0.05,0.8,sf94_ES_0.95[,1], meanSD_subset1[2,1], cor_subset1[[1]])
+
+sf94_values<-rbind(sf94_0.80,sf94_0.85,sf94_0.90,sf94_0.95)
+
+#WHO
+who_a_0.80<-who_function(subset1, 0.80)
+who_0.80<-who_effectsize_function_ss(subset1, who_a_0.80)
+who_a_0.85<-who_function(subset1, 0.85)
+who_0.85<-who_effectsize_function_ss(subset1, who_a_0.85)
+who_a_0.90<-who_function(subset1, 0.90)
+who_0.90<-who_effectsize_function_ss(subset1, who_a_0.90)
+who_a_0.95<-who_function(subset1, 0.95)
+who_0.95<-who_effectsize_function_ss(subset1, who_a_0.95)
+who_values<- rbind(who_0.80[1,1], who_0.85[1,1], who_0.90[1,1], who_0.95[1,1])
+
+#sus imp
+susimp_a_0.80<-susimpfunc(subset1,0.80)
+susimp_0.80<-susimp_pwr_func(subset1, susimp_a_0.80[,1],susimp_a_0.80[,2])
+susimp_a_0.85<-susimpfunc(subset1,0.85)
+susimp_0.85<-susimp_pwr_func(subset1, susimp_a_0.85[,1],susimp_a_0.85[,2])
+susimp_a_0.90<-susimpfunc(subset1,0.90)
+susimp_0.90<-susimp_pwr_func(subset1, susimp_a_0.90[,1],susimp_a_0.90[,2])
+susimp_a_0.95<-susimpfunc(subset1,0.95)
+susimp_0.95<-susimp_pwr_func(subset1, susimp_a_0.95[,1],susimp_a_0.95[,2])
+
+susimp_value<-rbind(susimp_0.80[1,1],susimp_0.85[1,1],susimp_0.90[1,1],susimp_0.95[1,1])
+
+#bind values
+ss_values<-rbind(mort_values, sf94_values, who_values, susimp_value)
+ss_outcomemeasure<-c(rep("28-day mortality",4),rep("S/F94 day 5",4),rep("WHO day 5",4),rep("Sustained 1 level improvement",4) )
+ss_treatmenteffect<-c("0.80", "0.85", "0.90", "0.95",
+                      "0.80", "0.85", "0.90", "0.95",
+                      "0.80", "0.85", "0.90", "0.95",
+                      "0.80", "0.85", "0.90", "0.95")
+samplesize_dataframe<-cbind(ss_values, ss_outcomemeasure, ss_treatmenteffect)
+samplesize_dataframe<-data.frame(samplesize_dataframe)
+colnames(samplesize_dataframe)<-c("values", "outcome_measure", "treatment_effect")
+samplesize_dataframe$values<-as.numeric(as.character(samplesize_dataframe$values))
+samplesize_graph<-ggplot(samplesize_dataframe, aes(x=treatment_effect, y=values,
+                                  group= outcome_measure, colour=outcome_measure))
+samplesize_graph + geom_path() + xlab("Treatment effect (predicited 28-day mortality relative risk ratio)")+ 
+  ylab("Sample size") +
+  ggtitle("")+
+  scale_color_discrete(name="Outcome measure")+ theme_bw()
+
 
 subset_graph<-subset_violin
 #Respiratory rate and SF9/4 function, including regression line (Sup figure 5)
@@ -194,10 +237,13 @@ who_sf_5plot+ geom_violin()+ #remove outliers
 
 library(RColorBrewer)
 #mortality and SF94 on day 0 and day 5
+subset_graph$mortality_28<-factor(subset_graph$mortality_28,
+                                     levels=c("0","1"))
 #for day 0 
 sfmort_day0<-subset(subset_graph, (days_since_admission == 0))
 #violin plots
 #distribution of SF94 values on day 0 for unselected population
+
 sfmort_day0plot<-ggplot(sfmort_day0,
                         aes(x=as.factor(mortality_28), y=sf94, fill=mortality_28 ))
 title_0<-as.character(sum(!is.na(sfmort_day0$sf94))) 
@@ -205,11 +251,12 @@ title_0<-paste("(N=", title_0, ")", sep = "")
 sfmort_day0plot + geom_violin()+ 
   theme_bw()+
   ggtitle(title_0)+
-  scale_fill_brewer(palette = "Spectral")+
+  scale_fill_brewer(palette = "Paired")+
   xlab("")+
   ylab("S/F94 day0")+
   theme(legend.position = "none",
         plot.title = element_text (hjust = 0.5)) #remove legend + center title
+
 
 #for day 5 
 sfmort_day5<-subset(subset_graph, (days_since_admission == 5))
@@ -222,7 +269,7 @@ title_5<-paste("(N=", title_5, ")", sep = "")
 sfmort_day5plot + geom_violin()+ 
   theme_bw()+
   ggtitle(title_5)+ 
-  scale_fill_brewer(palette = "Spectral")+
+  scale_fill_brewer(palette = "Paired")+
   xlab("")+
   ylab("S/F94 day5")+
   theme(legend.position = "none",
@@ -233,7 +280,7 @@ sfmort_day5plot + geom_violin()+
 # no filters used
 #take day 5 from who and sf data
 unselectedwho_day5<-subset(df_1, days_since_start == 5)
-unselectedwho_day5<-subset(unselected_day5, (!is.na(severity_scale_ordinal)))
+unselectedwho_day5<-subset(unselectedwho_day5, (!is.na(severity_scale_ordinal)))
 unselectedwho_day5$severity_scale_ordinal<- paste("WHO level", unselectedwho_day5$severity_scale_ordinal, sep = " ")
 unselectedwho_day5$severity_scale_ordinal<-factor(unselectedwho_day5$severity_scale_ordinal,
                                                   levels=c("WHO level 4","WHO level 5",
@@ -266,7 +313,7 @@ title_un0<-paste("Unselected subjects (N=", title_un0, ")", sep = "")
 unselected_outcome_0 + geom_violin()+ 
   theme_bw()+
   ggtitle(title_un0)+ 
-  scale_fill_brewer(palette = "Spectral")+
+  scale_fill_brewer(palette = "Paired")+
   xlab("")+
   ylab("S/F94 day0")+
   theme(legend.position = "none",
@@ -282,7 +329,7 @@ title_un5<-paste("Unselected subjects (N=", title_un5, ")", sep = "")
 unselected_outcome_5 + geom_violin()+ 
   theme_bw()+
   ggtitle(title_un5)+ 
-  scale_fill_brewer(palette = "Spectral")+
+  scale_fill_brewer(palette = "Paired")+
   xlab("")+
   ylab("S/F94 day5")+
   theme(legend.position = "none",

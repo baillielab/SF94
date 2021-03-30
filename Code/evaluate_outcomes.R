@@ -763,7 +763,7 @@ write.csv(who_samplesize,"/home/skerr/Git/SF94/Outputs/who_samplesize.csv")
 ####################################################################################################################################
 ## Sample size formulae for analyses using difference in proportions ##
 
-susimpfunc<-function(subset_df){
+susimpfunc<-function(subset_df, mortdif){
   susimp_1L<-lrm(mortality_28 ~ sustained_1L_improvement + age_estimateyears+ sex, data = subset_df,maxit=1000)
   susimp_2L<-lrm(mortality_28 ~ sustained_2L_improvement + age_estimateyears+ sex, data = subset_df,maxit=1000)
   predict_susimp_1L<-predict(susimp_1L, type = 'fitted'  )
@@ -774,16 +774,16 @@ susimpfunc<-function(subset_df){
   effect_size_calc <- function(prob_pred, treatment, coef){
     return( mean( log((treatment*(1-prob_pred)) / (1- treatment * prob_pred)) / coef , na.rm = TRUE) )
   }
-  susimp_1L_effectsize<-effect_size_calc(predict_susimp_1L, 0.85, coef_1L)
-  susimp_2L_effectsize<-effect_size_calc(predict_susimp_2L, 0.85, coef_2L)
+  susimp_1L_effectsize<-effect_size_calc(predict_susimp_1L, mortdif, coef_1L)
+  susimp_2L_effectsize<-effect_size_calc(predict_susimp_2L, mortdif, coef_2L)
   susimp_effectsize<-cbind(susimp_1L_effectsize, susimp_2L_effectsize)
   return(susimp_effectsize)
 }
 
 
-effectsize_susump1<-susimpfunc(subset1)
-effectsize_susump2<-susimpfunc(subset2)
-effectsize_susump3<-susimpfunc(subset3)
+effectsize_susump1<-susimpfunc(subset1,0.85)
+effectsize_susump2<-susimpfunc(subset2,0.85)
+effectsize_susump3<-susimpfunc(subset3,0.85)
 effectsize_sus_improvement<-rbind(effectsize_susump1,effectsize_susump2,effectsize_susump3)
 
 
