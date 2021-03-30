@@ -181,16 +181,21 @@ ss_treatmenteffect<-c("0.80", "0.85", "0.90", "0.95",
                       "0.80", "0.85", "0.90", "0.95",
                       "0.80", "0.85", "0.90", "0.95")
 samplesize_dataframe<-cbind(ss_values, ss_outcomemeasure, ss_treatmenteffect)
+
+
 samplesize_dataframe<-data.frame(samplesize_dataframe)
+row.names(samplesize_dataframe)<-NULL
 colnames(samplesize_dataframe)<-c("values", "outcome_measure", "treatment_effect")
+samplesize_dataframe<-as.data.frame(lapply(samplesize_dataframe, unlist))
 samplesize_dataframe$values<-as.numeric(as.character(samplesize_dataframe$values))
+samplesize_dataframe$outcome_measure<-as.factor(samplesize_dataframe$outcome_measure)
 samplesize_graph<-ggplot(samplesize_dataframe, aes(x=treatment_effect, y=values,
                                   group= outcome_measure, colour=outcome_measure))
 samplesize_graph + geom_path() + xlab("Treatment effect (predicited 28-day mortality relative risk ratio)")+ 
   ylab("Sample size") +
   ggtitle("")+
   scale_color_discrete(name="Outcome measure")+ theme_bw()
-
+str(samplesize_dataframe)
 
 subset_graph<-subset_violin
 #Respiratory rate and SF9/4 function, including regression line (Sup figure 5)
