@@ -126,21 +126,58 @@ timeseries_sf94
 
 ggsave(plot=timeseries_sf94, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="timeseries_sf94.pdf")
 
-#example final graph
+#Final graph
 #mortality
-mort_a_0.80<-sample_function(subset1,0.80)
-mort_0.80<-cont_cor_function(mort_a_0.80)
-mort_a_0.85<-sample_function(subset1,0.85)
-mort_0.85<-cont_cor_function(mort_a_0.85)
-mort_a_0.90<-sample_function(subset1,0.90)
-mort_0.90<-cont_cor_function(mort_a_0.90)
-mort_a_0.95<-sample_function(subset1,0.95)
-mort_0.95<-cont_cor_function(mort_a_0.95)
+mean_death<-mean(as.numeric(subset1$mortality_28))
+sd_death<-sd(as.numeric(subset1$mortality_28))
+upper_death <- mean_death + 1.96 *sd_death / (sqrt(nrow(subset1)))
+lower_death <- mean_death - 1.96 *sd_death / (sqrt(nrow(subset1)))
 
-mort_values<-rbind(mort_0.80,mort_0.85,mort_0.90,mort_0.95)
+mort_sample<-function(p1_value, mort_dif){
+  p2=p1_value * mort_dif
+  sample <- power.prop.test(n=NULL,p1_value,p2,power=0.8)
+  return(sample)
+}
+mean_mort_0.80<-mort_sample(mean_death, 0.80)
+mean_mort_0.85<-mort_sample(mean_death,0.85)
+mean_mort_0.90<-mort_sample(mean_death,0.90)
+mean_mort_0.95<-mort_sample(mean_death,0.95)
+upper_mort_0.80<-mort_sample(upper_death,0.80)
+upper_mort_0.85<-mort_sample(upper_death,0.85)
+upper_mort_0.90<-mort_sample(upper_death,0.90)
+upper_mort_0.95<-mort_sample(upper_death,0.95)
+lower_mort_0.80<-mort_sample(lower_death,0.80)
+lower_mort_0.85<-mort_sample(lower_death,0.85)
+lower_mort_0.90<-mort_sample(lower_death,0.90)
+lower_mort_0.95<-mort_sample(lower_death,0.95)
+
+
+contcor_mort<-function(samplefunc){
+  ncorrect <- function(n,p1,p2){
+    round(2 * (n/4)*(1+sqrt(1+(4/(n*(p1-p2)))))^2)
+  } 
+  ncorrect(samplefunc$n, samplefunc$p1, samplefunc$p2)
+}
+uppermort_0.80_cor<-contcor_mort(upper_mort_0.80)
+uppermort_0.85_cor<-contcor_mort(upper_mort_0.85)
+uppermort_0.90_cor<-contcor_mort(upper_mort_0.90)
+uppermort_0.95_cor<-contcor_mort(upper_mort_0.95)
+meanmort_0.80_cor<-contcor_mort(mean_mort_0.80)
+meanmort_0.85_cor<-contcor_mort(mean_mort_0.85)
+meanmort_0.90_cor<-contcor_mort(mean_mort_0.90)
+meanmort_0.95_cor<-contcor_mort(mean_mort_0.95)
+lowermort_0.80_cor<-contcor_mort(lower_mort_0.80)
+lowermort_0.85_cor<-contcor_mort(lower_mort_0.85)
+lowermort_0.90_cor<-contcor_mort(lower_mort_0.90)
+lowermort_0.95_cor<-contcor_mort(lower_mort_0.95)
+
+mort_values<-rbind(meanmort_0.80_cor,meanmort_0.85_cor,meanmort_0.90_cor,meanmort_0.95_cor)
+mort_values_upper<-rbind(uppermort_0.80_cor,uppermort_0.85_cor,uppermort_0.90_cor,uppermort_0.95_cor)
+mort_values_lower<-rbind(lowermort_0.80_cor,lowermort_0.85_cor,lowermort_0.90_cor,lowermort_0.95_cor)
+
+
 
 #SF94
-
 sf94_ES_0.80<-sf94_regression(subset1,0.80)
 sf94_ES_0.85<-sf94_regression(subset1,0.85)
 sf94_ES_0.90<-sf94_regression(subset1,0.90)
@@ -219,23 +256,20 @@ susimp_values_lower<-rbind(susimp_0.80_lower[1,1],susimp_0.85_lower[1,1],
 
 #combine values
 ss_values<-rbind(mort_values, sf94_values, who_values, susimp_value)
-ss_upper<-rbind(NA, NA, NA, NA, sf94_values_upper, who_values_upper, susimp_values_upper)
-ss_lower<-rbind(NA, NA, NA, NA, sf94_values_lower, who_values_lower, susimp_values_lower)
+ss_upper<-rbind(mort_values_upper, sf94_values_upper, who_values_upper, susimp_values_upper)
+ss_lower<-rbind(mort_values_lower, sf94_values_lower, who_values_lower, susimp_values_lower)
 ss_outcomemeasure<-c(rep("28-day mortality",4),rep("S/F94 day 5",4),rep("WHO day 5",4),rep("Sustained 1 level improvement",4) )
 ss_treatmenteffect<-c("0.80", "0.85", "0.90", "0.95",
                       "0.80", "0.85", "0.90", "0.95",
                       "0.80", "0.85", "0.90", "0.95",
                       "0.80", "0.85", "0.90", "0.95")
 samplesize_dataframe<-cbind(ss_values, ss_outcomemeasure, ss_treatmenteffect, ss_upper, ss_lower)
-
-
 samplesize_dataframe<-data.frame(samplesize_dataframe)
 row.names(samplesize_dataframe)<-NULL
 colnames(samplesize_dataframe)<-c("values", "outcome_measure", "treatment_effect", "upper_limits", "lower_limits")
 samplesize_dataframe<-as.data.frame(lapply(samplesize_dataframe, unlist))
 samplesize_dataframe$values<-as.numeric(as.character(samplesize_dataframe$values))
 samplesize_dataframe$outcome_measure<-as.factor(samplesize_dataframe$outcome_measure)
-s2c(samplesize_dataframe)
 samplesize_graph<-ggplot(samplesize_dataframe, aes(x=treatment_effect, y=values,
                                   group= outcome_measure, colour=outcome_measure))
 s1<-samplesize_graph + geom_path() + 
