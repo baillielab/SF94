@@ -138,18 +138,18 @@ mort_sample<-function(p1_value, mort_dif){
   sample <- power.prop.test(n=NULL,p1_value,p2,power=0.8)
   return(sample)
 }
-mean_mort_0.80<-mort_sample(mean_death, 0.80)
+mean_mort_0.70<-mort_sample(mean_death,0.70)
+mean_mort_0.75<-mort_sample(mean_death,0.75)
+mean_mort_0.80<-mort_sample(mean_death,0.80)
 mean_mort_0.85<-mort_sample(mean_death,0.85)
-mean_mort_0.90<-mort_sample(mean_death,0.90)
-mean_mort_0.95<-mort_sample(mean_death,0.95)
+upper_mort_0.70<-mort_sample(upper_death,0.70)
+upper_mort_0.75<-mort_sample(upper_death,0.75)
 upper_mort_0.80<-mort_sample(upper_death,0.80)
 upper_mort_0.85<-mort_sample(upper_death,0.85)
-upper_mort_0.90<-mort_sample(upper_death,0.90)
-upper_mort_0.95<-mort_sample(upper_death,0.95)
+lower_mort_0.70<-mort_sample(lower_death,0.70)
+lower_mort_0.75<-mort_sample(lower_death,0.75)
 lower_mort_0.80<-mort_sample(lower_death,0.80)
 lower_mort_0.85<-mort_sample(lower_death,0.85)
-lower_mort_0.90<-mort_sample(lower_death,0.90)
-lower_mort_0.95<-mort_sample(lower_death,0.95)
 
 
 contcor_mort<-function(samplefunc){
@@ -158,130 +158,140 @@ contcor_mort<-function(samplefunc){
   } 
   ncorrect(samplefunc$n, samplefunc$p1, samplefunc$p2)
 }
+uppermort_0.70_cor<-contcor_mort(upper_mort_0.70)
+uppermort_0.75_cor<-contcor_mort(upper_mort_0.75)
 uppermort_0.80_cor<-contcor_mort(upper_mort_0.80)
 uppermort_0.85_cor<-contcor_mort(upper_mort_0.85)
-uppermort_0.90_cor<-contcor_mort(upper_mort_0.90)
-uppermort_0.95_cor<-contcor_mort(upper_mort_0.95)
+meanmort_0.70_cor<-contcor_mort(mean_mort_0.70)
+meanmort_0.75_cor<-contcor_mort(mean_mort_0.75)
 meanmort_0.80_cor<-contcor_mort(mean_mort_0.80)
 meanmort_0.85_cor<-contcor_mort(mean_mort_0.85)
-meanmort_0.90_cor<-contcor_mort(mean_mort_0.90)
-meanmort_0.95_cor<-contcor_mort(mean_mort_0.95)
+lowermort_0.70_cor<-contcor_mort(lower_mort_0.70)
+lowermort_0.75_cor<-contcor_mort(lower_mort_0.75)
 lowermort_0.80_cor<-contcor_mort(lower_mort_0.80)
 lowermort_0.85_cor<-contcor_mort(lower_mort_0.85)
-lowermort_0.90_cor<-contcor_mort(lower_mort_0.90)
-lowermort_0.95_cor<-contcor_mort(lower_mort_0.95)
 
-mort_values<-rbind(meanmort_0.80_cor,meanmort_0.85_cor,meanmort_0.90_cor,meanmort_0.95_cor)
-mort_values_upper<-rbind(uppermort_0.80_cor,uppermort_0.85_cor,uppermort_0.90_cor,uppermort_0.95_cor)
-mort_values_lower<-rbind(lowermort_0.80_cor,lowermort_0.85_cor,lowermort_0.90_cor,lowermort_0.95_cor)
+mort_values<-rbind(meanmort_0.70_cor,meanmort_0.75_cor,meanmort_0.80_cor,meanmort_0.85_cor)
+mort_values_upper<-rbind(uppermort_0.70_cor,uppermort_0.75_cor,uppermort_0.80_cor,uppermort_0.85_cor)
+mort_values_lower<-rbind(lowermort_0.70_cor,lowermort_0.75_cor,lowermort_0.80_cor,lowermort_0.85_cor)
 
 
 
 #SF94
+sf94_ES_0.70<-sf94_regression(subset1,0.70)
+sf94_ES_0.75<-sf94_regression(subset1,0.75)
 sf94_ES_0.80<-sf94_regression(subset1,0.80)
 sf94_ES_0.85<-sf94_regression(subset1,0.85)
-sf94_ES_0.90<-sf94_regression(subset1,0.90)
-sf94_ES_0.95<-sf94_regression(subset1,0.95)
+sf94_0.70<-power_sf94(0.05,0.8,sf94_ES_0.70[2,1], meanSD_subset1[2,1], cor_subset1[[1]])
+sf94_0.75<-power_sf94(0.05,0.8,sf94_ES_0.75[2,1], meanSD_subset1[2,1], cor_subset1[[1]])
 sf94_0.80<-power_sf94(0.05,0.8,sf94_ES_0.80[2,1], meanSD_subset1[2,1], cor_subset1[[1]])
 sf94_0.85<-power_sf94(0.05,0.8,sf94_ES_0.85[2,1], meanSD_subset1[2,1], cor_subset1[[1]])
-sf94_0.90<-power_sf94(0.05,0.8,sf94_ES_0.90[2,1], meanSD_subset1[2,1], cor_subset1[[1]])
-sf94_0.95<-power_sf94(0.05,0.8,sf94_ES_0.95[2,1], meanSD_subset1[2,1], cor_subset1[[1]])
 
-sf94_values<-rbind(sf94_0.80,sf94_0.85,sf94_0.90,sf94_0.95)
+sf94_values<-rbind(sf94_0.70,sf94_0.75,sf94_0.80,sf94_0.85)
 
+sf94_0.70_upper<-power_sf94(0.05,0.8,sf94_ES_0.70[1,1], meanSD_subset1[2,1], cor_subset1[[1]])
+sf94_0.75_upper<-power_sf94(0.05,0.8,sf94_ES_0.75[1,1], meanSD_subset1[2,1], cor_subset1[[1]])
 sf94_0.80_upper<-power_sf94(0.05,0.8,sf94_ES_0.80[1,1], meanSD_subset1[2,1], cor_subset1[[1]])
 sf94_0.85_upper<-power_sf94(0.05,0.8,sf94_ES_0.85[1,1], meanSD_subset1[2,1], cor_subset1[[1]])
-sf94_0.90_upper<-power_sf94(0.05,0.8,sf94_ES_0.90[1,1], meanSD_subset1[2,1], cor_subset1[[1]])
-sf94_0.95_upper<-power_sf94(0.05,0.8,sf94_ES_0.95[1,1], meanSD_subset1[2,1], cor_subset1[[1]])
-sf94_values_upper<-rbind(sf94_0.80_upper,sf94_0.85_upper,sf94_0.90_upper,sf94_0.95_upper)
+sf94_values_upper<-rbind(sf94_0.70_upper,sf94_0.75_upper,sf94_0.80_upper,sf94_0.85_upper)
+sf94_0.70_lower<-power_sf94(0.05,0.8,sf94_ES_0.70[3,1], meanSD_subset1[2,1], cor_subset1[[1]])
+sf94_0.75_lower<-power_sf94(0.05,0.8,sf94_ES_0.75[3,1], meanSD_subset1[2,1], cor_subset1[[1]])
 sf94_0.80_lower<-power_sf94(0.05,0.8,sf94_ES_0.80[3,1], meanSD_subset1[2,1], cor_subset1[[1]])
 sf94_0.85_lower<-power_sf94(0.05,0.8,sf94_ES_0.85[3,1], meanSD_subset1[2,1], cor_subset1[[1]])
-sf94_0.90_lower<-power_sf94(0.05,0.8,sf94_ES_0.90[3,1], meanSD_subset1[2,1], cor_subset1[[1]])
-sf94_0.95_lower<-power_sf94(0.05,0.8,sf94_ES_0.95[3,1], meanSD_subset1[2,1], cor_subset1[[1]])
-sf94_values_lower<-rbind(sf94_0.80_lower,sf94_0.85_lower,sf94_0.90_lower,sf94_0.95_lower)
+sf94_values_lower<-rbind(sf94_0.70_lower,sf94_0.75_lower,sf94_0.80_lower,sf94_0.85_lower)
 
 #WHO
+who_a_0.70<-who_function(subset1, 0.70)
+who_a_0.75<-who_function(subset1, 0.75)
 who_a_0.80<-who_function(subset1, 0.80)
 who_a_0.85<-who_function(subset1, 0.85)
-who_a_0.90<-who_function(subset1, 0.90)
-who_a_0.95<-who_function(subset1, 0.95)
+who_0.70<-who_effectsize_function_ss(subset1, who_a_0.70[2,1], who_a_0.70[2,2])
+who_0.75<-who_effectsize_function_ss(subset1, who_a_0.75[2,1], who_a_0.75[2,2])
 who_0.80<-who_effectsize_function_ss(subset1, who_a_0.80[2,1], who_a_0.80[2,2])
 who_0.85<-who_effectsize_function_ss(subset1, who_a_0.85[2,1], who_a_0.85[2,2])
-who_0.90<-who_effectsize_function_ss(subset1, who_a_0.90[2,1], who_a_0.90[2,2])
-who_0.95<-who_effectsize_function_ss(subset1, who_a_0.95[2,1], who_a_0.95[2,2])
 
-who_values<- rbind(who_0.80[1,1], who_0.85[1,1], who_0.90[1,1], who_0.95[1,1])
+who_values<- rbind(who_0.70[1,1], who_0.75[1,1], who_0.80[1,1], who_0.85[1,1])
+who_0.70_upper<-who_effectsize_function_ss(subset1, who_a_0.70[1,1], who_a_0.70[1,2])
+who_0.75_upper<-who_effectsize_function_ss(subset1, who_a_0.75[1,1], who_a_0.75[1,2])
 who_0.80_upper<-who_effectsize_function_ss(subset1, who_a_0.80[1,1], who_a_0.80[1,2])
 who_0.85_upper<-who_effectsize_function_ss(subset1, who_a_0.85[1,1], who_a_0.85[1,2])
-who_0.90_upper<-who_effectsize_function_ss(subset1, who_a_0.90[1,1], who_a_0.90[1,2])
-who_0.95_upper<-who_effectsize_function_ss(subset1, who_a_0.95[1,1], who_a_0.95[1,2])
 
-who_values_upper<- rbind(who_0.80_upper[1,1], who_0.85_upper[1,1],
-                         who_0.90_upper[1,1], who_0.95_upper[1,1])
+who_values_upper<- rbind(who_0.70_upper[1,1], who_0.75_upper[1,1],
+                         who_0.80_upper[1,1], who_0.85_upper[1,1])
 
+who_0.70_lower<-who_effectsize_function_ss(subset1, who_a_0.70[3,1], who_a_0.70[3,2])
+who_0.75_lower<-who_effectsize_function_ss(subset1, who_a_0.75[3,1], who_a_0.75[3,2])
 who_0.80_lower<-who_effectsize_function_ss(subset1, who_a_0.80[3,1], who_a_0.80[3,2])
 who_0.85_lower<-who_effectsize_function_ss(subset1, who_a_0.85[3,1], who_a_0.85[3,2])
-who_0.90_lower<-who_effectsize_function_ss(subset1, who_a_0.90[3,1], who_a_0.90[3,2])
-who_0.95_lower<-who_effectsize_function_ss(subset1, who_a_0.95[3,1], who_a_0.95[3,2])
 
-who_values_lower<- rbind(who_0.80_lower[1,1], who_0.85_lower[1,1],
-                         who_0.90_lower[1,1], who_0.95_lower[1,1])
-
-
+who_values_lower<- rbind(who_0.70_lower[1,1], who_0.75_lower[1,1],
+                         who_0.80_lower[1,1], who_0.85_lower[1,1])
 
 #sus imp
+susimp_a_0.70<-susimpfunc(subset1,0.70)
+susimp_a_0.75<-susimpfunc(subset1,0.75)
 susimp_a_0.80<-susimpfunc(subset1,0.80)
 susimp_a_0.85<-susimpfunc(subset1,0.85)
-susimp_a_0.90<-susimpfunc(subset1,0.90)
-susimp_a_0.95<-susimpfunc(subset1,0.95)
+susimp_0.70<-susimp_pwr_func(subset1, susimp_a_0.70[2,1],susimp_a_0.70[2,2])
+susimp_0.75<-susimp_pwr_func(subset1, susimp_a_0.75[2,1],susimp_a_0.75[2,2])
 susimp_0.80<-susimp_pwr_func(subset1, susimp_a_0.80[2,1],susimp_a_0.80[2,2])
 susimp_0.85<-susimp_pwr_func(subset1, susimp_a_0.85[2,1],susimp_a_0.85[2,2])
-susimp_0.90<-susimp_pwr_func(subset1, susimp_a_0.90[2,1],susimp_a_0.90[2,2])
-susimp_0.95<-susimp_pwr_func(subset1, susimp_a_0.95[2,1],susimp_a_0.95[2,2])
 
-susimp_value<-rbind(susimp_0.80[1,1],susimp_0.85[1,1],susimp_0.90[1,1],susimp_0.95[1,1])
+susimp_value<-rbind(susimp_0.70[1,1],susimp_0.75[1,1],susimp_0.80[1,1],susimp_0.85[1,1])
 
+susimp_0.70_upper<-susimp_pwr_func(subset1, susimp_a_0.70[1,1],susimp_a_0.70[1,2])
+susimp_0.75_upper<-susimp_pwr_func(subset1, susimp_a_0.75[1,1],susimp_a_0.75[1,2])
 susimp_0.80_upper<-susimp_pwr_func(subset1, susimp_a_0.80[1,1],susimp_a_0.80[1,2])
 susimp_0.85_upper<-susimp_pwr_func(subset1, susimp_a_0.85[1,1],susimp_a_0.85[1,2])
-susimp_0.90_upper<-susimp_pwr_func(subset1, susimp_a_0.90[1,1],susimp_a_0.90[1,2])
-susimp_0.95_upper<-susimp_pwr_func(subset1, susimp_a_0.95[1,1],susimp_a_0.95[1,2])
-susimp_values_upper<-rbind(susimp_0.80_upper[1,1],susimp_0.85_upper[1,1],
-                           susimp_0.90_upper[1,1],susimp_0.95_upper[1,1])
+susimp_values_upper<-rbind(susimp_0.70_upper[1,1],susimp_0.75_upper[1,1],
+                           susimp_0.80_upper[1,1],susimp_0.85_upper[1,1])
+susimp_0.70_lower<-susimp_pwr_func(subset1, susimp_a_0.70[3,1],susimp_a_0.70[3,2])
+susimp_0.75_lower<-susimp_pwr_func(subset1, susimp_a_0.75[3,1],susimp_a_0.75[3,2])
 susimp_0.80_lower<-susimp_pwr_func(subset1, susimp_a_0.80[3,1],susimp_a_0.80[3,2])
 susimp_0.85_lower<-susimp_pwr_func(subset1, susimp_a_0.85[3,1],susimp_a_0.85[3,2])
-susimp_0.90_lower<-susimp_pwr_func(subset1, susimp_a_0.90[3,1],susimp_a_0.90[3,2])
-susimp_0.95_lower<-susimp_pwr_func(subset1, susimp_a_0.95[3,1],susimp_a_0.95[3,2])
-susimp_values_lower<-rbind(susimp_0.80_lower[1,1],susimp_0.85_lower[1,1],
-                           susimp_0.90_lower[1,1],susimp_0.95_lower[1,1])
+susimp_values_lower<-rbind(susimp_0.70_lower[1,1],susimp_0.75_lower[1,1],
+                           susimp_0.80_lower[1,1],susimp_0.85_lower[1,1])
 
 #combine values
 ss_values<-rbind(mort_values, sf94_values, who_values, susimp_value)
 ss_upper<-rbind(mort_values_upper, sf94_values_upper, who_values_upper, susimp_values_upper)
 ss_lower<-rbind(mort_values_lower, sf94_values_lower, who_values_lower, susimp_values_lower)
 ss_outcomemeasure<-c(rep("28-day mortality",4),rep("S/F94 day 5",4),rep("WHO day 5",4),rep("Sustained 1 level improvement",4) )
-ss_treatmenteffect<-c("0.80", "0.85", "0.90", "0.95",
-                      "0.80", "0.85", "0.90", "0.95",
-                      "0.80", "0.85", "0.90", "0.95",
-                      "0.80", "0.85", "0.90", "0.95")
+ss_treatmenteffect<-c("0.70", "0.75", "0.80", "0.85",
+                      "0.70", "0.75", "0.80", "0.85",
+                      "0.70", "0.75", "0.80", "0.85",
+                      "0.70", "0.75", "0.80", "0.85")
 samplesize_dataframe<-cbind(ss_values, ss_outcomemeasure, ss_treatmenteffect, ss_upper, ss_lower)
 samplesize_dataframe<-data.frame(samplesize_dataframe)
 row.names(samplesize_dataframe)<-NULL
+s2c(samplesize_dataframe)
+quit()
 colnames(samplesize_dataframe)<-c("values", "outcome_measure", "treatment_effect", "upper_limits", "lower_limits")
 samplesize_dataframe<-as.data.frame(lapply(samplesize_dataframe, unlist))
 samplesize_dataframe$values<-as.numeric(as.character(samplesize_dataframe$values))
+samplesize_dataframe$treatment_effect<-(as.character(samplesize_dataframe$treatment_effect))
 samplesize_dataframe$outcome_measure<-as.factor(samplesize_dataframe$outcome_measure)
-samplesize_graph<-ggplot(samplesize_dataframe, aes(x=treatment_effect, y=values,
+samplesize_graph<-ggplot(samplesize_dataframe, aes(x=factor(treatment_effect, 
+                                                            level=c("0.85", "0.80", "0.75", "0.70")),
+                                                   y=values,
                                   group= outcome_measure, colour=outcome_measure))
 s1<-samplesize_graph + geom_path() + 
-  geom_ribbon(aes(ymin=lower_limits, ymax=upper_limits), fill="grey70")+
+  geom_ribbon(aes(ymin=lower_limits, ymax=upper_limits), linetype=2, alpha=0.3)+
   xlab("Treatment effect (predicited 28-day mortality relative risk ratio)")+ 
   ylab("Sample size") +
   ggtitle("")+
-  scale_color_discrete(name="Outcome measure")+ theme_bw()
-
+  scale_color_manual(values=c("#B2182B","#F4A582", "#D1E5F0", "#4393C3"),name="Outcome measure", 
+                       limits= c("Sustained 1 level improvement", "28-day mortality",
+                                 "WHO day 5", "S/F94 day 5"))+
+  theme_bw()
+s1
 ggsave(plot=s1, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="samplesize_graph.pdf")
 
+
+#
 subset_graph<-subset_violin
+subset_graph$mortality_28 <- sapply(subset_graph$mortality_28, as.factor)
+df_1$mortality_28 <- sapply(df_1$mortality_28, as.factor)
 #Respiratory rate and SF9/4 function, including regression line (Sup figure 5)
 library(ggplot2)
 rr_graph<-ggplot(subset_graph, aes(x=sf94, y=rr_vsorres, colour=sao2)) +
@@ -289,14 +299,7 @@ rr_graph<-ggplot(subset_graph, aes(x=sf94, y=rr_vsorres, colour=sao2)) +
   geom_smooth(method=lm, colour="black")+
   xlab("S/F94")+
   ylab("Respiratory Rate")+
-  theme_bw()+
-  scale_colour_gradient2(midpoint = 0.75,
-                         low = "blue",
-                         mid = "black",
-                         high = "red",
-                         limits=c(min(0.5),
-                                  max(1.0)),
-                         name="SaO2")
+  theme_bw()
 
 ggsave(plot=rr_graph, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="rr_graph.pdf")
 #title: rr_sf94_regression
@@ -318,7 +321,7 @@ who_sf_5plot<-ggplot(who_sf_5,
 sel_who5<-who_sf_5plot+ geom_violin()+ #remove outliers
   theme_bw()+
   ggtitle(title_who5)+ 
-  scale_fill_brewer(palette = "Spectral")+
+  scale_fill_brewer(palette = "RdBu")+
   xlab("")+
   ylab("S/F94 day5")+
   theme(legend.position = "none",
@@ -335,7 +338,6 @@ subset_graph$mortality_28<-factor(subset_graph$mortality_28,
 sfmort_day0<-subset(subset_graph, (days_since_admission == 0))
 #violin plots
 #distribution of SF94 values on day 0 for unselected population
-
 sfmort_day0plot<-ggplot(sfmort_day0,
                         aes(x=as.factor(mortality_28), y=sf94, fill=mortality_28 ))
 title_0<-as.character(sum(!is.na(sfmort_day0$sf94))) 
@@ -343,8 +345,9 @@ title_0<-paste("(N=", title_0, ")", sep = "")
 sel_0<-sfmort_day0plot + geom_violin()+ 
   theme_bw()+
   ggtitle(title_0)+
-  scale_fill_brewer(palette = "Paired")+
+  scale_fill_manual(values =c("#B2182B", "#2166AC"))+
   xlab("")+
+  scale_x_discrete(labels = c("Discharge",'Death'))+
   ylab("S/F94 day0")+
   theme(legend.position = "none",
         plot.title = element_text (hjust = 0.5)) #remove legend + center title
@@ -362,8 +365,9 @@ title_5<-paste("(N=", title_5, ")", sep = "")
 sel_5<-sfmort_day5plot + geom_violin()+ 
   theme_bw()+
   ggtitle(title_5)+ 
-  scale_fill_brewer(palette = "Paired")+
+  scale_fill_manual(values =c("#B2182B", "#2166AC"))+
   xlab("")+
+  scale_x_discrete(labels = c("Discharge",'Death'))+
   ylab("S/F94 day5")+
   theme(legend.position = "none",
         plot.title = element_text (hjust = 0.5)) #remove legend + center title
@@ -389,7 +393,7 @@ unselect_who5<-ggplot(unselectedwho_day5,
 us_who5<-unselect_who5+ geom_violin()+ #remove outliers
   theme_bw()+
   ggtitle(title_un_who5)+ 
-  scale_fill_brewer(palette = "Spectral")+
+  scale_fill_brewer(palette = "RdBu")+
   xlab("")+
   ylab("S/F94 day5")+
   theme(legend.position = "none",
@@ -410,9 +414,10 @@ title_un0<-paste("Unselected subjects (N=", title_un0, ")", sep = "")
 us_0<-unselected_outcome_0 + geom_violin()+ 
   theme_bw()+
   ggtitle(title_un0)+ 
-  scale_fill_brewer(palette = "Paired")+
+  scale_fill_manual(values =c("#B2182B", "#2166AC"))+
   xlab("")+
   ylab("S/F94 day0")+
+  scale_x_discrete(labels = c("Discharge",'Death'))+
   theme(legend.position = "none",
         plot.title = element_text (hjust = 0.5)) #remove legend + center title
 
@@ -428,9 +433,10 @@ title_un5<-paste("Unselected subjects (N=", title_un5, ")", sep = "")
 us_5<-unselected_outcome_5 + geom_violin()+ 
   theme_bw()+
   ggtitle(title_un5)+ 
-  scale_fill_brewer(palette = "Paired")+
+  scale_fill_manual(values =c("#B2182B", "#2166AC"))+
   xlab("")+
   ylab("S/F94 day5")+
+  scale_x_discrete(labels = c("Discharge",'Death'))+
   theme(legend.position = "none",
         plot.title = element_text (hjust = 0.5)) #remove legend + center title
 
