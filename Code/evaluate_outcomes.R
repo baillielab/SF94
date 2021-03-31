@@ -13,10 +13,10 @@ df_1<-fread("/home/skerr/Data/ccp_subset_derived.csv", data.table = FALSE )
 #OUTPUT
 #number of subjects before and after filters
 
-numberSubs <- data.frame( before_filter =  length(unique(df_1$subjid)) ,
-                          after_filter = length(unique(subset1$subjid))   )
-
-write.csv(numberSubs,"/home/skerr/Git/SF94/Outputs/numberSubs.csv")
+# numberSubs <- data.frame( before_filter =  length(unique(df_1$subjid)) ,
+#                           after_filter = length(unique(subset1$subjid))   )
+# 
+# write.csv(numberSubs,"/home/skerr/Git/SF94/Outputs/numberSubs.csv")
 
 
 
