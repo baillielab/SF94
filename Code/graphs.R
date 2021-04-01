@@ -72,12 +72,12 @@ p1 <- ggplot(long_dfsf94_12, aes(x=days_since_start, y=sf94, fill=mortality_28))
   ylab("S/F94")+
   ggtitle("")+
   theme_bw()+
-  scale_fill_discrete(name="28-day outcome", labels=c("Discharged alive", "Death"))
-
+  scale_fill_manual(values =c("#f60000", "#0000f6"),
+                    name="28-day outcome", labels=c("Discharged alive", "Death"))
 
 show(p1)
 
-ggsave(plot=p1, width=10, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="12_days.pdf")
+ggsave(plot=p1, width=13, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="12_days.pdf")
 
 base_sf94_28<-createDF(subset_violin, "base", "sf94", 28)
 #transform to long format 
@@ -264,8 +264,6 @@ ss_treatmenteffect<-c("0.70", "0.75", "0.80", "0.85",
 samplesize_dataframe<-cbind(ss_values, ss_outcomemeasure, ss_treatmenteffect, ss_upper, ss_lower)
 samplesize_dataframe<-data.frame(samplesize_dataframe)
 row.names(samplesize_dataframe)<-NULL
-s2c(samplesize_dataframe)
-quit()
 colnames(samplesize_dataframe)<-c("values", "outcome_measure", "treatment_effect", "upper_limits", "lower_limits")
 samplesize_dataframe<-as.data.frame(lapply(samplesize_dataframe, unlist))
 samplesize_dataframe$values<-as.numeric(as.character(samplesize_dataframe$values))
@@ -280,7 +278,7 @@ s1<-samplesize_graph + geom_path() +
   xlab("Treatment effect (predicited 28-day mortality relative risk ratio)")+ 
   ylab("Sample size") +
   ggtitle("")+
-  scale_color_manual(values=c("#B2182B","#F4A582", "#D1E5F0", "#4393C3"),name="Outcome measure", 
+  scale_color_manual(values=c("#f60000","#b20000", "#00005d", "#0000f6"),name="Outcome measure", 
                        limits= c("Sustained 1 level improvement", "28-day mortality",
                                  "WHO day 5", "S/F94 day 5"))+
   theme_bw()
@@ -321,7 +319,8 @@ who_sf_5plot<-ggplot(who_sf_5,
 sel_who5<-who_sf_5plot+ geom_violin()+ #remove outliers
   theme_bw()+
   ggtitle(title_who5)+ 
-  scale_fill_brewer(palette = "RdBu")+
+  scale_fill_manual(values=c("#f60000", "#b20000", "#590000","#00001c",
+                             "#00005d","#0000a2", "#0000f6"))+
   xlab("")+
   ylab("S/F94 day5")+
   theme(legend.position = "none",
@@ -345,7 +344,7 @@ title_0<-paste("(N=", title_0, ")", sep = "")
 sel_0<-sfmort_day0plot + geom_violin()+ 
   theme_bw()+
   ggtitle(title_0)+
-  scale_fill_manual(values =c("#B2182B", "#2166AC"))+
+  scale_fill_manual(values =c("#f60000", "#0000f6"))+
   xlab("")+
   scale_x_discrete(labels = c("Discharge",'Death'))+
   ylab("S/F94 day0")+
@@ -365,7 +364,7 @@ title_5<-paste("(N=", title_5, ")", sep = "")
 sel_5<-sfmort_day5plot + geom_violin()+ 
   theme_bw()+
   ggtitle(title_5)+ 
-  scale_fill_manual(values =c("#B2182B", "#2166AC"))+
+  scale_fill_manual(values =c("#f60000", "#0000f6"))+
   xlab("")+
   scale_x_discrete(labels = c("Discharge",'Death'))+
   ylab("S/F94 day5")+
@@ -393,7 +392,8 @@ unselect_who5<-ggplot(unselectedwho_day5,
 us_who5<-unselect_who5+ geom_violin()+ #remove outliers
   theme_bw()+
   ggtitle(title_un_who5)+ 
-  scale_fill_brewer(palette = "RdBu")+
+  scale_fill_manual(values=c("#f60000", "#b20000", "#590000","#00001c",
+                             "#00005d","#0000a2", "#0000f6"))+
   xlab("")+
   ylab("S/F94 day5")+
   theme(legend.position = "none",
@@ -414,7 +414,7 @@ title_un0<-paste("Unselected subjects (N=", title_un0, ")", sep = "")
 us_0<-unselected_outcome_0 + geom_violin()+ 
   theme_bw()+
   ggtitle(title_un0)+ 
-  scale_fill_manual(values =c("#B2182B", "#2166AC"))+
+  scale_fill_manual(values =c("#f60000", "#0000f6"))+
   xlab("")+
   ylab("S/F94 day0")+
   scale_x_discrete(labels = c("Discharge",'Death'))+
@@ -433,7 +433,7 @@ title_un5<-paste("Unselected subjects (N=", title_un5, ")", sep = "")
 us_5<-unselected_outcome_5 + geom_violin()+ 
   theme_bw()+
   ggtitle(title_un5)+ 
-  scale_fill_manual(values =c("#B2182B", "#2166AC"))+
+  scale_fill_manual(values =c("#f60000", "#0000f6"))+
   xlab("")+
   ylab("S/F94 day5")+
   scale_x_discrete(labels = c("Discharge",'Death'))+
