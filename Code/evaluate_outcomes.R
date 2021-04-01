@@ -95,64 +95,6 @@ f <- function(x) {
 #summary 
 basedd_sf94_10<-createDF(subset1, "basedd", "sf94", 10)
 
-#OUTPUT:
-#for day 5 and day 8: mean and SD
-meanSD <- as.data.frame( rbind(sapply(basedd_sf94_10[c('5','8')], mean, na.rm=T),  
-                               sapply(basedd_sf94_10[c('5','8')], sd, na.rm=T)) )
-
-rownames(meanSD) <- c('mean', 'SD')
-
-write.csv(meanSD,"/home/skerr/Git/SF94/Outputs/meanSD.csv")
-
-#correlation
-
-correlation_subset<-basedd_sf94_10
-correlation_subset<-correlation_subset %>% 
-  group_by(subjid) %>% 
-  summarise_all(funs(f))
-#make subsets of data in which all subjects have SF94 available for those 2 days
-correlation_subset_05<-subset(correlation_subset, ((!is.na(correlation_subset[,2])&(!is.na(correlation_subset[,7])))))
-correlation_subset_08<-subset(correlation_subset, ((!is.na(correlation_subset[,2])&(!is.na(correlation_subset[,10])))))
-length(correlation_subset_05$subjid)
-length(correlation_subset_08$subjid)
-# DAY 0/5
-w <-  correlation_subset_05[,2]
-x <-  correlation_subset_05[,7]
-cor(w,x)
-# DAY 0/8
-y <-  correlation_subset_08[,2]
-z <-  correlation_subset_08[,10]
-cor(y,z)
-
-
-#OUTPUT
-# correlation value for day 0/5 and for day 0/8
-corrs <- as.data.frame(rbind( cor(w,x), cor(y,z)  ))
-
-rownames(corrs) <- c('day 0/5', 'day 0/8')
-
-write.csv(corrs,"/home/skerr/Git/SF94/Outputs/corrs.csv")
-
-
-
-#Summary of WHO values on day 5 and 8
-#data
-basedd_who_8<-createDF(subset1, "basedd", "severity_scale_ordinal",8)
-#take only subject ID, day 5 and day 8
-day8_who<-basedd_who_8[,c(1,7,10)]
-#summarise rows
-day8_who<-day8_who%>%
-  group_by(subjid)%>%
-  summarise_all(funs(f))
-#change variable names 
-day8_who<-day8_who%>%
-  dplyr::rename(who_day8= "8",
-                who_day5= "5")
-summary(day8_who$who_day5)
-summary(day8_who$who_day8)
-
-
-
 #mortality at 28 days
 mort<-subset1 %>%
   group_by(subjid)%>%
@@ -165,27 +107,6 @@ mort28 <- sum(mort$mortality_28 == 1, na.rm = T)/ sum(!is.na(mort$mortality_28))
 
 write.csv(mort28,"/home/skerr/Git/SF94/Outputs/mort28.csv")
 
-
-#OUTPUT
-# Median + IQR for WHO for day 5 and day 8
-
-#OUTPUT
-#median + IQR for 1 level difference
-
-#OUTPUT
-#median + IQR for 2 levels difference
-
-subset1Dist <- distinct( subset1[c('subjid', 'who_days_to_improve1', 'who_days_to_improve2')])
-
-medianIQR <- as.data.frame(rbind(summary(day8_who$who_day5), summary(day8_who$who_day8)))
-
-medianIQR <- rbind(medianIQR, summary(subset1Dist$who_days_to_improve1 , na.rm = T) )
-
-medianIQR <- rbind(medianIQR, summary(subset1Dist$who_days_to_improve2 , na.rm = T) )
-
-rownames( medianIQR) <- c('who_day5', 'who_day8', 'who 1 level difference', 'who 2 level difference')
-
-write.csv(medianIQR,"/home/skerr/Git/SF94/Outputs/medianIQR.csv")
 
 
 
