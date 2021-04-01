@@ -121,7 +121,8 @@ timeseries_sf94<-ggplot(long_dfsf94_12, aes(x=days_since_start, y=sf94,
   xlab("Day")+
   ylab("S/F94")+
   theme_bw()+
-  scale_color_discrete(name= "Outcome", labels=c("Discharged alive", "Death"))
+  scale_color_manual(values =c("#f60000", "#0000f6"),
+                     name= "Outcome", labels=c("Discharged alive", "Death"))
 timeseries_sf94
 
 ggsave(plot=timeseries_sf94, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="timeseries_sf94.pdf")
