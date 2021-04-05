@@ -548,6 +548,7 @@ effect_size_calc <- function(prob_pred, treatment, coef){
 effect_size_boot <- function(data, indices){
   model <- lrm(mortality_28 ~ sf94_day5_P+sf94_day0+ age_estimateyears+ sex, data = data[indices,])
   pred <- predict(model, type = 'fitted')
+  coef<- model$coef[2] #check with steven
   effect_size <- effect_size_calc(pred, treatment, coef)
   return(effect_size)
 } 
@@ -555,8 +556,10 @@ treatment <- 0.85
 coef <- -1.506249130
 boot_result <- boot(data = subset1, statistic = effect_size_boot, R=1000)
 plot(boot_result)
-rpng.off()
-boot.ci(boot_result, conf = 0.95, type="basic")
+sf94_d5_boot<-boot.ci(boot_result, conf = 0.95, type="basic")
+
+
+
 
 sf94_regression<-function(subset_df, mort_difference){
   sf94_d5<-lrm(mortality_28 ~ sf94_day5_P+sf94_day0+ age_estimateyears+ sex, data = subset_df)
