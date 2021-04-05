@@ -540,7 +540,23 @@ cor_subset2<-correlation_function(subset2)
 cor_subset3<-correlation_function(subset3)
 correlation_output<-cbind(cor_subset1, cor_subset2, cor_subset3)
 
-
+library(boot)
+library(rms)
+effect_size_calc <- function(prob_pred, treatment, coef){
+  return( mean (log( (treatment*(1-prob_pred)) / (1- treatment * prob_pred)), na.rm = TRUE )  )
+}
+effect_size_boot <- function(data, indices){
+  model <- lrm(mortality_28 ~ sf94_day5_P+sf94_day0+ age_estimateyears+ sex, data = data[indices,])
+  pred <- predict(model, type = 'fitted')
+  effect_size <- effect_size_calc(pred, treatment, coef)
+  return(effect_size)
+} 
+treatment <- 0.85
+coef <- -1.506249130
+boot_result <- boot(data = subset1, statistic = effect_size_boot, R=1000)
+plot(boot_result)
+rpng.off()
+boot.ci(boot_result, conf = 0.95, type="basic")
 
 sf94_regression<-function(subset_df, mort_difference){
   sf94_d5<-lrm(mortality_28 ~ sf94_day5_P+sf94_day0+ age_estimateyears+ sex, data = subset_df)
