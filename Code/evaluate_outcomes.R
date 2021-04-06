@@ -507,6 +507,8 @@ write.csv(samplesize_logrank_mort,"/home/skerr/Git/SF94/Outputs/samplesize_logra
 
 #############################################################################################################
 library(Rmisc)
+library(boot)
+library(rms)
 
 #Summary stats
 function_mean_sd<-function(subset_df){
@@ -519,8 +521,7 @@ meanSD_subset1<-function_mean_sd(subset1)
 meanSD_subset2<-function_mean_sd(subset2)
 meanSD_subset3<-function_mean_sd(subset3)
 meanSD_output<-cbind(meanSD_subset1,meanSD_subset2, meanSD_subset3)
-
-
+#correlation
 correlation_function<-function(subset_df) {
   correlation_subset_05<-subset(subset_df, ((!is.na(subset_df[,"sf94_day0"])&(!is.na(subset_df[,"sf94_day5_P"])))))
   correlation_subset_08<-subset(subset_df, ((!is.na(subset_df[,"sf94_day0"])&(!is.na(subset_df[,"sf94_day8_P"])))))
@@ -540,26 +541,31 @@ cor_subset2<-correlation_function(subset2)
 cor_subset3<-correlation_function(subset3)
 correlation_output<-cbind(cor_subset1, cor_subset2, cor_subset3)
 
-library(boot)
-library(rms)
+#bootstrapped 95% CI for upper and lower limit of effectsize
 effect_size_calc <- function(prob_pred, treatment, coef){
-  return( mean (log( (treatment*(1-prob_pred)) / (1- treatment * prob_pred)), na.rm = TRUE )  )
+  return( mean (log( (treatment*(1-prob_pred)) / (1- treatment * prob_pred)) , na.rm = TRUE ) / coef  )
 }
 effect_size_boot <- function(data, indices){
-  model <- lrm(mortality_28 ~ sf94_day5_P+sf94_day0+ age_estimateyears+ sex, data = data[indices,])
-  pred <- predict(model, type = 'fitted')
-  coef<- model$coef[2] 
-  effect_size <- effect_size_calc(pred, treatment, coef)
-  return(effect_size)
+  sf94_d5<-lrm(mortality_28 ~ sf94_day5_P+sf94_day0+ age_estimateyears+ sex, data = data[indices,])
+  sf94_predictD5<-predict(sf94_d5, type = 'fitted'  )
+  coef_d5<-sf94_d5$coef[2] #is sf94 day 5 coefficient
+  effect_size_D5 <- effect_size_calc(sf94_predictD5, treatment, coef_d5)
+  return(effect_size_D5)
 } 
 treatment <- 0.85
-boot_result <- boot(data = subset1, statistic = effect_size_boot, R=1000)
-plot(boot_result)
-sf94_d5_boot<-boot.ci(boot_result, conf = 0.95, type="basic")
+boot_result_0.85 <- boot(data = subset1, statistic = effect_size_boot, R=10)
+sf94_d5_boot_0.85<-boot.ci(boot_result_0.85, conf = 0.95, type="basic")
+treatment <- 0.80
+boot_result_0.80 <- boot(data = subset1, statistic = effect_size_boot, R=10)
+sf94_d5_boot_0.80<-boot.ci(boot_result_0.80, conf = 0.95, type="basic")
+treatment <- 0.75
+boot_result_0.75 <- boot(data = subset1, statistic = effect_size_boot, R=10)
+sf94_d5_boot_0.75<-boot.ci(boot_result_0.75, conf = 0.95, type="basic")
+treatment <- 0.70
+boot_result_0.70 <- boot(data = subset1, statistic = effect_size_boot, R=10)
+sf94_d5_boot_0.70<-boot.ci(boot_result_0.70, conf = 0.95, type="basic")
 
-
-
-
+# non bootstrapped mean (still calculated non bootstrapped 95% CI, but those numbers are not used)
 sf94_regression<-function(subset_df, mort_difference){
   sf94_d5<-lrm(mortality_28 ~ sf94_day5_P+sf94_day0+ age_estimateyears+ sex, data = subset_df)
   sf94_d8<-lrm(mortality_28 ~ sf94_day8_P+sf94_day0+ age_estimateyears+ sex, data = subset_df)
@@ -576,7 +582,6 @@ sf94_regression<-function(subset_df, mort_difference){
   d5_d8_effectsize<-cbind(d5_sf94_effectsize, d8_sf94_effectsize)
   return(d5_d8_effectsize)
 }
-
 sf94_regression_subset1<-sf94_regression(subset1,0.85)
 sf94_regression_subset2<-sf94_regression(subset2,0.85)
 sf94_regression_subset3<-sf94_regression(subset3,0.85)
@@ -603,7 +608,6 @@ subset2_D5_SS<-power_sf94(0.05,0.8,sf94_regression_subset2[2,1], meanSD_subset2[
 subset2_D8_SS<-power_sf94(0.05,0.8,sf94_regression_subset2[2,2], meanSD_subset2[2,2], cor_subset2[[2]])
 subset3_D5_SS<-power_sf94(0.05,0.8,sf94_regression_subset3[2,1], meanSD_subset3[2,1], cor_subset3[[1]])
 subset3_D8_SS<-power_sf94(0.05,0.8,sf94_regression_subset3[2,2], meanSD_subset3[2,2], cor_subset3[[2]])
-
 sf94_samplesize<-cbind(subset1_D5_SS,subset1_D8_SS,subset2_D5_SS,subset2_D8_SS,subset3_D5_SS,subset3_D8_SS)
 
 #write to github
@@ -616,6 +620,9 @@ write.csv(sf94_samplesize,"/home/skerr/Git/SF94/Outputs/sf94_samplesize.csv")
 ###########################################################################################################################
 #WHO
 library(MASS)
+s2c(subset1)
+quit()
+#non bootstrapped effect size
 who_function<-function(subset_df, mortality_diff){
   WHOD5_model_S<-polr(as.factor(WHOD5_P) ~ age_estimateyears+ sex, data = subset_df, Hess=T)
   WHOD8_model_S<-polr(as.factor(WHOD8_P) ~ age_estimateyears+ sex, data = subset_df, Hess=T)
@@ -637,6 +644,7 @@ who_subset2<-who_function(subset2, 0.85)
 who_subset3<-who_function(subset3, 0.85)
 who_effectsize<-rbind(who_subset1, who_subset2, who_subset3)
 
+#summary numbers
 who_table_function<-function(subset_df){
   whoTable <- rbind( table(subset_df[["WHOD5_P"]]), table(subset_df[["WHOD8_P"]])   )
   return(whoTable)
@@ -647,6 +655,31 @@ who_table_2<-who_table_function(subset2)
 who_table_3<-who_table_function(subset3)
 who_table_output<-rbind(who_table_1, who_table_2, who_table_3)
 write.csv(who_table_output,"/home/skerr/Git/SF94/Outputs/who_table_output.csv")
+
+#bootstrapped effect size
+effect_size_calc_OR <- function(prob_pred, treatment){
+  ci_prob <- CI(na.omit(prob_pred))
+  return( treatment*( 1- ci_prob) / (1 - treatment * ci_prob)  )
+}
+effect_size_boot_who <- function(data, indices){
+  WHOD5_model_S<-polr(as.factor(WHOD5_P) ~ age_estimateyears+ sex, data = data[indices, ], Hess=T)
+  pred_D5 <- predict(WHOD5_model_S,newdata =data, type = 'probs')
+  effect_size <- effect_size_calc_OR(pred_D5[,"10"], treatment)
+  return(effect_size)
+} 
+treatment <- 0.85
+boot_result_who_0.85 <- boot(data = subset1, statistic = effect_size_boot_who, R=10)
+who_d5_booted_0.85<-boot.ci(boot_result_who_0.85, conf = 0.95, type="basic")
+treatment <- 0.80
+boot_result_who_0.80 <- boot(data = subset1, statistic = effect_size_boot_who, R=10)
+who_d5_booted_0.80<-boot.ci(boot_result_who_0.80, conf = 0.95, type="basic")
+treatment <- 0.75
+boot_result_who_0.75 <- boot(data = subset1, statistic = effect_size_boot_who, R=10)
+who_d5_booted_0.75<-boot.ci(boot_result_who_0.75, conf = 0.95, type="basic")
+treatment <- 0.70
+boot_result_who_0.70 <- boot(data = subset1, statistic = effect_size_boot_who, R=10)
+who_d5_booted_0.70<-boot.ci(boot_result_who_0.70, conf = 0.95, type="basic")
+
 
 # use function posamsize in package Hmisc
 library(Hmisc)
@@ -725,6 +758,32 @@ effectsize_susump1<-susimpfunc(subset1,0.85)
 effectsize_susump2<-susimpfunc(subset2,0.85)
 effectsize_susump3<-susimpfunc(subset3,0.85)
 effectsize_sus_improvement<-rbind(effectsize_susump1,effectsize_susump2,effectsize_susump3)
+
+#bootstrapped
+effect_size_calc_sus <- function(prob_pred, treatment, coef){
+  return(CI(na.omit( log((treatment*(1-prob_pred)) / (1- treatment * prob_pred)) / coef),ci=0.95) )
+}
+effect_size_boot_sus <- function(data, indices){
+  susimp_1L<-lrm(mortality_28 ~ sustained_1L_improvement + age_estimateyears+ sex,
+                 data[indices, ],maxit=1000)
+  predict_susimp_1L<-predict(susimp_1L, type = 'fitted'  )
+  coef_1L<-susimp_1L$coef[2]
+  effect_size <- effect_size_calc_sus(predict_susimp_1L, treatment, coef_1L)
+  return(effect_size)
+} 
+treatment <- 0.85
+boot_result_sus_0.85 <- boot(data = subset1, statistic = effect_size_boot_sus, R=1000)
+sus1_booted_0.85<-boot.ci(boot_result_sus_0.85, conf = 0.95, type="basic")
+treatment <- 0.80
+boot_result_sus_0.80 <- boot(data = subset1, statistic = effect_size_boot_sus, R=1000)
+sus1_booted_0.80<-boot.ci(boot_result_sus_0.80, conf = 0.95, type="basic")
+treatment <- 0.75
+boot_result_sus_0.75 <- boot(data = subset1, statistic = effect_size_boot_sus, R=1000)
+sus1_booted_0.75<-boot.ci(boot_result_sus_0.75, conf = 0.95, type="basic")
+treatment <- 0.70
+boot_result_sus_0.70 <- boot(data = subset1, statistic = effect_size_boot_sus, R=1000)
+sus1_booted_0.70<-boot.ci(boot_result_sus_0.70, conf = 0.95, type="basic")
+
 
 
 susimp_pwr_func<-function(subset_df, effectsize_1L, effectsize_2L){

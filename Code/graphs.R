@@ -176,8 +176,6 @@ mort_values<-rbind(meanmort_0.70_cor,meanmort_0.75_cor,meanmort_0.80_cor,meanmor
 mort_values_upper<-rbind(uppermort_0.70_cor,uppermort_0.75_cor,uppermort_0.80_cor,uppermort_0.85_cor)
 mort_values_lower<-rbind(lowermort_0.70_cor,lowermort_0.75_cor,lowermort_0.80_cor,lowermort_0.85_cor)
 
-
-
 #SF94
 sf94_ES_0.70<-sf94_regression(subset1,0.70)
 sf94_ES_0.75<-sf94_regression(subset1,0.75)
@@ -190,15 +188,15 @@ sf94_0.85<-power_sf94(0.05,0.8,sf94_ES_0.85[2,1], meanSD_subset1[2,1], cor_subse
 
 sf94_values<-rbind(sf94_0.70,sf94_0.75,sf94_0.80,sf94_0.85)
 
-sf94_0.70_upper<-power_sf94(0.05,0.8,sf94_ES_0.70[1,1], meanSD_subset1[2,1], cor_subset1[[1]])
-sf94_0.75_upper<-power_sf94(0.05,0.8,sf94_ES_0.75[1,1], meanSD_subset1[2,1], cor_subset1[[1]])
-sf94_0.80_upper<-power_sf94(0.05,0.8,sf94_ES_0.80[1,1], meanSD_subset1[2,1], cor_subset1[[1]])
-sf94_0.85_upper<-power_sf94(0.05,0.8,sf94_d5_boot$basic[,5], meanSD_subset1[2,1], cor_subset1[[1]])
+sf94_0.70_upper<-power_sf94(0.05,0.8,sf94_d5_boot_0.70$basic[,5], meanSD_subset1[2,1], cor_subset1[[1]])
+sf94_0.75_upper<-power_sf94(0.05,0.8,sf94_d5_boot_0.75$basic[,5], meanSD_subset1[2,1], cor_subset1[[1]])
+sf94_0.80_upper<-power_sf94(0.05,0.8,sf94_d5_boot_0.80$basic[,5], meanSD_subset1[2,1], cor_subset1[[1]])
+sf94_0.85_upper<-power_sf94(0.05,0.8,sf94_d5_boot_0.85$basic[,5], meanSD_subset1[2,1], cor_subset1[[1]])
 sf94_values_upper<-rbind(sf94_0.70_upper,sf94_0.75_upper,sf94_0.80_upper,sf94_0.85_upper)
-sf94_0.70_lower<-power_sf94(0.05,0.8,sf94_ES_0.70[3,1], meanSD_subset1[2,1], cor_subset1[[1]])
-sf94_0.75_lower<-power_sf94(0.05,0.8,sf94_ES_0.75[3,1], meanSD_subset1[2,1], cor_subset1[[1]])
-sf94_0.80_lower<-power_sf94(0.05,0.8,sf94_ES_0.80[3,1], meanSD_subset1[2,1], cor_subset1[[1]])
-sf94_0.85_lower<-power_sf94(0.05,0.8,sf94_d5_boot$basic[,4], meanSD_subset1[2,1], cor_subset1[[1]])
+sf94_0.70_lower<-power_sf94(0.05,0.8,sf94_d5_boot_0.70$basic[,4], meanSD_subset1[2,1], cor_subset1[[1]])
+sf94_0.75_lower<-power_sf94(0.05,0.8,sf94_d5_boot_0.75$basic[,4], meanSD_subset1[2,1], cor_subset1[[1]])
+sf94_0.80_lower<-power_sf94(0.05,0.8,sf94_d5_boot_0.80$basic[,4], meanSD_subset1[2,1], cor_subset1[[1]])
+sf94_0.85_lower<-power_sf94(0.05,0.8,sf94_d5_boot_0.85$basic[,4], meanSD_subset1[2,1], cor_subset1[[1]])
 sf94_values_lower<-rbind(sf94_0.70_lower,sf94_0.75_lower,sf94_0.80_lower,sf94_0.85_lower)
 
 #WHO
@@ -210,25 +208,26 @@ who_0.70<-who_effectsize_function_ss(subset1, who_a_0.70[2,1], who_a_0.70[2,2])
 who_0.75<-who_effectsize_function_ss(subset1, who_a_0.75[2,1], who_a_0.75[2,2])
 who_0.80<-who_effectsize_function_ss(subset1, who_a_0.80[2,1], who_a_0.80[2,2])
 who_0.85<-who_effectsize_function_ss(subset1, who_a_0.85[2,1], who_a_0.85[2,2])
-
 who_values<- rbind(who_0.70[1,1], who_0.75[1,1], who_0.80[1,1], who_0.85[1,1])
-who_0.70_upper<-who_effectsize_function_ss(subset1, who_a_0.70[1,1], who_a_0.70[1,2])
-who_0.75_upper<-who_effectsize_function_ss(subset1, who_a_0.75[1,1], who_a_0.75[1,2])
-who_0.80_upper<-who_effectsize_function_ss(subset1, who_a_0.80[1,1], who_a_0.80[1,2])
-who_0.85_upper<-who_effectsize_function_ss(subset1, who_a_0.85[1,1], who_a_0.85[1,2])
+
+who_0.70_upper<-who_effectsize_function_ss(subset1, who_d5_booted_0.70$basic[,5], who_a_0.70[1,2])
+who_0.75_upper<-who_effectsize_function_ss(subset1, who_d5_booted_0.75$basic[,5], who_a_0.75[1,2])
+who_0.80_upper<-who_effectsize_function_ss(subset1, who_d5_booted_0.80$basic[,5], who_a_0.80[1,2])
+who_0.85_upper<-who_effectsize_function_ss(subset1, who_d5_booted_0.85$basic[,5], who_a_0.85[1,2])
 
 who_values_upper<- rbind(who_0.70_upper[1,1], who_0.75_upper[1,1],
                          who_0.80_upper[1,1], who_0.85_upper[1,1])
 
-who_0.70_lower<-who_effectsize_function_ss(subset1, who_a_0.70[3,1], who_a_0.70[3,2])
-who_0.75_lower<-who_effectsize_function_ss(subset1, who_a_0.75[3,1], who_a_0.75[3,2])
-who_0.80_lower<-who_effectsize_function_ss(subset1, who_a_0.80[3,1], who_a_0.80[3,2])
-who_0.85_lower<-who_effectsize_function_ss(subset1, who_a_0.85[3,1], who_a_0.85[3,2])
+who_0.70_lower<-who_effectsize_function_ss(subset1, who_d5_booted_0.70$basic[,4], who_a_0.70[3,2])
+who_0.75_lower<-who_effectsize_function_ss(subset1, who_d5_booted_0.75$basic[,4], who_a_0.75[3,2])
+who_0.80_lower<-who_effectsize_function_ss(subset1, who_d5_booted_0.80$basic[,4], who_a_0.80[3,2])
+who_0.85_lower<-who_effectsize_function_ss(subset1, who_d5_booted_0.85$basic[,4], who_a_0.85[3,2])
 
 who_values_lower<- rbind(who_0.70_lower[1,1], who_0.75_lower[1,1],
                          who_0.80_lower[1,1], who_0.85_lower[1,1])
 
 #sus imp
+# !!! These values are the number needed in each group !!!
 susimp_a_0.70<-susimpfunc(subset1,0.70)
 susimp_a_0.75<-susimpfunc(subset1,0.75)
 susimp_a_0.80<-susimpfunc(subset1,0.80)
@@ -238,23 +237,29 @@ susimp_0.75<-susimp_pwr_func(subset1, susimp_a_0.75[2,1],susimp_a_0.75[2,2])
 susimp_0.80<-susimp_pwr_func(subset1, susimp_a_0.80[2,1],susimp_a_0.80[2,2])
 susimp_0.85<-susimp_pwr_func(subset1, susimp_a_0.85[2,1],susimp_a_0.85[2,2])
 
-susimp_value<-rbind(susimp_0.70[1,1],susimp_0.75[1,1],susimp_0.80[1,1],susimp_0.85[1,1])
+susimp_values<-rbind(susimp_0.70[1,1],susimp_0.75[1,1],susimp_0.80[1,1],susimp_0.85[1,1])
+susimp_values<-lapply(susimp_values, "*", 2)
+susimp_values<-as.matrix(susimp_values)
 
-susimp_0.70_upper<-susimp_pwr_func(subset1, susimp_a_0.70[1,1],susimp_a_0.70[1,2])
-susimp_0.75_upper<-susimp_pwr_func(subset1, susimp_a_0.75[1,1],susimp_a_0.75[1,2])
-susimp_0.80_upper<-susimp_pwr_func(subset1, susimp_a_0.80[1,1],susimp_a_0.80[1,2])
-susimp_0.85_upper<-susimp_pwr_func(subset1, susimp_a_0.85[1,1],susimp_a_0.85[1,2])
+susimp_0.70_upper<-susimp_pwr_func(subset1,sus1_booted_0.70$basic[,5],susimp_a_0.70[1,2])
+susimp_0.75_upper<-susimp_pwr_func(subset1,sus1_booted_0.75$basic[,5],susimp_a_0.75[1,2])
+susimp_0.80_upper<-susimp_pwr_func(subset1,sus1_booted_0.80$basic[,5],susimp_a_0.80[1,2])
+susimp_0.85_upper<-susimp_pwr_func(subset1,sus1_booted_0.85$basic[,5],susimp_a_0.85[1,2])
 susimp_values_upper<-rbind(susimp_0.70_upper[1,1],susimp_0.75_upper[1,1],
                            susimp_0.80_upper[1,1],susimp_0.85_upper[1,1])
-susimp_0.70_lower<-susimp_pwr_func(subset1, susimp_a_0.70[3,1],susimp_a_0.70[3,2])
-susimp_0.75_lower<-susimp_pwr_func(subset1, susimp_a_0.75[3,1],susimp_a_0.75[3,2])
-susimp_0.80_lower<-susimp_pwr_func(subset1, susimp_a_0.80[3,1],susimp_a_0.80[3,2])
-susimp_0.85_lower<-susimp_pwr_func(subset1, susimp_a_0.85[3,1],susimp_a_0.85[3,2])
+susimp_values_upper<-lapply(susimp_values_upper, "*", 2)
+susimp_values_upper<-as.matrix(susimp_values_upper)
+susimp_0.70_lower<-susimp_pwr_func(subset1,sus1_booted_0.70$basic[,4],susimp_a_0.70[3,2])
+susimp_0.75_lower<-susimp_pwr_func(subset1,sus1_booted_0.75$basic[,4],susimp_a_0.75[3,2])
+susimp_0.80_lower<-susimp_pwr_func(subset1,sus1_booted_0.80$basic[,4],susimp_a_0.80[3,2])
+susimp_0.85_lower<-susimp_pwr_func(subset1,sus1_booted_0.85$basic[,4],susimp_a_0.85[3,2])
 susimp_values_lower<-rbind(susimp_0.70_lower[1,1],susimp_0.75_lower[1,1],
                            susimp_0.80_lower[1,1],susimp_0.85_lower[1,1])
+susimp_values_lower<-lapply(susimp_values_lower, "*", 2)
+susimp_values_lower<-as.matrix(susimp_values_lower)
 
 #combine values
-ss_values<-rbind(mort_values, sf94_values, who_values, susimp_value)
+ss_values<-rbind(mort_values, sf94_values, who_values, susimp_values)
 ss_upper<-rbind(mort_values_upper, sf94_values_upper, who_values_upper, susimp_values_upper)
 ss_lower<-rbind(mort_values_lower, sf94_values_lower, who_values_lower, susimp_values_lower)
 ss_outcomemeasure<-c(rep("28-day mortality",4),rep("S/F94 day 5",4),rep("WHO day 5",4),rep("Sustained 1 level improvement",4) )
