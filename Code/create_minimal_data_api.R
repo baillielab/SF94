@@ -105,31 +105,20 @@ write.csv(df ,"/home/skerr/Git/SF94_API/ccp_subset_simulated_api.csv", row.names
 
 
 
-
+##### NONLINEAR OPTIMISATION ################
 library(nloptr)
 library(tidyverse)
 
-eval_f <- function(x)
-{
-  return ( 100 * (x[2] - x[1] * x[1])^2 + (1 - x[1])^2 )
-}
-
-x0 <- c( -1.2, 1 )
-
-opts = list("algorithm"="NLOPT_LN_COBYLA",
-            "xtol_rel"=1.0e-8)
-
-
-
-# solve Rosenbrock Banana function
-res <- nloptr( x0=x0,
-               eval_f=eval_f,
-               opts=opts)
 
 
 df <- cbind(intercept = 1, df)
 
 
+model <- lrm(day28_mortality ~ sf94_day5 + age_estimateyears + sex, data = df)
+
+beta <- model$coefficients
+
+Sigma <- model$var
 
 
 
@@ -143,17 +132,8 @@ f <- function(X, beta, treatment){
 
 objective <- partial(f, X = df[c('intercept', 'sf94_day5', 'age_estimateyears', 'sex')], treatment = 0.85)  
 
-objective(beta)
 
 
-f(  df[c('intercept', 'sf94_day5', 'age_estimateyears', 'sex')], coef, 0.85 )
-
-X <- df[c('intercept', 'sf94_day5', 'age_estimateyears', 'sex')]
-
-treatment <- 0.85
-beta <- coef
-
-solve(Sigma)
 
 g <- function(beta, mu, Sigma, level){
   
@@ -161,29 +141,20 @@ g <- function(beta, mu, Sigma, level){
 }
 
 
-constraint <- partial( g, mu = coef, Sigma = Sigma, level = 20)
+constraint <- partial( g, mu = beta, Sigma = Sigma, level = 0.1776)
 
 
 
 
-
-
-res1 <- nloptr( x0=coef,
+res1 <- nloptr( x0= beta,
                 eval_f= objective,
                 eval_g_ineq = constraint,
                 opts = list("algorithm"="NLOPT_LN_COBYLA",
                             "xtol_rel"=1.0e-8))
 
 
-
-
-
-
-
-
-
 effect_size_calc <- function(prob_pred, treatment, coef){
-  return( mean (log( (treatment*(1-prob_pred)) / (1- treatment * prob_pred)) )  )
+  return( mean (log( (treatment*(1-prob_pred)) / (1- treatment * prob_pred)), na.rm = TRUE )  )
 }
 
 
@@ -192,9 +163,7 @@ Var <- function(x, Sigma ){
 }
 
 
-model <- lrm(day28_mortality ~ sf94_day5 + age_estimateyears + sex, data = df)
 
-coef <- model$coefficients
 
 SD <- sqrt( model$var)
 
@@ -203,9 +172,44 @@ x <- c(1,as.numeric( as.vector( df[1, c('sf94_day5', 'age_estimateyears', 'sex')
 Var(x, Sigma)
 
 
-beta <- c( coef[1] -     )
-
 pred <- logistic(df[c('sf94_day5', 'age_estimateyears', 'sex')], coef)
+
+
+########## BOOTSTRAP #################
+
+library(boot)
+library(rms)
+
+effect_size_calc <- function(prob_pred, treatment, coef){
+  return( mean (log( (treatment*(1-prob_pred)) / (1- treatment * prob_pred)) , na.rm = TRUE ) / coef  )
+}
+
+
+effect_size_boot <- function(data, indices){
+  model <- lrm(day28_mortality ~ sf94_day5 + sf94_day0 + age_estimateyears + sex, data = data[indices, ])
+  
+  pred <- predict(model, type = 'fitted')
+  
+  effect_size <- effect_size_calc(pred, treatment, coef)
+
+  return(effect_size)
+} 
+
+
+
+treatment <- 0.85
+coef <- -1.506249130
+
+boot_result <- boot(data = df, statistic = effect_size_boot, R=100)
+
+plot(boot_result)
+
+boot.ci(boot_result, conf = 0.95, type="basic")
+
+
+
+
+
 
 
 
