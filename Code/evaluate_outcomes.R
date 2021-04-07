@@ -553,16 +553,16 @@ effect_size_boot <- function(data, indices){
   return(effect_size_D5)
 } 
 treatment <- 0.85
-boot_result_0.85 <- boot(data = subset1, statistic = effect_size_boot, R=10)
+boot_result_0.85 <- boot(data = subset1, statistic = effect_size_boot, R=1000)
 sf94_d5_boot_0.85<-boot.ci(boot_result_0.85, conf = 0.95, type="basic")
 treatment <- 0.80
-boot_result_0.80 <- boot(data = subset1, statistic = effect_size_boot, R=10)
+boot_result_0.80 <- boot(data = subset1, statistic = effect_size_boot, R=1000)
 sf94_d5_boot_0.80<-boot.ci(boot_result_0.80, conf = 0.95, type="basic")
 treatment <- 0.75
-boot_result_0.75 <- boot(data = subset1, statistic = effect_size_boot, R=10)
+boot_result_0.75 <- boot(data = subset1, statistic = effect_size_boot, R=1000)
 sf94_d5_boot_0.75<-boot.ci(boot_result_0.75, conf = 0.95, type="basic")
 treatment <- 0.70
-boot_result_0.70 <- boot(data = subset1, statistic = effect_size_boot, R=10)
+boot_result_0.70 <- boot(data = subset1, statistic = effect_size_boot, R=1000)
 sf94_d5_boot_0.70<-boot.ci(boot_result_0.70, conf = 0.95, type="basic")
 
 # non bootstrapped mean (still calculated non bootstrapped 95% CI, but those numbers are not used)
@@ -668,16 +668,16 @@ effect_size_boot_who <- function(data, indices){
   return(effect_size)
 } 
 treatment <- 0.85
-boot_result_who_0.85 <- boot(data = subset1, statistic = effect_size_boot_who, R=10)
+boot_result_who_0.85 <- boot(data = subset1, statistic = effect_size_boot_who, R=1000)
 who_d5_booted_0.85<-boot.ci(boot_result_who_0.85, conf = 0.95, type="basic")
 treatment <- 0.80
-boot_result_who_0.80 <- boot(data = subset1, statistic = effect_size_boot_who, R=10)
+boot_result_who_0.80 <- boot(data = subset1, statistic = effect_size_boot_who, R=1000)
 who_d5_booted_0.80<-boot.ci(boot_result_who_0.80, conf = 0.95, type="basic")
 treatment <- 0.75
-boot_result_who_0.75 <- boot(data = subset1, statistic = effect_size_boot_who, R=10)
+boot_result_who_0.75 <- boot(data = subset1, statistic = effect_size_boot_who, R=1000)
 who_d5_booted_0.75<-boot.ci(boot_result_who_0.75, conf = 0.95, type="basic")
 treatment <- 0.70
-boot_result_who_0.70 <- boot(data = subset1, statistic = effect_size_boot_who, R=10)
+boot_result_who_0.70 <- boot(data = subset1, statistic = effect_size_boot_who, R=1000)
 who_d5_booted_0.70<-boot.ci(boot_result_who_0.70, conf = 0.95, type="basic")
 
 
