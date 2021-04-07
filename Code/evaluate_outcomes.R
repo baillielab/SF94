@@ -784,6 +784,10 @@ treatment <- 0.70
 boot_result_sus_0.70 <- boot(data = subset1, statistic = effect_size_boot_sus, R=1000)
 sus1_booted_0.70<-boot.ci(boot_result_sus_0.70, conf = 0.95, type="basic")
 
+#numbers for Natalie
+write.csv(effectsize_sus_improvement,"/home/skerr/Git/SF94/Outputs/effectsize_sus_improvement.csv")
+p1_1L_number <- sum(subset1$sustained_1L_improvement == 1, na.rm = T)/ sum(!is.na(subset1$sustained_1L_improvement))
+write.csv(p1_1L_number,"/home/skerr/Git/SF94/Outputs/p1_1L_number.csv")
 
 
 susimp_pwr_func<-function(subset_df, effectsize_1L, effectsize_2L){
