@@ -874,3 +874,4 @@ ss_logrank_3_susimp2L<-round(lrsamplesize_susimp(subset3,"sustained_2L_improveme
 samplesize_logrank_susimp<-cbind(ss_logrank_1_susimp1L,ss_logrank_2_susimp1L,ss_logrank_3_susimp1L,
                                ss_logrank_1_susimp2L,ss_logrank_2_susimp2L,ss_logrank_3_susimp2L)
 write.csv(samplesize_logrank_susimp,"/home/skerr/Git/SF94/Outputs/samplesize_logrank_susimp.csv")
+
