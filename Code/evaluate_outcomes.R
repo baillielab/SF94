@@ -656,14 +656,11 @@ who_table_output<-rbind(who_table_1, who_table_2, who_table_3)
 write.csv(who_table_output,"/home/skerr/Git/SF94/Outputs/who_table_output.csv")
 
 #bootstrapped effect size
-effect_size_calc_OR <- function(prob_pred, treatment){
-  ci_prob <- CI(na.omit(prob_pred))
-  return( treatment*( 1- ci_prob) / (1 - treatment * ci_prob)  )
-}
+
 effect_size_boot_who <- function(data, indices){
   WHOD5_model_S<-polr(as.factor(WHOD5_P) ~ age_estimateyears+ sex, data = data[indices, ], Hess=T)
   pred_D5 <- predict(WHOD5_model_S,newdata =data, type = 'probs')
-  effect_size <- effect_size_calc_OR(pred_D5[,"10"], treatment)
+  effect_size <- effect_size_calc(pred_D5[,"10"], treatment)
   return(effect_size)
 } 
 treatment <- 0.85
@@ -759,15 +756,12 @@ effectsize_susump3<-susimpfunc(subset3,0.85)
 effectsize_sus_improvement<-rbind(effectsize_susump1,effectsize_susump2,effectsize_susump3)
 
 #bootstrapped
-effect_size_calc_sus <- function(prob_pred, treatment, coef){
-  return(CI(na.omit( log((treatment*(1-prob_pred)) / (1- treatment * prob_pred)) / coef),ci=0.95) )
-}
 effect_size_boot_sus <- function(data, indices){
   susimp_1L<-lrm(mortality_28 ~ sustained_1L_improvement + age_estimateyears+ sex,
                  data[indices, ],maxit=1000)
   predict_susimp_1L<-predict(susimp_1L, type = 'fitted'  )
   coef_1L<-susimp_1L$coef[2]
-  effect_size <- effect_size_calc_sus(predict_susimp_1L, treatment, coef_1L)
+  effect_size <- effect_size_calc(predict_susimp_1L, treatment, coef_1L)
   return(effect_size)
 } 
 treatment <- 0.85
@@ -787,6 +781,9 @@ sus1_booted_0.70<-boot.ci(boot_result_sus_0.70, conf = 0.95, type="basic")
 write.csv(effectsize_susump1,"/home/skerr/Git/SF94/Outputs/effectsize_susump1.csv")
 p1_1L_number <- sum(subset1$sustained_1L_improvement == 1, na.rm = T)/ sum(!is.na(subset1$sustained_1L_improvement))
 write.csv(p1_1L_number,"/home/skerr/Git/SF94/Outputs/p1_1L_number.csv")
+
+
+
 
 susimp_pwr_func<-function(subset_df, effectsize_1L, effectsize_2L){
   p1_1L <- sum(subset_df$sustained_1L_improvement == 1, na.rm = T)/ sum(!is.na(subset_df$sustained_1L_improvement))
