@@ -449,3 +449,77 @@ us_5<-unselected_outcome_5 + geom_violin()+
 ggsave(plot=us_5, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="unselected_d5.pdf")
 
 
+#summary numbers
+#non bootstrapped mean effectsize
+susimp_a_0.70[2,1]
+susimp_a_0.75[2,1]
+susimp_a_0.80[2,1]
+susimp_a_0.85[2,1]
+effectize_susimp<-cbind(susimp_a_0.70[2,1],susimp_a_0.75[2,1],susimp_a_0.80[2,1],susimp_a_0.85[2,1])
+
+who_a_0.70[2,1]
+who_a_0.75[2,1]
+who_a_0.80[2,1]
+who_a_0.85[2,1]
+who_effectsize<-cbind(who_a_0.70[2,1],who_a_0.75[2,1],who_a_0.80[2,1],who_a_0.85[2,1])
+
+sf94_ES_0.70[2,1]
+sf94_ES_0.75[2,1]
+sf94_ES_0.80[2,1]
+sf94_ES_0.85[2,1]
+sf94_effectsize<-cbind(sf94_ES_0.70[2,1],sf94_ES_0.75[2,1],sf94_ES_0.80[2,1],sf94_ES_0.85[2,1])
+
+effectsize_df<-rbind(effectize_susimp, who_effectsize, sf94_effectsize)
+
+row.names(effectsize_df)<-c("sus imp", "who", "sf94")
+colnames(effectsize_df)<-c("0.70", "0.75", "0.80", "0.85")
+
+write.csv(effectsize_df,"/home/skerr/Git/SF94/Outputs/effectsize_df.csv")
+
+#bootstrapped CI for effectsize
+sus1_booted_0.70$basic[,c(4,5)]
+sus1_booted_0.75$basic[,c(4,5)]
+sus1_booted_0.80$basic[,c(4,5)]
+sus1_booted_0.85$basic[,c(4,5)]
+
+boot_sus_ci<-cbind(sus1_booted_0.70$basic[,c(4,5)],
+                   sus1_booted_0.75$basic[,c(4,5)],
+                   sus1_booted_0.80$basic[,c(4,5)],
+                   sus1_booted_0.85$basic[,c(4,5)])
+
+who_d5_booted_0.70$basic[,c(4,5)]
+who_d5_booted_0.75$basic[,c(4,5)]
+who_d5_booted_0.80$basic[,c(4,5)]
+who_d5_booted_0.85$basic[,c(4,5)]
+boot_who_ci<-cbind(who_d5_booted_0.70$basic[,c(4,5)],
+                   who_d5_booted_0.75$basic[,c(4,5)],
+                   who_d5_booted_0.80$basic[,c(4,5)],
+                   who_d5_booted_0.85$basic[,c(4,5)])
+
+sf94_d5_boot_0.70$basic[,c(4,5)]
+sf94_d5_boot_0.75$basic[,c(4,5)]
+sf94_d5_boot_0.80$basic[,c(4,5)]
+sf94_d5_boot_0.85$basic[,c(4,5)]
+
+boot_sf_ci<-cbind( sf94_d5_boot_0.70$basic[,c(4,5)],
+                   sf94_d5_boot_0.75$basic[,c(4,5)],
+                   sf94_d5_boot_0.80$basic[,c(4,5)],
+                   sf94_d5_boot_0.85$basic[,c(4,5)])
+
+booted_ci<-rbind(boot_sus_ci, boot_who_ci, boot_sf_ci)
+
+row.names(booted_ci)<-c("sus imp lower","sus imp upper", "who lower","who upper",
+                        "sf94 lower", "sf94 upper")
+colnames(booted_ci)<-c("0.70", "0.75", "0.80", "0.85")
+write.csv(booted_ci,"/home/skerr/Git/SF94/Outputs/booted_ci.csv")
+
+
+# SD for outcomes
+sd_sf94<-sd(subset1$sf94_day5_P, na.rm=T)
+sd_who<-sd(subset1$WHOD5_P, na.rm=T)
+sd_sus<-sd(as.numeric(subset1$sustained_1L_improvement), na.rm = T)
+
+sd_effectsize<-rbind(sd_sus, sd_who, sd_sf94)
+colnames(sd_effectsize)<-"sd"
+
+write.csv(sd_effectsize,"/home/skerr/Git/SF94/Outputs/sd_effectsize.csv")

@@ -620,8 +620,7 @@ write.csv(sf94_samplesize,"/home/skerr/Git/SF94/Outputs/sf94_samplesize.csv")
 ###########################################################################################################################
 #WHO
 library(MASS)
-s2c(subset1)
-#quit()
+
 #non bootstrapped effect size
 who_function<-function(subset_df, mortality_diff){
   WHOD5_model_S<-polr(as.factor(WHOD5_P) ~ age_estimateyears+ sex, data = subset_df, Hess=T)
