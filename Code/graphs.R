@@ -204,10 +204,10 @@ who_a_0.70<-who_function(subset1, 0.70)
 who_a_0.75<-who_function(subset1, 0.75)
 who_a_0.80<-who_function(subset1, 0.80)
 who_a_0.85<-who_function(subset1, 0.85)
-who_0.70<-who_effectsize_function_ss(subset1, who_a_0.70[2,1], who_a_0.70[2,2])
-who_0.75<-who_effectsize_function_ss(subset1, who_a_0.75[2,1], who_a_0.75[2,2])
-who_0.80<-who_effectsize_function_ss(subset1, who_a_0.80[2,1], who_a_0.80[2,2])
-who_0.85<-who_effectsize_function_ss(subset1, who_a_0.85[2,1], who_a_0.85[2,2])
+who_0.70<-who_effectsize_function_ss(subset1, who_a_0.70[1], who_a_0.70[2])
+who_0.75<-who_effectsize_function_ss(subset1, who_a_0.75[1], who_a_0.75[2])
+who_0.80<-who_effectsize_function_ss(subset1, who_a_0.80[1], who_a_0.80[2])
+who_0.85<-who_effectsize_function_ss(subset1, who_a_0.85[1], who_a_0.85[2])
 who_values<- rbind(who_0.70[1,1], who_0.75[1,1], who_0.80[1,1], who_0.85[1,1])
 
 who_0.70_upper<-who_effectsize_function_ss(subset1, who_d5_booted_0.70$basic[,5], who_a_0.70[1,2])
@@ -218,10 +218,10 @@ who_0.85_upper<-who_effectsize_function_ss(subset1, who_d5_booted_0.85$basic[,5]
 who_values_upper<- rbind(who_0.70_upper[1,1], who_0.75_upper[1,1],
                          who_0.80_upper[1,1], who_0.85_upper[1,1])
 
-who_0.70_lower<-who_effectsize_function_ss(subset1, who_d5_booted_0.70$basic[,4], who_a_0.70[3,2])
-who_0.75_lower<-who_effectsize_function_ss(subset1, who_d5_booted_0.75$basic[,4], who_a_0.75[3,2])
-who_0.80_lower<-who_effectsize_function_ss(subset1, who_d5_booted_0.80$basic[,4], who_a_0.80[3,2])
-who_0.85_lower<-who_effectsize_function_ss(subset1, who_d5_booted_0.85$basic[,4], who_a_0.85[3,2])
+who_0.70_lower<-who_effectsize_function_ss(subset1, who_d5_booted_0.70$basic[,4], who_a_0.70[1,2])
+who_0.75_lower<-who_effectsize_function_ss(subset1, who_d5_booted_0.75$basic[,4], who_a_0.75[1,2])
+who_0.80_lower<-who_effectsize_function_ss(subset1, who_d5_booted_0.80$basic[,4], who_a_0.80[1,2])
+who_0.85_lower<-who_effectsize_function_ss(subset1, who_d5_booted_0.85$basic[,4], who_a_0.85[1,2])
 
 who_values_lower<- rbind(who_0.70_lower[1,1], who_0.75_lower[1,1],
                          who_0.80_lower[1,1], who_0.85_lower[1,1])
@@ -232,10 +232,10 @@ susimp_a_0.70<-susimpfunc(subset1,0.70)
 susimp_a_0.75<-susimpfunc(subset1,0.75)
 susimp_a_0.80<-susimpfunc(subset1,0.80)
 susimp_a_0.85<-susimpfunc(subset1,0.85)
-susimp_0.70<-susimp_pwr_func(subset1, susimp_a_0.70[2,1],susimp_a_0.70[2,2])
-susimp_0.75<-susimp_pwr_func(subset1, susimp_a_0.75[2,1],susimp_a_0.75[2,2])
-susimp_0.80<-susimp_pwr_func(subset1, susimp_a_0.80[2,1],susimp_a_0.80[2,2])
-susimp_0.85<-susimp_pwr_func(subset1, susimp_a_0.85[2,1],susimp_a_0.85[2,2])
+susimp_0.70<-susimp_pwr_func(subset1, susimp_a_0.70[1],susimp_a_0.70[2])
+susimp_0.75<-susimp_pwr_func(subset1, susimp_a_0.75[1],susimp_a_0.75[2])
+susimp_0.80<-susimp_pwr_func(subset1, susimp_a_0.80[1],susimp_a_0.80[2])
+susimp_0.85<-susimp_pwr_func(subset1, susimp_a_0.85[1],susimp_a_0.85[2])
 
 susimp_values<-rbind(susimp_0.70[1,1],susimp_0.75[1,1],susimp_0.80[1,1],susimp_0.85[1,1])
 susimp_values<-lapply(susimp_values, "*", 2)
@@ -249,10 +249,10 @@ susimp_values_upper<-rbind(susimp_0.70_upper[1,1],susimp_0.75_upper[1,1],
                            susimp_0.80_upper[1,1],susimp_0.85_upper[1,1])
 susimp_values_upper<-lapply(susimp_values_upper, "*", 2)
 susimp_values_upper<-as.matrix(susimp_values_upper)
-susimp_0.70_lower<-susimp_pwr_func(subset1,sus1_booted_0.70$basic[,4],susimp_a_0.70[3,2])
-susimp_0.75_lower<-susimp_pwr_func(subset1,sus1_booted_0.75$basic[,4],susimp_a_0.75[3,2])
-susimp_0.80_lower<-susimp_pwr_func(subset1,sus1_booted_0.80$basic[,4],susimp_a_0.80[3,2])
-susimp_0.85_lower<-susimp_pwr_func(subset1,sus1_booted_0.85$basic[,4],susimp_a_0.85[3,2])
+susimp_0.70_lower<-susimp_pwr_func(subset1,sus1_booted_0.70$basic[,4],susimp_a_0.70[1,2])
+susimp_0.75_lower<-susimp_pwr_func(subset1,sus1_booted_0.75$basic[,4],susimp_a_0.75[1,2])
+susimp_0.80_lower<-susimp_pwr_func(subset1,sus1_booted_0.80$basic[,4],susimp_a_0.80[1,2])
+susimp_0.85_lower<-susimp_pwr_func(subset1,sus1_booted_0.85$basic[,4],susimp_a_0.85[1,2])
 susimp_values_lower<-rbind(susimp_0.70_lower[1,1],susimp_0.75_lower[1,1],
                            susimp_0.80_lower[1,1],susimp_0.85_lower[1,1])
 susimp_values_lower<-lapply(susimp_values_lower, "*", 2)
@@ -483,7 +483,7 @@ sus1_booted_0.80$basic[,c(4,5)]
 sus1_booted_0.85$basic[,c(4,5)]
 
 boot_sus_ci<-cbind(sus1_booted_0.70$basic[,c(4,5)],
-                   sus1_booted_0.75$basic[,c(4,5)],
+                   sus1_booted_0.75$basic[,c(4,5)],who_0.70<-who_effectsize_functi
                    sus1_booted_0.80$basic[,c(4,5)],
                    sus1_booted_0.85$basic[,c(4,5)])
 

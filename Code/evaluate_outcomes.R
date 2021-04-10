@@ -599,12 +599,12 @@ ntotal <- 2*round(((1-(rho^2))*power1$n)) # apply ANCOVA correction
 return(ntotal)
 }
 
-subset1_D5_SS<-power_sf94(0.05,0.8,sf94_regression_subset1[2,1], meanSD_subset1[2,1], cor_subset1[[1]])
-subset1_D8_SS<-power_sf94(0.05,0.8,sf94_regression_subset1[2,2], meanSD_subset1[2,2], cor_subset1[[2]])
-subset2_D5_SS<-power_sf94(0.05,0.8,sf94_regression_subset2[2,1], meanSD_subset2[2,1], cor_subset2[[1]])
-subset2_D8_SS<-power_sf94(0.05,0.8,sf94_regression_subset2[2,2], meanSD_subset2[2,2], cor_subset2[[2]])
-subset3_D5_SS<-power_sf94(0.05,0.8,sf94_regression_subset3[2,1], meanSD_subset3[2,1], cor_subset3[[1]])
-subset3_D8_SS<-power_sf94(0.05,0.8,sf94_regression_subset3[2,2], meanSD_subset3[2,2], cor_subset3[[2]])
+subset1_D5_SS<-power_sf94(0.05,0.8,sf94_regression_subset1[1], meanSD_subset1[2,1], cor_subset1[[1]])
+subset1_D8_SS<-power_sf94(0.05,0.8,sf94_regression_subset1[2], meanSD_subset1[2,2], cor_subset1[[2]])
+subset2_D5_SS<-power_sf94(0.05,0.8,sf94_regression_subset2[1], meanSD_subset2[2,1], cor_subset2[[1]])
+subset2_D8_SS<-power_sf94(0.05,0.8,sf94_regression_subset2[2], meanSD_subset2[2,2], cor_subset2[[2]])
+subset3_D5_SS<-power_sf94(0.05,0.8,sf94_regression_subset3[1], meanSD_subset3[2,1], cor_subset3[[1]])
+subset3_D8_SS<-power_sf94(0.05,0.8,sf94_regression_subset3[2], meanSD_subset3[2,2], cor_subset3[[2]])
 sf94_samplesize<-cbind(subset1_D5_SS,subset1_D8_SS,subset2_D5_SS,subset2_D8_SS,subset3_D5_SS,subset3_D8_SS)
 
 #write to github
@@ -655,12 +655,8 @@ who_table_output<-rbind(who_table_1, who_table_2, who_table_3)
 write.csv(who_table_output,"/home/skerr/Git/SF94/Outputs/who_table_output.csv")
 
 #bootstrapped effect size
-
-
-
-
 effect_size_boot_who <- function(data, indices){
-  WHOD5_model_S<-polr(as.factor(WHOD5_P) ~ age_estimateyears+ sex, data = data[indices, ], Hess=T)
+  WHOD5_model_S<-polr(as.factor(WHOD5_P) ~ age_estimateyears + sex, data = data[indices, ], Hess=T)
   pred_D5 <- predict(WHOD5_model_S,newdata =data, type = 'probs')
   effect_size <- effect_size_calc_OR(pred_D5[,"10"], treatment)
   return(effect_size)
