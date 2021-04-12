@@ -729,6 +729,25 @@ write.csv(who_samplesize,"/home/skerr/Git/SF94/Outputs/who_samplesize.csv")
 
 ####################################################################################################################################
 ## Sample size formulae for analyses using difference in proportions ##
+# OR effect size calculator
+effect_size_calc_OR <- function(prob_pred, treatment){
+  mean_prob <- mean(prob_pred, na.rm = TRUE)
+  return(  (treatment*(1-mean_prob)) / (1- treatment * mean_prob) )  
+}
+
+#non bootstrapped effect size
+susimpfunc<-function(subset_df, mortality_diff){
+  susimp_1L<-polr(mortality_28 ~ sustained_1L_improvement + age_estimateyears+ sex, data = subset_df, Hess=T)
+  susimp_2L<-polr(mortality_28 ~ sustained_2L_improvement + age_estimateyears+ sex, data = subset_df, Hess=T)
+  
+  pred_1L <- predict(susimp_1L, newdata = subset_df, type = 'probs')
+  pred_2L <- predict(susimp_2L, newdata = subset_df, type = 'probs')
+  
+  sus1L_effectsize_susimp<-effect_size_calc_OR(pred_1L, mortality_diff)
+  sus2L_effectsize_susimp<-effect_size_calc_OR(pred_2L, mortality_diff)
+  susimp_effectsize<-cbind(sus1L_effectsize_susimp, sus2L_effectsize_susimp)
+  return(who_effectsize)
+}
 
 susimpfunc<-function(subset_df, mortdif){
   susimp_1L<-lrm(mortality_28 ~ sustained_1L_improvement + age_estimateyears+ sex, data = subset_df,maxit=1000)
