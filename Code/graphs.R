@@ -284,9 +284,10 @@ s1<-samplesize_graph + geom_path() +
   xlab("Treatment effect (predicited 28-day mortality relative risk ratio)")+ 
   ylab("Sample size") +
   ggtitle("")+
-  scale_color_manual(values=c("#f60000","#b20000", "#00005d", "#0000f6"),name="Outcome measure", 
+  scale_colour_manual(values=c("#f60000","#b20000", "#00005d", "#0000f6"),name="Outcome measure", 
                        limits= c("Sustained 1 level improvement", "28-day mortality",
                                  "WHO day 5", "S/F94 day 5"))+
+  scale_fill_manual(values=c("#f60000","#b20000", "#00005d", "#0000f6"), guide="none")+
   theme_bw()
 s1
 ggsave(plot=s1, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="samplesize_graph.pdf")
