@@ -17,12 +17,11 @@ rho_opp_prot <- 0.7
 # Ive done it this way just as an example. Feel free to amend/delete.
 rho <- cor(subset1$sf94_day5_P,  subset1$sf94_day0, use = 'complete.obs')
 
-
 # This creates coefficients for protocolised measurement.
 create_coef_prot <- function(mean_prot, SD_prot, rho_opp_prot, coef_opp){
   alpha0 <- mean_opp - rho_opp_prot * SD_opp * mean_prot / SD_prot
   
-  # Note this is a global assignment!
+  # Note this is a global assignment! alpha1 is needed elsewhere.
   alpha1 <<- rho_opp_prot * SD_opp / SD_prot
   
   coef_prot <- coef_opp
