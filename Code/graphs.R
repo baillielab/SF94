@@ -451,23 +451,23 @@ ggsave(plot=us_5, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="uns
 
 #summary numbers
 #non bootstrapped mean effectsize
-susimp_a_0.70[2,1]
-susimp_a_0.75[2,1]
-susimp_a_0.80[2,1]
-susimp_a_0.85[2,1]
-effectize_susimp<-cbind(susimp_a_0.70[2,1],susimp_a_0.75[2,1],susimp_a_0.80[2,1],susimp_a_0.85[2,1])
+susimp_a_0.70[1]
+susimp_a_0.75[1]
+susimp_a_0.80[1]
+susimp_a_0.85[1]
+effectize_susimp<-cbind(susimp_a_0.70[1],susimp_a_0.75[1],susimp_a_0.80[1],susimp_a_0.85[1])
 
-who_a_0.70[2,1]
-who_a_0.75[2,1]
-who_a_0.80[2,1]
-who_a_0.85[2,1]
-who_effectsize<-cbind(who_a_0.70[2,1],who_a_0.75[2,1],who_a_0.80[2,1],who_a_0.85[2,1])
+who_a_0.70[1]
+who_a_0.75[1]
+who_a_0.80[1]
+who_a_0.85[1]
+who_effectsize<-cbind(who_a_0.70[1],who_a_0.75[1],who_a_0.80[1],who_a_0.85[1])
 
-sf94_ES_0.70[2,1]
-sf94_ES_0.75[2,1]
-sf94_ES_0.80[2,1]
-sf94_ES_0.85[2,1]
-sf94_effectsize<-cbind(sf94_ES_0.70[2,1],sf94_ES_0.75[2,1],sf94_ES_0.80[2,1],sf94_ES_0.85[2,1])
+sf94_ES_0.70[1]
+sf94_ES_0.75[1]
+sf94_ES_0.80[1]
+sf94_ES_0.85[1]
+sf94_effectsize<-cbind(sf94_ES_0.70[1],sf94_ES_0.75[1],sf94_ES_0.80[1],sf94_ES_0.85[1])
 
 effectsize_df<-rbind(effectize_susimp, who_effectsize, sf94_effectsize)
 
@@ -483,7 +483,7 @@ sus1_booted_0.80$basic[,c(4,5)]
 sus1_booted_0.85$basic[,c(4,5)]
 
 boot_sus_ci<-cbind(sus1_booted_0.70$basic[,c(4,5)],
-                   sus1_booted_0.75$basic[,c(4,5)],who_0.70<-who_effectsize_functi
+                   sus1_booted_0.75$basic[,c(4,5)],
                    sus1_booted_0.80$basic[,c(4,5)],
                    sus1_booted_0.85$basic[,c(4,5)])
 
@@ -517,7 +517,7 @@ write.csv(booted_ci,"/home/skerr/Git/SF94/Outputs/booted_ci.csv")
 # SD for outcomes
 sd_sf94<-sd(subset1$sf94_day5_P, na.rm=T)
 sd_who<-sd(subset1$WHOD5_P, na.rm=T)
-sd_sus<-sd(as.numeric(subset1$sustained_1L_improvement), na.rm = T)
+sd_sus<-sd(as.numeric(subset1$sustained_1L_improvement)-1, na.rm = T)
 
 sd_effectsize<-rbind(sd_sus, sd_who, sd_sf94)
 colnames(sd_effectsize)<-"sd"
