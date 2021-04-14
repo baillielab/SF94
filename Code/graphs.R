@@ -278,15 +278,16 @@ samplesize_dataframe$outcome_measure<-as.factor(samplesize_dataframe$outcome_mea
 samplesize_graph<-ggplot(samplesize_dataframe, aes(x=factor(treatment_effect, 
                                                             level=c("0.85", "0.80", "0.75", "0.70")),
                                                    y=values,
-                                  group= outcome_measure, colour=outcome_measure))
+                                  group= outcome_measure, colour=outcome_measure, fill=outcome_measure))
 s1<-samplesize_graph + geom_path() + 
-  geom_ribbon(aes(ymin=lower_limits, ymax=upper_limits), linetype=2, alpha=0.3)+
+  geom_ribbon(aes(ymin=lower_limits, ymax=upper_limits), linetype=2, alpha=0.2, colour = NA)+
   xlab("Treatment effect (predicited 28-day mortality relative risk ratio)")+ 
   ylab("Sample size") +
   ggtitle("")+
-  scale_color_manual(values=c("#f60000","#b20000", "#00005d", "#0000f6"),name="Outcome measure", 
+  scale_colour_manual(values=c("#f60000","#b20000", "#00005d", "#0000f6"),name="Outcome measure", 
                        limits= c("Sustained 1 level improvement", "28-day mortality",
                                  "WHO day 5", "S/F94 day 5"))+
+  scale_fill_manual(values=c("#f60000","#b20000", "#00005d", "#0000f6"), guide="none")+
   theme_bw()
 s1
 ggsave(plot=s1, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="samplesize_graph.pdf")

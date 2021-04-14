@@ -730,6 +730,7 @@ write.csv(who_samplesize,"/home/skerr/Git/SF94/Outputs/who_samplesize.csv")
 ####################################################################################################################################
 ## Sample size formulae for analyses using difference in proportions ##
 
+
 susimpfunc<-function(subset_df, mortdif){
   susimp_1L<-lrm(mortality_28 ~ sustained_1L_improvement + age_estimateyears+ sex, data = subset_df,maxit=1000)
   susimp_2L<-lrm(mortality_28 ~ sustained_2L_improvement + age_estimateyears+ sex, data = subset_df,maxit=1000)
