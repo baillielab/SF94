@@ -258,12 +258,28 @@ susimp_values_lower<-rbind(susimp_0.70_lower[1,1],susimp_0.75_lower[1,1],
 susimp_values_lower<-lapply(susimp_values_lower, "*", 2)
 susimp_values_lower<-as.matrix(susimp_values_lower)
 
+#protocolised SF94 measurement
+# Calculate protocolised effect size
+effect_size_prot_0.70 <- effect_size_calc(prot_pred, 0.70, coef_prot[2])
+effect_size_prot_0.75 <- effect_size_calc(prot_pred, 0.75, coef_prot[2])
+effect_size_prot_0.80 <- effect_size_calc(prot_pred, 0.80, coef_prot[2])
+effect_size_prot_0.85 <- effect_size_calc(prot_pred, 0.85, coef_prot[2])
+# Calculate protocolised sample size
+sample_size_prot_0.70 <- power_sf94(0.05, 0.8, effect_size_prot_0.70, SD_prot, rho_prot_05)
+sample_size_prot_0.75 <- power_sf94(0.05, 0.8, effect_size_prot_0.75, SD_prot, rho_prot_05)
+sample_size_prot_0.80 <- power_sf94(0.05, 0.8, effect_size_prot_0.80, SD_prot, rho_prot_05)
+sample_size_prot_0.85 <- power_sf94(0.05, 0.8, effect_size_prot_0.85, SD_prot, rho_prot_05)
+
+protocolised_sf94_ss<-rbind(sample_size_prot_0.70,sample_size_prot_0.75,sample_size_prot_0.80,sample_size_prot_0.85)
+
 #combine values
-ss_values<-rbind(mort_values, sf94_values, who_values, susimp_values)
-ss_upper<-rbind(mort_values_upper, sf94_values_upper, who_values_upper, susimp_values_upper)
-ss_lower<-rbind(mort_values_lower, sf94_values_lower, who_values_lower, susimp_values_lower)
-ss_outcomemeasure<-c(rep("28-day mortality",4),rep("S/F94 day 5",4),rep("WHO day 5",4),rep("Sustained 1 level improvement",4) )
+ss_values<-rbind(mort_values, sf94_values, who_values, susimp_values,protocolised_sf94_ss)
+ss_upper<-rbind(mort_values_upper, sf94_values_upper, who_values_upper, susimp_values_upper,protocolised_sf94_ss)
+ss_lower<-rbind(mort_values_lower, sf94_values_lower, who_values_lower, susimp_values_lower,protocolised_sf94_ss)
+ss_outcomemeasure<-c(rep("28-day mortality",4),rep("S/F94 day 5",4),rep("WHO day 5",4),
+                     rep("Sustained 1 level improvement",4), rep("Protocolised S/F94 day 5", 4) )
 ss_treatmenteffect<-c("0.70", "0.75", "0.80", "0.85",
+                      "0.70", "0.75", "0.80", "0.85",
                       "0.70", "0.75", "0.80", "0.85",
                       "0.70", "0.75", "0.80", "0.85",
                       "0.70", "0.75", "0.80", "0.85")
@@ -280,14 +296,14 @@ samplesize_graph<-ggplot(samplesize_dataframe, aes(x=factor(treatment_effect,
                                                    y=values,
                                   group= outcome_measure, colour=outcome_measure, fill=outcome_measure))
 s1<-samplesize_graph + geom_path() + 
-  geom_ribbon(aes(ymin=lower_limits, ymax=upper_limits), linetype=2, alpha=0.2, colour = NA)+
+  geom_ribbon(aes(ymin=lower_limits, ymax=upper_limits), linetype=1, alpha=0.2, colour = NA)+
   xlab("Treatment effect (predicited 28-day mortality relative risk ratio)")+ 
   ylab("Sample size") +
   ggtitle("")+
-  scale_colour_manual(values=c("#f60000","#b20000", "#00005d", "#0000f6"),name="Outcome measure", 
+  scale_colour_manual(values=c("#fd0000","#b20000","1d0000", "#000093", "#0000f6"),name="Outcome measure", 
                        limits= c("Sustained 1 level improvement", "28-day mortality",
-                                 "WHO day 5", "S/F94 day 5"))+
-  scale_fill_manual(values=c("#f60000","#b20000", "#00005d", "#0000f6"), guide="none")+
+                                 "WHO day 5", "S/F94 day 5", "Protocolised S/F94 day 5"))+
+  scale_fill_manual(values=c("#fd0000","#b20000","1d0000", "#000093", "#0000f6"), guide="none")+
   theme_bw()
 s1
 ggsave(plot=s1, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="samplesize_graph.pdf")
