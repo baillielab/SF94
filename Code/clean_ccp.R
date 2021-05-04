@@ -149,14 +149,14 @@ df <- distinct(df)
 
 ##################################### CORRECT COLUMN TYPES: #######################################
 
-# daily_temp_vsorres is recorded as a character. Take it to be numberic
+# daily_temp_vsorres is recorded as a character. Take it to be numeric
 df['daily_temp_vsorres'] <- sapply(df['daily_temp_vsorres'], as.numeric)
 
 # Redundant for argosafe data, but in other data date variables might be formatted as characters
 # rather than as dates
 df[dateVars] <- lapply(df[dateVars], as.Date)
 
-# Redundant for argosafe data, but in other data daily_fio2b_lborres might be formatted as npon-numeric
+# Redundant for argosafe data, but in other data daily_fio2b_lborres might be formatted as non-numeric
 df['daily_fio2b_lborres'] <- lapply(df['daily_fio2b_lborres'], as.numeric )
 
 ####################################### UNIT CONVERSIONS: #######################################

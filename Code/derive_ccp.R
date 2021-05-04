@@ -23,7 +23,7 @@ df<-fread("/home/skerr/Data/ccp_subset_clean.csv", data.table = FALSE, )
 
 ####################################### FUNCTIONS THAT WILL BE USED: #######################################
 
-# This function add a column for the minimum time for a sustained improvement in severity_scale_ordinal of diff.
+# This function adds a column for the minimum time for a sustained improvement in severity_scale_ordinal of diff.
 # Here, 'sustained' means that their final who score is no bigger that it was at the end of the period of improvment.
 addWhoTimeToImprove <- function(df, diff, finalDay){
   
