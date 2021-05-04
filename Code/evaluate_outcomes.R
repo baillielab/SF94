@@ -908,24 +908,45 @@ logistic <- function(x, coef){
 }  
 
 # Calculate protocolised coefficients
-coef_prot <- create_coef_prot(mean_prot, SD_prot, rho_opp_prot, prot_model$coef)
+coef_prot_05 <- create_coef_prot(mean_prot, SD_prot, 0.5, prot_model$coef)
+coef_prot_06 <- create_coef_prot(mean_prot, SD_prot, 0.6, prot_model$coef)
+coef_prot_07 <- create_coef_prot(mean_prot, SD_prot, 0.7, prot_model$coef)
+coef_prot_08 <- create_coef_prot(mean_prot, SD_prot, 0.8, prot_model$coef)
+coef_prot_09 <- create_coef_prot(mean_prot, SD_prot, 0.9, prot_model$coef)
 
 # Turn sex into binary numeric
 subset1$sex <- as.numeric(as.factor(subset1$sex))-1
 
 # Get protocolised predictions
-prot_pred <- logistic( subset1[c('sf94_day5_P', 'sf94_day0', 'age_estimateyears', 'sex')], coef_prot )
+prot_pred_05 <- logistic( subset1[c('sf94_day5_P', 'sf94_day0', 'age_estimateyears', 'sex')], coef_prot_05 )
+prot_pred_06 <- logistic( subset1[c('sf94_day5_P', 'sf94_day0', 'age_estimateyears', 'sex')], coef_prot_06 )
+prot_pred_07 <- logistic( subset1[c('sf94_day5_P', 'sf94_day0', 'age_estimateyears', 'sex')], coef_prot_07 )
+prot_pred_08 <- logistic( subset1[c('sf94_day5_P', 'sf94_day0', 'age_estimateyears', 'sex')], coef_prot_08 )
+prot_pred_09 <- logistic( subset1[c('sf94_day5_P', 'sf94_day0', 'age_estimateyears', 'sex')], coef_prot_09 )
 
 # Calculate protocolised effect size
-effect_size_prot <- effect_size_calc(prot_pred, 0.85, coef_prot[2])
+effect_size_prot_05 <- effect_size_calc(prot_pred_05, 0.85, coef_prot_05[2])
+effect_size_prot_06 <- effect_size_calc(prot_pred_06, 0.85, coef_prot_06[2])
+effect_size_prot_07 <- effect_size_calc(prot_pred_07, 0.85, coef_prot_07[2])
+effect_size_prot_08 <- effect_size_calc(prot_pred_08, 0.85, coef_prot_08[2])
+effect_size_prot_09 <- effect_size_calc(prot_pred_09, 0.85, coef_prot_09[2])
 
 # rho_prot_05 is the correlation between the protocolised sf94 measurements on day 0 and day 5
 # This is to be used in the sample size calcuation
-rho_prot_05 = rho_opp_prot**2 / alpha1**2
+# rho_prot_opp is to be varied from 0.5-0.9
+rho_prot_05_05 = 0.5**2 / alpha1**2
+rho_prot_05_06 = 0.6**2 / alpha1**2
+rho_prot_05_07 = 0.7**2 / alpha1**2
+rho_prot_05_08 = 0.8**2 / alpha1**2
+rho_prot_05_09 = 0.9**2 / alpha1**2
 
 # Calculate protocolised sample size
-sample_size_prot_05 <- power_sf94(0.05, 0.8, effect_size_prot, SD_prot, 0.5)
-sample_size_prot_06 <- power_sf94(0.05, 0.8, effect_size_prot, SD_prot, 0.6)
-sample_size_prot_07 <- power_sf94(0.05, 0.8, effect_size_prot, SD_prot, 0.7)
-sample_size_prot_08 <- power_sf94(0.05, 0.8, effect_size_prot, SD_prot, 0.8)
-sample_size_prot_09 <- power_sf94(0.05, 0.8, effect_size_prot, SD_prot, 0.9)
+sample_size_prot_05 <- power_sf94(0.05, 0.8, effect_size_prot_05, SD_prot, rho_prot_05_05)
+sample_size_prot_06 <- power_sf94(0.05, 0.8, effect_size_prot_06, SD_prot, rho_prot_05_06)
+sample_size_prot_07 <- power_sf94(0.05, 0.8, effect_size_prot_07, SD_prot, rho_prot_05_07)
+sample_size_prot_08 <- power_sf94(0.05, 0.8, effect_size_prot_08, SD_prot, rho_prot_05_08)
+sample_size_prot_09 <- power_sf94(0.05, 0.8, effect_size_prot_09, SD_prot, rho_prot_05_09)
+
+samplesize_protocolised<-cbind(sample_size_prot_05,sample_size_prot_06,sample_size_prot_07,
+                               sample_size_prot_08,sample_size_prot_09)
+write.csv(samplesize_protocolised,"/home/skerr/Git/SF94/Outputs/samplesize_protocolised.csv")
