@@ -346,8 +346,8 @@ who_sf_5plot<-ggplot(who_sf_5,
 sel_who5<-who_sf_5plot+ geom_violin()+ #remove outliers
   theme_bw()+
   ggtitle(title_who5)+ 
-  scale_fill_manual(values=c("#ff4933", "#ff1c00", "#cc1600","#991100",
-                             "#660b00","#330600", "#000000"))+
+  scale_fill_manual(values=c("#ff0000", "#d7001b", "#a5002b","#7e0055",
+                             "#530073","#350087", "#0000aa"))+
   xlab("")+
   ylab("S/F94 day5")+
   theme(legend.position = "none",
@@ -419,8 +419,8 @@ unselect_who5<-ggplot(unselectedwho_day5,
 us_who5<-unselect_who5+ geom_violin()+ #remove outliers
   theme_bw()+
   ggtitle(title_un_who5)+ 
-  scale_fill_manual(values=c("#ff4933", "#ff1c00", "#cc1600","#991100",
-                             "#660b00","#330600", "#000000"))+
+  scale_fill_manual(values=c("#ff0000", "#d7001b", "#a5002b","#7e0055",
+                             "#530073","#350087", "#0000aa"))+
   xlab("")+
   ylab("S/F94 day5")+
   theme(legend.position = "none",
