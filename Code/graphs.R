@@ -260,15 +260,15 @@ susimp_values_lower<-as.matrix(susimp_values_lower)
 
 #protocolised SF94 measurement
 # Calculate protocolised effect size
-effect_size_prot_0.70 <- effect_size_calc(prot_pred, 0.70, coef_prot[2])
-effect_size_prot_0.75 <- effect_size_calc(prot_pred, 0.75, coef_prot[2])
-effect_size_prot_0.80 <- effect_size_calc(prot_pred, 0.80, coef_prot[2])
-effect_size_prot_0.85 <- effect_size_calc(prot_pred, 0.85, coef_prot[2])
+effect_size_prot_0.70 <- effect_size_calc(prot_pred_07, 0.70, coef_prot_07[2])
+effect_size_prot_0.75 <- effect_size_calc(prot_pred_07, 0.75, coef_prot_07[2])
+effect_size_prot_0.80 <- effect_size_calc(prot_pred_07, 0.80, coef_prot_07[2])
+effect_size_prot_0.85 <- effect_size_calc(prot_pred_07, 0.85, coef_prot_07[2])
 # Calculate protocolised sample size
-sample_size_prot_0.70 <- power_sf94(0.05, 0.8, effect_size_prot_0.70, SD_prot, rho_prot_05)
-sample_size_prot_0.75 <- power_sf94(0.05, 0.8, effect_size_prot_0.75, SD_prot, rho_prot_05)
-sample_size_prot_0.80 <- power_sf94(0.05, 0.8, effect_size_prot_0.80, SD_prot, rho_prot_05)
-sample_size_prot_0.85 <- power_sf94(0.05, 0.8, effect_size_prot_0.85, SD_prot, rho_prot_05)
+sample_size_prot_0.70 <- power_sf94(0.05, 0.8, effect_size_prot_0.70, SD_prot, rho_prot_05_07)
+sample_size_prot_0.75 <- power_sf94(0.05, 0.8, effect_size_prot_0.75, SD_prot, rho_prot_05_07)
+sample_size_prot_0.80 <- power_sf94(0.05, 0.8, effect_size_prot_0.80, SD_prot, rho_prot_05_07)
+sample_size_prot_0.85 <- power_sf94(0.05, 0.8, effect_size_prot_0.85, SD_prot, rho_prot_05_07)
 
 protocolised_sf94_ss<-rbind(sample_size_prot_0.70,sample_size_prot_0.75,sample_size_prot_0.80,sample_size_prot_0.85)
 
