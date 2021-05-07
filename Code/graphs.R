@@ -331,6 +331,7 @@ ggsave(plot=rr_graph, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename=
 # WHO and SF94 
 #data = subset 1 + filters
 # take day 5 from WHO and SF data 
+#s2c(subset_graph)
 who_sf_5<-subset(subset_graph, days_since_start==5)
 who_sf_5<-subset(who_sf_5, !is.na(severity_scale_ordinal))
 who_sf_5$severity_scale_ordinal<- paste("WHO level", who_sf_5$severity_scale_ordinal, sep = " ")
@@ -345,8 +346,8 @@ who_sf_5plot<-ggplot(who_sf_5,
 sel_who5<-who_sf_5plot+ geom_violin()+ #remove outliers
   theme_bw()+
   ggtitle(title_who5)+ 
-  scale_fill_manual(values=c("#f60000", "#b20000", "#590000","#00001c",
-                             "#00005d","#0000a2", "#0000f6"))+
+  scale_fill_manual(values=c("#ff4933", "#ff1c00", "#cc1600","#991100",
+                             "#660b00","#330600", "#000000"))+
   xlab("")+
   ylab("S/F94 day5")+
   theme(legend.position = "none",
@@ -418,8 +419,8 @@ unselect_who5<-ggplot(unselectedwho_day5,
 us_who5<-unselect_who5+ geom_violin()+ #remove outliers
   theme_bw()+
   ggtitle(title_un_who5)+ 
-  scale_fill_manual(values=c("#f60000", "#b20000", "#590000","#00001c",
-                             "#00005d","#0000a2", "#0000f6"))+
+  scale_fill_manual(values=c("#ff4933", "#ff1c00", "#cc1600","#991100",
+                             "#660b00","#330600", "#000000"))+
   xlab("")+
   ylab("S/F94 day5")+
   theme(legend.position = "none",
