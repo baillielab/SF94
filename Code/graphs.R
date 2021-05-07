@@ -303,10 +303,14 @@ s1<-samplesize_graph + geom_path(aes(linetype=outcome_measure)) +
                         limits= c("Sustained 1 level improvement", "28-day mortality",
                              "WHO day 5", "S/F94 day 5", "Protocolised S/F94 day 5"), name="Outcome measure")+
   ggtitle("")+
-  scale_colour_manual(values=c("#fd0000","#b20000","1d0000", "#000093", "#0000f6"),name="Outcome measure", 
+  scale_colour_manual(values=c("#ff0000", "#a5002b","#7e0055",
+                               "#530073", "#0000aa"),name="Outcome measure", 
                        limits= c("Sustained 1 level improvement", "28-day mortality",
                                  "WHO day 5", "S/F94 day 5", "Protocolised S/F94 day 5"))+
-  scale_fill_manual(values=c("#fd0000","#b20000","1d0000", "#000093", "#0000f6"), guide="none")+
+  scale_fill_manual(values=c("#ff0000", "#a5002b","#7e0055",
+                             "#530073", "#0000aa"), guide="none",
+                    limits= c("Sustained 1 level improvement", "28-day mortality",
+                              "WHO day 5", "S/F94 day 5", "Protocolised S/F94 day 5"))+
   theme_bw()
 s1
 ggsave(plot=s1, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="samplesize_graph.pdf")
