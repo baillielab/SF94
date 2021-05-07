@@ -935,11 +935,13 @@ effect_size_prot_09 <- effect_size_calc(prot_pred_09, 0.85, coef_prot_09[2])
 # This is to be used in the sample size calcuation
 # rho_prot_opp is to be varied from 0.5-0.9
 # alpha1 <<- rho_opp_prot * SD_opp / SD_prot
-rho_prot_05_05 = 0.5**2 / (0.5 *SD_opp / SD_prot)**2
-rho_prot_05_06 = 0.6**2 / (0.6 *SD_opp / SD_prot)**2
-rho_prot_05_07 = 0.7**2 / (0.7 *SD_opp / SD_prot)**2
-rho_prot_05_08 = 0.8**2 / (0.8 *SD_opp / SD_prot)**2
-rho_prot_05_09 = 0.9**2 / (0.9 *SD_opp / SD_prot)**2
+rho_prot_05 <- rho / rho_opp_prot**2
+
+rho_prot_05_05 = rho/0.5**2
+rho_prot_05_06 = rho/0.6**2
+rho_prot_05_07 = rho/0.7**2
+rho_prot_05_08 = rho/0.8**2
+rho_prot_05_09 = rho/0.9**2
 
 # Calculate protocolised sample size
 sample_size_prot_05 <- power_sf94(0.05, 0.8, effect_size_prot_05, SD_prot, rho_prot_05_05)

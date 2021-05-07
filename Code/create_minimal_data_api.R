@@ -58,6 +58,11 @@ sf94_day5_model_coef <- c(-2.509152208  , -1.506249130 , 0.008950016, 0.07045011
 sf94_day8_model_coef <- c(-1.9044854126 , -1.8755228838 , 0.0004714726, 0.0712604229, 0.0596474283)
 
 
+#Intercept       sf94_day5_P         sf94_day0 age_estimateyears               sex 
+#-3.371696366      -1.317967988       0.008950016       0.070450115       0.134044117 
+sf94_day5_prot_model_coef <- c(-3.371696366, -1.317967988, 0.008950016, 0.070450115, 0.134044117)
+
+
 # These are propotional odds models
 # For these ones, the intercept (first component) must be set as the threshold value between who levels 9 and 10
 # The rest should be MINUS the coefficients from the model.
@@ -88,6 +93,9 @@ sus_2_model_coef <- c(-5.33090060  , -13.47858231, 0.06939885 , 0.16183775 )
 df$sf94_day5_model_pred <- logistic(df[c('sf94_day5', 'sf94_day0', 'age_estimateyears', 'sex')], sf94_day5_model_coef)
 df$sf94_day8_model_pred <- logistic(df[c('sf94_day8', 'sf94_day0', 'age_estimateyears', 'sex')], sf94_day8_model_coef)
 
+df$sf94_day5_prot_model_pred <- logistic(df[c('sf94_day5', 'sf94_day0', 'age_estimateyears', 'sex')], sf94_day5_prot_model_coef)
+
+
 df$who_day5_model_pred <- 1 - logistic(df[c('age_estimateyears', 'sex')], who_day5_model_coef)
 df$who_day8_model_pred <- 1 - logistic(df[c('age_estimateyears', 'sex')], who_day8_model_coef)
 
@@ -101,118 +109,5 @@ df <- select(df, c('day28_mortality', 'age_estimateyears', 'clinical_frailty', '
                    'sf94_day8', 'who_day0', 'whoImprovement1', 'whoImprovement2') | ends_with('model_pred') )
 
 # Save minimal dataset to be used for web API
-write.csv(df ,"/home/skerr/Git/SF94_API/ccp_subset_simulated_api.csv", row.names = FALSE)
-
-
-
-##### NONLINEAR OPTIMISATION ################
-library(nloptr)
-library(tidyverse)
-
-
-
-df <- cbind(intercept = 1, df)
-
-
-model <- lrm(day28_mortality ~ sf94_day5 + age_estimateyears + sex, data = df)
-
-beta <- model$coefficients
-
-Sigma <- model$var
-
-
-
-
-f <- function(X, beta, treatment){
-  
-  Xbeta <- as.matrix( drop_na(X)) %*% beta
-  
-   return(sum( log(  (treatment * exp(-Xbeta))/( 1 + exp(-Xbeta) - treatment ) ) ) / beta[1]   )
-}
-
-objective <- partial(f, X = df[c('intercept', 'sf94_day5', 'age_estimateyears', 'sex')], treatment = 0.85)  
-
-
-
-
-g <- function(beta, mu, Sigma, level){
-  
-  return(t(beta - mu) %*% as.matrix( solve(Sigma)  ) %*% (beta - mu) - level)
-}
-
-
-constraint <- partial( g, mu = beta, Sigma = Sigma, level = 0.1776)
-
-
-
-
-res1 <- nloptr( x0= beta,
-                eval_f= objective,
-                eval_g_ineq = constraint,
-                opts = list("algorithm"="NLOPT_LN_COBYLA",
-                            "xtol_rel"=1.0e-8))
-
-
-effect_size_calc <- function(prob_pred, treatment, coef){
-  return( mean (log( (treatment*(1-prob_pred)) / (1- treatment * prob_pred)), na.rm = TRUE )  )
-}
-
-
-Var <- function(x, Sigma ){
-  return(t(x) %*% as.matrix(Sigma) %*% x)
-}
-
-
-
-
-SD <- sqrt( model$var)
-
-x <- c(1,as.numeric( as.vector( df[1, c('sf94_day5', 'age_estimateyears', 'sex')] ))  )
-
-Var(x, Sigma)
-
-
-pred <- logistic(df[c('sf94_day5', 'age_estimateyears', 'sex')], coef)
-
-
-########## BOOTSTRAP #################
-
-library(boot)
-library(rms)
-
-effect_size_calc <- function(prob_pred, treatment, coef){
-  return( mean (log( (treatment*(1-prob_pred)) / (1- treatment * prob_pred)) , na.rm = TRUE ) / coef  )
-}
-
-
-effect_size_boot <- function(data, indices){
-  model <- lrm(day28_mortality ~ sf94_day5 + sf94_day0 + age_estimateyears + sex, data = data[indices, ])
-  
-  pred <- predict(model, type = 'fitted')
-  
-  effect_size <- effect_size_calc(pred, treatment, coef)
-
-  return(effect_size)
-} 
-
-
-
-treatment <- 0.85
-coef <- -1.506249130
-
-boot_result <- boot(data = df, statistic = effect_size_boot, R=100)
-
-plot(boot_result)
-
-boot.ci(boot_result, conf = 0.95, type="basic")
-
-
-
-
-
-
-
-
-
-
+write.csv(df ,"/home/skerr/Git/SF94_API/src/ccp_subset_simulated_api.csv", row.names = FALSE)
 
