@@ -1,8 +1,17 @@
-#We could add this to evaluate_outcome when you're no longer working on it :)
-#it's inefficient but it works
+
+#create 2 dataframes, 1 for values that are the same througout admission and 1 for values that change
+compare_groups_subset1<-df_1[,c("subjid","daily_temp_vsorres", "systolic_vsorres", "diastolic_vsorres",
+                                "daily_gcs_vsorres", "daily_crp_lborres","daily_bun_lborres",
+                                "daily_creat_lborres", "daily_urine_lborres", )]
+
+unique_values<-df_1[,c("subjid", "age_estimateyears", "sex","death", "discharge","onset2admission", 
+                       "clinical_frailty","rr_vsorres", "mortality_28", "infiltrates_faorres")
+
+colnames(df_1)
+head(df_1)
 df_1$clinical_frailty<-as.numeric(df_1$clinical_frailty)
 table(df_1$clinical_frailty)
-summary(df_1$clinical_frailt)
+summary(df_1$clinical_frailty)
 #compare groups
 #compare key clinical variables between 2 groups (SaO2<0.94 |fio2=0.21) and SaO2>0.94
 df_1$sf94_group<-if_else((df_1$sao2 <=0.94 | df_1$fio2 == 0.21), "SF94<", "SF94>")
