@@ -69,7 +69,7 @@ unitVars <- c('daily_temp_vsorresu', "daily_bun_lborresu", "daily_creat_lborresu
 
 # Read on argosafe
 datadir = "/home/common/covid/cleaned/full/"
-timestamp = "2021-02-05_1049"
+timestamp = "2021-05-26_1941"
 
 ccp_data = read_rds(paste0(datadir, "ccp_data_", timestamp, "_full.rds"))
 
@@ -139,7 +139,6 @@ df[, replaceVars][ df[ , replaceVars] == 'Not specified' ] <- NA
 df[, replaceVars][ df[ , replaceVars] == '' ] <- NA
 
 # More columns and factor renaming can be included here by adding more variables/recodings to this command
-
 df <- mutate_at(df, c('any_invasive', 'other_mhyn', 'dsstdtcyn'), ~ fct_recode(., YES = "Yes", NO = 'No'))
 
 ################################ REMOVE DUPLICATE ROWS: ###################################
@@ -303,4 +302,4 @@ df<-data.frame(df)
 #write.csv(df,"df_20211402-backup.csv")
 
 # Write on argosafe
-write.csv(df,"/home/skerr/Data/ccp_subset_clean.csv", row.names = FALSE)
+saveRDS(df,"/home/skerr/Data/ccp_subset_clean.rds")

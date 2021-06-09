@@ -15,7 +15,7 @@ library(readr)
 ####################################### IMPORT DATA: #######################################
 
 # Read on argosafe
-df<-fread("/home/skerr/Data/ccp_subset_clean.csv", data.table = FALSE, )
+df<-readRDS("/home/skerr/Data/ccp_subset_clean.rds")
 
 #read for maaike
 #df <-fread("/home/u034/mcswets/df_20211402.csv")
@@ -194,7 +194,7 @@ df<-data.frame(df)
 ####################################### WRITE DATA: #######################################
 
 # Write on argosafe
-write.csv(df,"/home/skerr/Data/ccp_subset_derived.csv", row.names = FALSE)
+saveRDS(df,"/home/skerr/Data/ccp_subset_derived.rds")
 
 # Write for Maaike
 
