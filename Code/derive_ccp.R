@@ -144,8 +144,8 @@ df<-df %>%
       fio2 >= 0.22 & fio2 <=0.40 ~ 5,
       daily_nasaloxy_cmtrt == "YES" ~ 5,
       fio2 >= 0.21 & fio2 < 0.22 ~ 4,
-      days_since_start == day_of_discharge ~ 4) )
 
+      days_since_start == day_of_discharge ~ 4) )
 # Add death or discharage outcome variable
 df<-df %>% 
   mutate(
