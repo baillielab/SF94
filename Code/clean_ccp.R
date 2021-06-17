@@ -23,7 +23,7 @@ library(stringr)
 dateVars <- c( "dsstdat", "cestdat", "hostdat", "daily_dsstdat", "dsstdtc")
 
 #Variables that should be constant in the data
-constVars <- c("sex", "age_estimateyears", "hypertension_mhyn", "chrincard", "chronicpul_mhyn", "asthma_mhyn", "renal_mhyn",             
+constVars <- c("nhs_chi", "sex", "age_estimateyears", "hypertension_mhyn", "chrincard", "chronicpul_mhyn", "asthma_mhyn", "renal_mhyn",             
                "modliv", "mildliver", "chronicneu_mhyn", "malignantneo_mhyn", "chronichaemo_mhyn", "obesity_mhyn",           
                "diabetes_type_mhyn", "diabetescom_mhyn", "diabetes_mhyn", "rheumatologic_mhyn" , "dementia_mhyn",           
                "malnutrition_mhyn", "smoking_mhyn", "other_mhyn", "ethnicity","clinical_frailty", "oxygen_cmoccur",
@@ -52,7 +52,7 @@ binaryVars <- c("hypertension_mhyn", "chrincard", "chronicpul_mhyn", "asthma_mhy
                 'daily_rrt_cmtrt', 'daily_inotrope_cmyn', 'infiltrates_faorres')
 
 # constant, multi-l categorical variables - take values other than YES or NO, and are not measurement units
-otherCatVars <-  c("sex", "diabetes_type_mhyn", "smoking_mhyn", "ethnicity", "clinical_frailty", "dsterm", 'oxy_vsorresu')
+otherCatVars <-  c("nhs_chi", "sex", "diabetes_type_mhyn", "smoking_mhyn", "ethnicity", "clinical_frailty", "dsterm", 'oxy_vsorresu')
 
 # Measurement unit variables
 unitVars <- c('daily_temp_vsorresu', "daily_bun_lborresu", "daily_creat_lborresu", "daily_crp_lborresu" )
@@ -86,7 +86,7 @@ df <- ccp_data[allVars]
 # ...[1000,10000] divide by 100
 # ...[10000, 100000] divide by 1000
 cleanPercent <- function(df, cols){
-  df <- df %>%  mutate_at(cols, ~case_when( . >0 & . <= 1   ~ 10 * . ,
+  df <- df %>%  mutate_at(cols, ~case_when( . >0 & . <= 1   ~ 100 * . ,
                                             . >1 & . <= 100   ~ . ,
                                             . >100 & . <= 1000  ~ ./10,
                                             . >1000 & . <= 10000 ~ ./100,
@@ -248,10 +248,12 @@ df <- squeeze(df, limits)
 
 # If the year of a date variable is in 2020 or 2021, leave it be. 
 # If the year of a date variable is 2002, 2030 or 3030, we assume they meant 2020.
+# If the year of a date variable is 2001, 2031 or 3031, we assume they meant 2021.
 # Otherwise set to NA
 
 df <- mutate_at(df, dateVars,  ~case_when(    year(.) %in% c(2020, 2021) ~ . ,
-                                              year(.) %in% c(2002, 2030, 3030) ~ as.Date( paste( '2020', str_sub(. ,-6,-1), sep=""), format = '%Y-%m-%d') ))
+                                              year(.) %in% c(2002, 2030, 3030) ~ as.Date( paste( '2020', str_sub(. ,-6,-1), sep=""), format = '%Y-%m-%d'),
+                                              year(.) %in% c(2001, 2031, 3031) ~ as.Date( paste( '2021', str_sub(. ,-6,-1), sep=""), format = '%Y-%m-%d')))
 
 # For each subjid, take dates of admission, symptoms, etc as the earliest recorded
 # For binary variables that are constant, take them to be 'YES' if they are ever 'YES' for a given subjid.
