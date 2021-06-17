@@ -8,6 +8,7 @@ library(rms)
 df_1<-fread("/home/skerr/Data/ccp_subset_derived.csv", data.table = FALSE )
 
 #df_1<-fread("/home/u034/mcswets/df_20211402.csv", data.table = FALSE)
+
 #df_1<-df_1[,c(2:89)]
 
 #OUTPUT
