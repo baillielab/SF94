@@ -5,7 +5,7 @@ library(data.table)
 library(tidyr)
 library(rms)
 
-df_1<-fread("/home/skerr/Data/ccp_subset_derived.csv", data.table = FALSE )
+df_1<-readRDS("/home/skerr/Data/ccp_subset_derived.rds")
 
 #df_1<-fread("/home/u034/mcswets/df_20211402.csv", data.table = FALSE)
 
@@ -28,6 +28,13 @@ df_1<-fread("/home/skerr/Data/ccp_subset_derived.csv", data.table = FALSE )
 # 'basedd' if you want to include those who died or were discharged
 # 'day0' if you want to exclude people who died or were discharged on day_since_admission == 0
 # Output is a table that you can query for summary statistics.
+
+df_1_base_sf94<-createDF(df_1, "base", "sf94", 16)
+
+df <- df_1
+group <- "base"
+variable <- "sf94"
+time <- 16
 
 createDF <- function(df, group, variable, time){
   
