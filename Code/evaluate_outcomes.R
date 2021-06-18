@@ -29,13 +29,6 @@ df_1<-readRDS("/home/skerr/Data/ccp_subset_derived.rds")
 # 'day0' if you want to exclude people who died or were discharged on day_since_admission == 0
 # Output is a table that you can query for summary statistics.
 
-df_1_base_sf94<-createDF(df_1, "base", "sf94", 16)
-
-df <- df_1
-group <- "base"
-variable <- "sf94"
-time <- 16
-
 createDF <- function(df, group, variable, time){
   
   if( group == 'base' |  group == 'basedd' ) { 
@@ -451,7 +444,6 @@ mort_table_function<-function(subset_df){
   mortTable <- table(subset_df[["mortality_28"]])
   return(mortTable)
 }
-mort_table_1 <- as.data.frame(mort_table_1)
 
 #proportion who died/ who lived
 mort_table_1<-mort_table_function(subset1)

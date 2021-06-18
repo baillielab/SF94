@@ -21,7 +21,7 @@ df<-readRDS("/home/skerr/Data/ccp_subset_clean.rds")
 #df <-fread("/home/u034/mcswets/df_20211402.csv")
 #df <-fread("/home/u034/mcswets/df_20211402-backup.csv") #as in end of clean_ccp
 
-####################################### FUNCTIONS THAT WILL BE USED: #######################################
+####################################### FUNCTIONS #######################################
 
 # This function adds a column for the minimum time for a sustained improvement in severity_scale_ordinal of diff.
 # Here, 'sustained' means that their final who score is no bigger that it was at the end of the period of improvment.
@@ -59,7 +59,7 @@ squeeze<- function(df, limits){
   return(df)  
 }
 
-####################################### ADD DERIVED VARIABLES: #######################################
+####################################### ADD DERIVED VARIABLES #######################################
 
 # Add variable that is YES if they died, NO otherwise
 # and similarly for if they were discharged

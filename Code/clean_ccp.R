@@ -59,8 +59,6 @@ unitVars <- c('daily_temp_vsorresu', "daily_bun_lborresu", "daily_creat_lborresu
 
 ####################################### IMPORT DATA: #######################################
 
-# You should run code in this section selectively, or add your own read path depending on your environment
-
 #read for Steven
 #df <-fread("Y:/mcswets/ccp_data.csv", select = allVars, data.table = FALSE)
 
@@ -78,7 +76,7 @@ df <- ccp_data[allVars]
 # Take a sample. 
 #df <- sample_n(df, 1000)
 
-####################################### FUNCTIONS THAT WILL BE USED: #######################################
+####################################### FUNCTIONS: #######################################
 
 # Clean variables that are percentages
 # If it has been recorded as in [0,1], multiply by 100
@@ -217,8 +215,9 @@ percentCols <- c( 'daily_sao2_lborres', 'oxy_vsorres')
 df <- cleanPercent(df, percentCols)
 
 int1Cols <- c('daily_fio2_lborres', 'daily_fio2b_lborres')
-#error: daily_fio2b_lborres is not numeric
+
 df$daily_fio2b_lborres<-as.numeric(df$daily_fio2b_lborres)
+
 df <- cleanInt1(df, int1Cols)
 
 # Limit for acceptable variable values
@@ -248,12 +247,12 @@ df <- squeeze(df, limits)
 
 # If the year of a date variable is in 2020 or 2021, leave it be. 
 # If the year of a date variable is 2002, 2030 or 3030, we assume they meant 2020.
-# If the year of a date variable is 2001, 2031 or 3031, we assume they meant 2021.
+# If the year of a date variable is 2001, 2031, 3021 or 3031, we assume they meant 2021.
 # Otherwise set to NA
 
 df <- mutate_at(df, dateVars,  ~case_when(    year(.) %in% c(2020, 2021) ~ . ,
                                               year(.) %in% c(2002, 2030, 3030) ~ as.Date( paste( '2020', str_sub(. ,-6,-1), sep=""), format = '%Y-%m-%d'),
-                                              year(.) %in% c(2001, 2031, 3031) ~ as.Date( paste( '2021', str_sub(. ,-6,-1), sep=""), format = '%Y-%m-%d')))
+                                              year(.) %in% c(2001, 2031, 3021, 3031) ~ as.Date( paste( '2021', str_sub(. ,-6,-1), sep=""), format = '%Y-%m-%d')))
 
 # For each subjid, take dates of admission, symptoms, etc as the earliest recorded
 # For binary variables that are constant, take them to be 'YES' if they are ever 'YES' for a given subjid.
@@ -276,7 +275,7 @@ df <- df %>% group_by(subjid) %>% mutate_at( intersect(otherCatVars, constVars),
 # For categorical non-constant values, we take the mode
 # For continuous non-constant values, we take the mean
 
-df <- df %>% group_by(subjid, daily_dsstdat) %>% mutate_at( intersect(  union(binaryVars, otherCatVars), nonConstVars), Mode)
+df <- df %>% group_by(subjid, daily_dsstdat) %>% mutate_at( intersect( union(binaryVars, otherCatVars), nonConstVars), Mode)
 
 df <- df %>% group_by(subjid, daily_dsstdat) %>% mutate_at( setdiff(nonConstVars, union( union(binaryVars, otherCatVars), unitVars) ), mean)
 
