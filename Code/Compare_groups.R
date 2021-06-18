@@ -102,5 +102,8 @@ linear_model_glm <- glm(mortality_28 ~ sf94_day0 + sf94_day5_P, family=binomial,
 
 html_output_glm<-linear_model_glm  %>% tbl_regression(exponentiate=T)
 
+
 saveRDS(html_output_glm, '/home/skerr/Git/SF94/Outputs/html_output_glm.rds')
+
+readRDS("/Users/Maaike/Downloads/html_output_glm.rds")
 
