@@ -356,7 +356,7 @@ sel_who5<-who_sf_5plot+ geom_violin()+ #remove outliers
   ylab("S/F94 day5")+
   theme(legend.position = "none",
         plot.title = element_text (hjust = 0.5))+ #remove legend + center title
-  scale_x_discrete(labels=c("4 Hosp", "5 Ox", "6 CPAP", "7 IMV", "8 IMV S/F<2", "9 MOF", "10 Dead"))
+  scale_x_discrete(labels=c("4 Hosp", "5 Ox", "6 CPAP/HFNO", "7 IMV", "8 IMV S/F<2", "9 MOF", "10 Dead"))
 
 ggsave(plot=sel_who5, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="selected_who5.pdf")
 
@@ -429,7 +429,7 @@ us_who5<-unselect_who5+ geom_violin()+ #remove outliers
   ylab("S/F94 day5")+
   theme(legend.position = "none",
         plot.title = element_text (hjust = 0.5))+ #remove legend + center title
-  scale_x_discrete(labels=c("4 Hosp", "5 Ox", "6 CPAP", "7 IMV", "8 IMV S/F<2", "9 MOF", "10 Dead"))
+  scale_x_discrete(labels=c("4 Hosp", "5 Ox", "6 CPAP/HFNO", "7 IMV", "8 IMV S/F<2", "9 MOF", "10 Dead"))
 
 ggsave(plot=us_who5, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="unselected_who5.pdf")
 
