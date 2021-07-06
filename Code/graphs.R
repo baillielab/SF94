@@ -322,12 +322,20 @@ subset_graph$mortality_28 <- sapply(subset_graph$mortality_28, as.factor)
 df_1$mortality_28 <- sapply(df_1$mortality_28, as.factor)
 #Respiratory rate and SF9/4 function, including regression line (Sup figure 5)
 library(ggplot2)
-rr_graph<-ggplot(subset_graph, aes(x=sf94, y=rr_vsorres, colour=sao2)) +
-  geom_point(size=1.5, shape=16, stroke=0)+
-  geom_smooth(method=lm, colour="black")+
+library(ggpubr)
+pearson_value<-as.character(round(cor(x=subset_graph$sf94, y=subset_graph$rr_vsorres, method = "pearson", use = "complete.obs"), 2))
+rr_graph<-ggplot(subset_graph, aes(x=sf94, y=rr_vsorres)) +
+  geom_jitter(size=1.2, shape=16, stroke=0, alpha=0.5)+
+  geom_smooth(method=lm, colour="darkblue")+
   xlab("S/F94")+
   ylab("Respiratory Rate")+
-  theme_bw()
+  theme_bw()+
+  annotate("text", x=c(3.65,4), y=68, label= c("R=", pearson_value))
+
+number_rr_graph<-length(unique(subset_graph$subjid))
+number_time_graph<-length(unique(long_dfsf94_12$subjid))
+number_graphs<-cbind(number_rr_graph, number_time_graph)
+write.csv(number_graphs,"/home/skerr/Git/SF94/Outputs/number_graphs.csv")
 
 ggsave(plot=rr_graph, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="rr_graph.pdf")
 #title: rr_sf94_regression
