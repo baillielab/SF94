@@ -556,3 +556,55 @@ sd_effectsize<-rbind(sd_sus, sd_who, sd_sf94)
 colnames(sd_effectsize)<-"sd"
 
 write.csv(sd_effectsize,"/home/skerr/Git/SF94/Outputs/sd_effectsize.csv")
+
+#assess relationship mortality and S/F94 D5
+# data used: subset 1 (filters from main analysis)
+#remove rows with missing values
+correlation_subset<-subset(subset1,(!is.na(sf94_day5_P)&!is.na(sf94_day0) & !is.na(mortality_28)))
+correlation_subset<-correlation_subset[,c("subjid", "sf94_day5_P", "sf94_day0", "mortality_28")]
+correlation_subset<-data.frame(correlation_subset)
+
+#First need to set data distribution for rms functions
+attach(correlation_subset)
+ddist <- datadist(sf94_day0, sf94_day5_P, mortality_28)
+options(datadist='ddist')
+detach(correlation_subset)
+#Fit model
+linear_model <- lrm(mortality_28 ~ sf94_day0 + sf94_day5_P, correlation_subset, x=TRUE, y=TRUE)
+
+plot_associations_linear_exp <- ggplot(Predict(linear_model, fun=plogis),sepdiscrete="vertical",
+                                       ylab= "Risk of 28-day mortality") + theme_bw()
+# this code changes the changes the labels on the '.predictor.' variable.
+plot_associations_linear_exp$data$.predictor. <- factor(plot_associations_linear_exp$data$.predictor., 
+                                                        labels = c("S/F94 day 0", "S/F94 day 5"))
+head(plot_associations_linear_exp)
+#  this 'label_value' labeller() call alters the facet labels
+linear_plot<-plot_associations_linear_exp + facet_grid(. ~ .predictor., labeller = label_value)
+
+ggsave(plot=linear_plot, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="linear_plot.pdf")
+
+
+#univariate day 0- mortality 28 model
+uni_model<-lrm(mortality_28 ~ sf94_day0, correlation_subset, x=TRUE, y=TRUE)
+plot_uni_model<-ggplot(Predict(uni_model, fun=plogis),
+                       ylab= "Risk of 28-day mortality", ylim=c(0,1), sepdiscrete="vertical")+ theme_bw()
+plot_uni_model$data$.predictor. <- factor(plot_uni_model$data$.predictor., 
+                                          labels = c("S/F94 day 0"))
+
+#  this 'label_value' labeller() call alters the facet labels
+plot_uni<-plot_uni_model + facet_grid(. ~ .predictor., labeller = label_value)
+
+ggsave(plot=plot_uni, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="plot_uni.pdf")
+
+
+library(gtsummary)
+linear_model_glm <- glm(mortality_28 ~ sf94_day0 + sf94_day5_P, family=binomial, data=correlation_subset)
+
+html_output_glm<-linear_model_glm  %>% tbl_regression(exponentiate=T)
+
+
+saveRDS(html_output_glm, '/home/skerr/Git/SF94/Outputs/html_output_glm.rds')
+
+readRDS("/Users/Maaike/Downloads/html_output_glm.rds")
+
+
