@@ -70,7 +70,7 @@ p1 <- ggplot(long_dfsf94_12, aes(x=days_since_start, y=sf94, fill=mortality_28))
   geom_split_violin(width=1.5)+
   xlab("Day")+
   ylab("S/F94")+
-  ggtitle("")+
+  ggtitle("(N=39334")+
   theme_bw()+
   scale_fill_manual(values =c("#f60000", "#0000f6"),
                     name="28-day outcome", labels=c("Discharged alive", "Death"))
@@ -330,7 +330,7 @@ rr_graph<-ggplot(subset_graph, aes(x=sf94, y=rr_vsorres)) +
   xlab("S/F94")+
   ylab("Respiratory Rate")+
   theme_bw()+
-  annotate("text", x=c(3.65,4), y=68, label= c("R=", pearson_value))
+  annotate("text", x=c(3.7,4), y=68, label= c("R=", pearson_value))
 
 number_rr_graph<-length(unique(subset_graph$subjid))
 number_time_graph<-length(unique(long_dfsf94_12$subjid))
