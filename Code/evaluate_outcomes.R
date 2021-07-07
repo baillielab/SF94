@@ -5,7 +5,7 @@ library(data.table)
 library(tidyr)
 library(rms)
 
-df_1<-readRDS("/home/skerr/Data/ccp_subset_derived.rds")
+df_1<-readRDS("/home/skerr/Data/ccp_subset_derived_2021-05-26_1941.rds")
 
 #df_1<-fread("/home/u034/mcswets/df_20211402.csv", data.table = FALSE)
 
@@ -383,6 +383,9 @@ regresson_df_P<-left_join(regresson_df_P, time_to_improvement, by="subjid")
 regresson_df_P$sustained_1L_improvement <- sapply(regresson_df_P$sustained_1L_improvement, as.factor)
 regresson_df_P$sustained_2L_improvement <- sapply(regresson_df_P$sustained_2L_improvement, as.factor)
 
+
+df_1 <- mutate_at(df_1, 'sex',  as.character)
+
 #apply age filter and supp oxygen filter
 subjects_to_include <- filter(df_1, ( fio2 >=0.22 & days_since_start %in% c(0,1,2)  & age_estimateyears >19 & age_estimateyears <76 ) )['subjid']
 subset1<-regresson_df_P[regresson_df_P$subjid %in% subjects_to_include$subjid,] 
@@ -552,6 +555,12 @@ effect_size_boot <- function(data, indices){
   effect_size_D5 <- effect_size_calc(sf94_predictD5, treatment, coef_d5)
   return(effect_size_D5)
 } 
+
+# Regression throws error if this isn't done
+subset1 <- mutate_at(subset1, 'sex', as.character)
+subset2 <- mutate_at(subset2, 'sex', as.character)
+subset3 <- mutate_at(subset3, 'sex', as.character)
+
 treatment <- 0.85
 boot_result_0.85 <- boot(data = subset1, statistic = effect_size_boot, R=1000)
 sf94_d5_boot_0.85<-boot.ci(boot_result_0.85, conf = 0.95, type="basic")
