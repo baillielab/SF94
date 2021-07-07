@@ -70,12 +70,11 @@ p1 <- ggplot(long_dfsf94_12, aes(x=days_since_start, y=sf94, fill=mortality_28))
   geom_split_violin(width=1.5)+
   xlab("Day")+
   ylab("S/F94")+
-  ggtitle("(N=39334")+
+  ggtitle("(N=39334)")+
   theme_bw()+
+  theme(plot.title = element_text(hjust = 0.5))+
   scale_fill_manual(values =c("#f60000", "#0000f6"),
                     name="28-day outcome", labels=c("Discharged alive", "Death"))
-
-show(p1)
 
 ggsave(plot=p1, width=13, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="12_days.pdf")
 
