@@ -70,7 +70,7 @@ p1 <- ggplot(long_dfsf94_12, aes(x=days_since_start, y=sf94, fill=mortality_28))
   geom_split_violin(width=1.5)+
   xlab("Day")+
   ylab("S/F94")+
-  ggtitle("(N=39334)")+
+  ggtitle("S/F94 in the first 12 days since admission (N=39334)")+
   theme_bw()+
   theme(plot.title = element_text(hjust = 0.5))+
   scale_fill_manual(values =c("#f60000", "#0000f6"),
@@ -378,7 +378,7 @@ sfmort_day0<-subset(subset_graph, (days_since_admission == 0))
 sfmort_day0plot<-ggplot(sfmort_day0,
                         aes(x=as.factor(mortality_28), y=sf94, fill=mortality_28 ))
 title_0<-as.character(sum(!is.na(sfmort_day0$sf94))) 
-title_0<-paste("(N=", title_0, ")", sep = "")
+title_0<-paste("Selected patients (N=", title_0, ")", sep = "")
 sel_0<-sfmort_day0plot + geom_violin()+ 
   theme_bw()+
   ggtitle(title_0)+
@@ -398,7 +398,7 @@ sfmort_day5<-subset(subset_graph, (days_since_admission == 5))
 sfmort_day5plot<-ggplot(sfmort_day5,
                         aes(x=as.factor(mortality_28), y=sf94, fill=mortality_28 ))
 title_5<-as.character(sum(!is.na(sfmort_day5$sf94))) 
-title_5<-paste("(N=", title_5, ")", sep = "")
+title_5<-paste("Selected patients (N=", title_5, ")", sep = "")
 sel_5<-sfmort_day5plot + geom_violin()+ 
   theme_bw()+
   ggtitle(title_5)+ 
@@ -423,7 +423,7 @@ unselectedwho_day5$severity_scale_ordinal<-factor(unselectedwho_day5$severity_sc
                                                            "WHO level 6","WHO level 7",
                                                            "WHO level 8","WHO level 9","WHO level 10"))
 title_un_who5<-as.character(sum(!is.na(unselectedwho_day5$sf94))) 
-title_un_who5<-paste("WHO ordinal severity scale for unselected subjects (N=", title_un_who5, ")", sep = "")
+title_un_who5<-paste("WHO ordinal severity scale for unselected patients (N=", title_un_who5, ")", sep = "")
 #violin plots (figure 7a)
 unselect_who5<-ggplot(unselectedwho_day5,
                       aes(x=severity_scale_ordinal, y=sf94, fill=severity_scale_ordinal ))
@@ -448,7 +448,7 @@ unselected_day0<-subset(df_1, (days_since_admission == 0))
 unselected_outcome_0<-ggplot(unselected_day0,
                              aes(x=as.factor(mortality_28), y=sf94, fill=mortality_28 ))
 title_un0<-as.character(sum(!is.na(unselected_day0$sf94))) 
-title_un0<-paste("Unselected subjects (N=", title_un0, ")", sep = "")
+title_un0<-paste("Unselected patients (N=", title_un0, ")", sep = "")
 us_0<-unselected_outcome_0 + geom_violin()+ 
   theme_bw()+
   ggtitle(title_un0)+ 
@@ -467,7 +467,7 @@ unselected_day5<-subset(df_1, (days_since_admission == 5))
 unselected_outcome_5<-ggplot(unselected_day5,
                              aes(x=as.factor(mortality_28), y=sf94, fill=mortality_28 ))
 title_un5<-as.character(sum(!is.na(unselected_day5$sf94))) 
-title_un5<-paste("Unselected subjects (N=", title_un5, ")", sep = "")
+title_un5<-paste("Unselected patients (N=", title_un5, ")", sep = "")
 us_5<-unselected_outcome_5 + geom_violin()+ 
   theme_bw()+
   ggtitle(title_un5)+ 
@@ -578,7 +578,7 @@ plot_d0_multi<- ggplot(Predict(linear_model, fun=plogis),sepdiscrete="vertical",
 plot_d0_multi$data<-plot_d0_multi$data[-c(201:400),-c(2)]
 #change label name
 plot_d0_multi$data$.predictor.<-factor(plot_d0_multi$data$.predictor.,
-                                       labels="S/F94 day 0 (multivariate regression model)")
+                                       labels="S/F94 day 0")
 plot_d0_multi<-plot_d0_multi + facet_grid(. ~ .predictor., labeller = label_value)
 plot_d0_multi
 #same for day 5, remove column 1 (day 0) and first 200 rows
@@ -594,7 +594,7 @@ uni_model<-lrm(mortality_28 ~ sf94_day0, correlation_subset, x=TRUE, y=TRUE)
 plot_uni_model<-ggplot(Predict(uni_model, fun=plogis),
                        ylab= "Risk of 28-day mortality", ylim=c(0,0.8), sepdiscrete="vertical")+ theme_bw()
 plot_uni_model$data$.predictor. <- factor(plot_uni_model$data$.predictor., 
-                                          labels = c("S/F94 day 0 (univariate regression model)"))
+                                          labels = c("S/F94 day 0"))
 #  this 'label_value' labeller() call alters the facet labels
 plot_uni<-plot_uni_model + facet_grid(. ~ .predictor., labeller = label_value)
 
