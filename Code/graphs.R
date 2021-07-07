@@ -572,7 +572,7 @@ detach(correlation_subset)
 linear_model <- lrm(mortality_28 ~ sf94_day0 + sf94_day5_P, correlation_subset, x=TRUE, y=TRUE)
 #create predicted plot
 plot_d0_multi<- ggplot(Predict(linear_model, fun=plogis),sepdiscrete="vertical",
-                                       ylab= "Risk of 28-day mortality") + theme_bw()
+                                       ylab= "Risk of 28-day mortality", ylim=c(0,0.8)) + theme_bw()
 #need to split plot on day 0 and day 5 for the manuscript
 #for day 0: remove column day 5 (column 2) and final 200 rows
 plot_d0_multi$data<-plot_d0_multi$data[-c(201:400),-c(2)]
@@ -588,23 +588,26 @@ plot_d5_multi$data<-plot_d5_multi$data[-c(1:200),-c(1)] #change label names
 plot_d5_multi$data$.predictor.<-factor(plot_d5_multi$data$.predictor.,
                                        labels="S/F94 day 5")
 plot_d5_multi<-plot_d5_multi + facet_grid(. ~ .predictor., labeller = label_value)
-plot_d5_multi
 
 #univariate day 0- mortality 28 model
 uni_model<-lrm(mortality_28 ~ sf94_day0, correlation_subset, x=TRUE, y=TRUE)
 plot_uni_model<-ggplot(Predict(uni_model, fun=plogis),
-                       ylab= "Risk of 28-day mortality", ylim=c(0,1), sepdiscrete="vertical")+ theme_bw()
+                       ylab= "Risk of 28-day mortality", ylim=c(0,0.8), sepdiscrete="vertical")+ theme_bw()
 plot_uni_model$data$.predictor. <- factor(plot_uni_model$data$.predictor., 
                                           labels = c("S/F94 day 0 (univariate regression model)"))
 #  this 'label_value' labeller() call alters the facet labels
 plot_uni<-plot_uni_model + facet_grid(. ~ .predictor., labeller = label_value)
-plot_uni
 
 # combine the 2 day 0 models into 1 figure
+library(egg)
+day_0_plots<-ggarrange(plot_d0_multi, 
+                   plot_uni+ theme(axis.text.y=element_blank(), #remove Y axis labels and text
+                                   axis.ticks.y=element_blank(),
+                                   axis.title.y=element_blank()), ncol=2, widths=c(1,1)) #make same size
 
 #save output
-ggsave(plot=plot_uni, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="plot_uni.pdf")
-ggsave(plot=linear_plot, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="linear_plot.pdf")
+ggsave(plot=day_0_plots, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="day_0_plots.pdf")
+ggsave(plot=plot_d5_multi, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="plot_d5_multi.pdf")
 
 
 
