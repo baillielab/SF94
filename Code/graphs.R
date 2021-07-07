@@ -571,12 +571,13 @@ detach(correlation_subset)
 #Fit model
 linear_model <- lrm(mortality_28 ~ sf94_day0 + sf94_day5_P, correlation_subset, x=TRUE, y=TRUE)
 
-plot_associations_linear_exp <- ggplot(Predict(linear_model, fun=plogis),sepdiscrete="vertical",
+plot_associations_linear_exp<- ggplot(Predict(linear_model, fun=plogis),sepdiscrete="vertical",
                                        ylab= "Risk of 28-day mortality") + theme_bw()
+plot_associations_linear_exp
 # this code changes the changes the labels on the '.predictor.' variable.
 plot_associations_linear_exp$data$.predictor. <- factor(plot_associations_linear_exp$data$.predictor., 
                                                         labels = c("S/F94 day 0", "S/F94 day 5"))
-head(plot_associations_linear_exp)
+
 #  this 'label_value' labeller() call alters the facet labels
 linear_plot<-plot_associations_linear_exp + facet_grid(. ~ .predictor., labeller = label_value)
 
