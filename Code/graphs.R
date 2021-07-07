@@ -608,6 +608,8 @@ day_0_plots<-ggarrange(plot_d0_multi,
 #save output
 ggsave(plot=day_0_plots, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="day_0_plots.pdf")
 ggsave(plot=plot_d5_multi, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="plot_d5_multi.pdf")
+ggsave(plot=plot_uni, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="plot_uni.pdf")
+ggsave(plot=plot_d0_multi, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="plot_d0_multi.pdf")
 
 
 
