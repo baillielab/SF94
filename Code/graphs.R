@@ -2,6 +2,7 @@ library(dplyr)
 library(ggplot2)
 library(data.table)
 library(tidyr)
+library(DescTools)
 
 
 #----------------------------------- GRAPHS --------------------------------
@@ -570,6 +571,8 @@ options(datadist='ddist')
 detach(correlation_subset)
 #Fit model
 linear_model <- lrm(mortality_28 ~ sf94_day0 + sf94_day5_P, correlation_subset, x=TRUE, y=TRUE)
+PseudoR2(linear_model, which="McFadden")
+
 #create predicted plot
 plot_d0_multi<- ggplot(Predict(linear_model, fun=plogis),sepdiscrete="vertical",
                                        ylab= "Risk of 28-day mortality", ylim=c(0,0.8)) + theme_bw()
@@ -588,6 +591,7 @@ plot_d5_multi$data<-plot_d5_multi$data[-c(1:200),-c(1)] #change label names
 plot_d5_multi$data$.predictor.<-factor(plot_d5_multi$data$.predictor.,
                                        labels="S/F94 day 5")
 plot_d5_multi<-plot_d5_multi + facet_grid(. ~ .predictor., labeller = label_value)
+
 
 #univariate day 0- mortality 28 model
 uni_model<-lrm(mortality_28 ~ sf94_day0, correlation_subset, x=TRUE, y=TRUE)
@@ -612,7 +616,7 @@ ggsave(plot=plot_uni, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename=
 ggsave(plot=plot_d0_multi, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="plot_d0_multi.pdf")
 
 
-
+library(DescTools)
 library(gtsummary)
 linear_model_glm <- glm(mortality_28 ~ sf94_day0 + sf94_day5_P, family=binomial, data=correlation_subset)
 
