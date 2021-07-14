@@ -8,16 +8,14 @@ library(rms)
 df_1<-readRDS("/home/skerr/Data/ccp_subset_derived_2021-05-26_1941.rds")
 
 #df_1<-fread("/home/u034/mcswets/df_20211402.csv", data.table = FALSE)
-
 #df_1<-df_1[,c(2:89)]
 
 #OUTPUT
 #number of subjects before and after filters
 
-# numberSubs <- data.frame( before_filter =  length(unique(df_1$subjid)) ,
-#                           after_filter = length(unique(subset1$subjid))   )
-# 
-# write.csv(numberSubs,"/home/skerr/Git/SF94/Outputs/numberSubs.csv")
+numberSubs <- data.frame( before_filter =  length(unique(df_1$subjid)) ,
+                         after_filter = length(unique(subset1$subjid))   )
+write.csv(numberSubs,"/home/skerr/Git/SF94/Outputs/numberSubs.csv")
 
 
 
