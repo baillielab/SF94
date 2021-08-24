@@ -4,6 +4,7 @@ library(ggplot2)
 library(data.table)
 library(tidyr)
 library(rms)
+library(DescTools)
 
 df_1<-readRDS("/home/skerr/Data/ccp_subset_derived_2021-05-26_1941.rds")
 
@@ -398,6 +399,14 @@ subset2<- as.data.frame(subset2)
 subjects_to_include <- filter(df_1, (age_estimateyears >19 & age_estimateyears <76 ) )['subjid']
 subset3<-regresson_df_P[regresson_df_P$subjid %in% subjects_to_include$subjid,] 
 subset3 <- as.data.frame(subset3)
+
+# C statistic
+cstat_0<-glm(mortality_28~ sf94_day0, data=subset1, family=binomial)
+Cstat(cstat_0)
+cstat_5<-glm(mortality_28~ sf94_day5_P, data=subset1, family=binomial)
+Cstat(cstat_5)
+cstat_8<-glm(mortality_28~ sf94_day8_P, data=subset1, family=binomial)
+Cstat(cstat_8)
 
 #######################################Mortality##################################################
 ## INPUTS REQUIRED ##
