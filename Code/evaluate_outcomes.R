@@ -19,7 +19,6 @@ numberSubs <- data.frame( before_filter =  length(unique(df_1$subjid)) ,
 write.csv(numberSubs,"/home/skerr/Git/SF94/Outputs/numberSubs.csv")
 
 
-
 ########################## FUNCTIONS ############################
 
 # variable should be either  'sf94' or 'severity_scale_ordinal'
@@ -234,6 +233,7 @@ library(naniar)
 day5_P<-sf94_D5_D8[,c("subjid","sf94_day5_P", "sf94_day8_P")]
 prop_original<-left_join(day5_P, day05, by="subjid") #merge with daily values
 missing_add_prop<-miss_var_summary(prop_original)
+miss_var_summary(subset1)
 write.csv(missing_add_prop,"/home/skerr/Git/SF94/Outputs/missing_add_prop.csv")
 day_of_outcome<-df_1[,c("subjid", "day_of_death", "day_of_discharge")] #add these to calculate deaths/discharges in cohort D5+D8
 day_of_outcome<-day_of_outcome%>% #1 value for each subject
@@ -400,13 +400,52 @@ subjects_to_include <- filter(df_1, (age_estimateyears >19 & age_estimateyears <
 subset3<-regresson_df_P[regresson_df_P$subjid %in% subjects_to_include$subjid,] 
 subset3 <- as.data.frame(subset3)
 
+
+
 # C statistic
-cstat_0<-glm(mortality_28~ sf94_day0, data=subset1, family=binomial)
-Cstat(cstat_0)
-cstat_5<-glm(mortality_28~ sf94_day5_P, data=subset1, family=binomial)
-Cstat(cstat_5)
-cstat_8<-glm(mortality_28~ sf94_day8_P, data=subset1, family=binomial)
-Cstat(cstat_8)
+# use df_1, so there are no proportionally added values on any days
+# compare C statistic for different days, with and without day 0
+#select relevant columns
+df_cstat<-df_1[,c("subjid", "sf94", "days_since_start")]
+#remove later days
+df_cstat<-subset(df_cstat, days_since_start <11)
+#switch to wide format
+df_cstat<-reshape(df_cstat, idvar="subjid", timevar="days_since_start", direction="wide")
+#add mortality_28
+df_cstat<-merge(x=df_cstat, y=df_1[,c("subjid", "mortality_28")], by="subjid", x.all=T)
+#remove double entries
+df_cstat<-distinct(df_cstat)
+#function to calculate C-statistic for different days
+cstat_function<-function(day_sf94){
+  cstat_uni<-glm(mortality_28 ~ day_sf94, data=df_cstat, family=binomial)
+  cstat_uni<-Cstat(cstat_uni)
+  cstat_d0<-glm(mortality_28 ~ day_sf94 + sf94.0, data=df_cstat, family=binomial)
+  cstat_d0<-Cstat(cstat_d0)
+  cstat_out<-cbind(cstat_uni, cstat_d0)
+  return(cstat_out)
+}
+#call function for 10 days
+cstat_1<-cstat_function(df_cstat$sf94.1)
+cstat_2<-cstat_function(df_cstat$sf94.2)
+cstat_3<-cstat_function(df_cstat$sf94.3)
+cstat_4<-cstat_function(df_cstat$sf94.4)
+cstat_5<-cstat_function(df_cstat$sf94.5)
+cstat_6<-cstat_function(df_cstat$sf94.6)
+cstat_7<-cstat_function(df_cstat$sf94.7)
+cstat_8<-cstat_function(df_cstat$sf94.8)
+cstat_9<-cstat_function(df_cstat$sf94.8)
+cstat_10<-cstat_function(df_cstat$sf94.10)
+cstat_df<-rbind(cstat_1, cstat_2, cstat_3, cstat_4, cstat_5, cstat_6, cstat_7,
+      cstat_8, cstat_9, cstat_10)
+SF94_day<-c(1,2,3,4,5,6,7,8,9,10)
+cstat_df<-cbind(cstat_df, SF94_day)
+cstat_df<-data.frame(cstat_df)
+#make graph (this code doesnt work)
+cstat_graph<-ggplot(cstat_df, aes(x=sf94_dat, y=cstat_uni))
+cstat_graph+geom_path()
+
+
+cstat_df
 
 #######################################Mortality##################################################
 ## INPUTS REQUIRED ##
