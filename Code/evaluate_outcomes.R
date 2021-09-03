@@ -15,7 +15,7 @@ df_1<-readRDS("/home/skerr/Data/ccp_subset_derived_2021-05-26_1941.rds")
 #number of subjects before and after filters
 
 numberSubs <- data.frame( before_filter =  length(unique(df_1$subjid)) ,
-                         after_filter = length(unique(subset1$subjid))   ) #26420
+                          after_filter = length(unique(subset1$subjid))   ) #26420
 write.csv(numberSubs,"/home/skerr/Git/SF94/Outputs/numberSubs.csv")
 
 
@@ -171,7 +171,7 @@ day05<-df_1_base_sf94[,c("subjid","0","5","8","10","11","12","13","14","15","16"
 day05<-day05%>%
   dplyr::rename(sf94_day0= "0",sf94_day5= "5", sf94_day8= "8",
                 sf94_day10= "10",sf94_day11= "11", sf94_day12= "12",
-                  sf94_day13= "13",sf94_day14= "14", sf94_day15= "15",sf94_day16= "16" )
+                sf94_day13= "13",sf94_day14= "14", sf94_day15= "15",sf94_day16= "16" )
 day05<-setDT(day05)[, lapply(.SD, na.omit), by=subjid] #keep 1 entry/subject
 
 #calculate what number of subjects needs to be added to get correct proportion
@@ -237,7 +237,7 @@ miss_var_summary(subset1)
 write.csv(missing_add_prop,"/home/skerr/Git/SF94/Outputs/missing_add_prop.csv")
 day_of_outcome<-df_1[,c("subjid", "day_of_death", "day_of_discharge")] #add these to calculate deaths/discharges in cohort D5+D8
 day_of_outcome<-day_of_outcome%>% #1 value for each subject
-group_by(subjid) %>% 
+  group_by(subjid) %>% 
   summarise_all(funs(f))
 day_of_outcome<-data.frame(day_of_outcome)
 prop_original<-left_join(prop_original, day_of_outcome, by="subjid") #merge 2 dataframes
@@ -364,7 +364,7 @@ time_to_improvement<-time_to_improvement %>%
 time_to_improvement<-time_to_improvement %>%
   mutate( #if there is a number, there is sustained improvement, so change to 1. If not, change to 0
     sustained_2L_improvement= case_when(n<2 ~ NA_real_,
-      !is.na(who_days_to_improve2) ~ 1, is.na(who_days_to_improve2) ~ 0 ))
+                                        !is.na(who_days_to_improve2) ~ 1, is.na(who_days_to_improve2) ~ 0 ))
 time_to_improvement<-time_to_improvement[,c("subjid", "sustained_1L_improvement", "sustained_2L_improvement")]
 time_to_improvement<-data.frame(time_to_improvement)
 table(time_to_improvement$sustained_1L_improvement)
@@ -416,36 +416,41 @@ df_cstat<-merge(x=df_cstat, y=df_1[,c("subjid", "mortality_28")], by="subjid", x
 #remove double entries
 df_cstat<-distinct(df_cstat)
 #function to calculate C-statistic for different days
-cstat_function<-function(day_sf94){
+cstat_function<-function(day_sf94, day_number){
   cstat_uni<-glm(mortality_28 ~ day_sf94, data=df_cstat, family=binomial)
   cstat_uni<-Cstat(cstat_uni)
+  cstat_uni<-cbind(cstat_uni, day_number, "Univariate")
   cstat_d0<-glm(mortality_28 ~ day_sf94 + sf94.0, data=df_cstat, family=binomial)
   cstat_d0<-Cstat(cstat_d0)
-  cstat_out<-cbind(cstat_uni, cstat_d0)
+  cstat_d0<-cbind(cstat_d0, day_number, "Multivariate")
+  cstat_out<-rbind(cstat_uni, cstat_d0)
   return(cstat_out)
 }
 #call function for 10 days
-cstat_1<-cstat_function(df_cstat$sf94.1)
-cstat_2<-cstat_function(df_cstat$sf94.2)
-cstat_3<-cstat_function(df_cstat$sf94.3)
-cstat_4<-cstat_function(df_cstat$sf94.4)
-cstat_5<-cstat_function(df_cstat$sf94.5)
-cstat_6<-cstat_function(df_cstat$sf94.6)
-cstat_7<-cstat_function(df_cstat$sf94.7)
-cstat_8<-cstat_function(df_cstat$sf94.8)
-cstat_9<-cstat_function(df_cstat$sf94.8)
-cstat_10<-cstat_function(df_cstat$sf94.10)
+cstat_1<-cstat_function(df_cstat$sf94.1, 1)
+cstat_2<-cstat_function(df_cstat$sf94.2, 2)
+cstat_3<-cstat_function(df_cstat$sf94.3, 3)
+cstat_4<-cstat_function(df_cstat$sf94.4, 4)
+cstat_5<-cstat_function(df_cstat$sf94.5, 5)
+cstat_6<-cstat_function(df_cstat$sf94.6, 6)
+cstat_7<-cstat_function(df_cstat$sf94.7, 7)
+cstat_8<-cstat_function(df_cstat$sf94.8, 8)
+cstat_9<-cstat_function(df_cstat$sf94.9, 9)
+cstat_10<-cstat_function(df_cstat$sf94.10, 10)
 cstat_df<-rbind(cstat_1, cstat_2, cstat_3, cstat_4, cstat_5, cstat_6, cstat_7,
-      cstat_8, cstat_9, cstat_10)
-SF94_day<-c(1,2,3,4,5,6,7,8,9,10)
-cstat_df<-cbind(cstat_df, SF94_day)
+                cstat_8, cstat_9, cstat_10)
 cstat_df<-data.frame(cstat_df)
-#make graph (this code doesnt work)
-cstat_graph<-ggplot(cstat_df, aes(x=sf94_dat, y=cstat_uni))
-cstat_graph+geom_path()
+cstat_df$day_since_start<-as.factor(cstat_df$day_since_start)
+cstat_df$c_statistic<-as.numeric(cstat_df$c_statistic)
+#change column names
+colnames(cstat_df)<-c("c_statistic", "day_since_start", "model_group")
+#make graph
+library(ggplot2)
+cstat_graph<-ggplot(cstat_df, aes(x=day_since_start, y=c_statistic, colour= model_group, group=model_group))
+cstat_graphic<-cstat_graph+geom_path()
 
+ggsave(plot=cstat_graphic, width=13, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="cstat_graphic.pdf")
 
-cstat_df
 
 #######################################Mortality##################################################
 ## INPUTS REQUIRED ##
@@ -647,11 +652,11 @@ sf94_effectsize<-rbind(sf94_regression_subset1, sf94_regression_subset2,sf94_reg
 # rho - correlation between the outcome measured at baseline and at follow-up
 
 power_sf94<-function(alpha, power, delta, sd, rho){
-
-power1 <- power.t.test(n=NULL, delta=delta, sd=sd, power=power, sig.level = alpha) # calculate sample size for a t test
-
-ntotal <- 2*round(((1-(rho^2))*power1$n)) # apply ANCOVA correction
-return(ntotal)
+  
+  power1 <- power.t.test(n=NULL, delta=delta, sd=sd, power=power, sig.level = alpha) # calculate sample size for a t test
+  
+  ntotal <- 2*round(((1-(rho^2))*power1$n)) # apply ANCOVA correction
+  return(ntotal)
 }
 
 subset1_D5_SS<-power_sf94(0.05,0.8,sf94_regression_subset1[1], meanSD_subset1[2,1], cor_subset1[[1]])
@@ -919,7 +924,7 @@ ss_logrank_1_susimp2L<-round(lrsamplesize_susimp(subset1,"sustained_2L_improveme
 ss_logrank_2_susimp2L<-round(lrsamplesize_susimp(subset2,"sustained_2L_improvement",0.05,0.8,susimp_HR_2_2L,0,28))
 ss_logrank_3_susimp2L<-round(lrsamplesize_susimp(subset3,"sustained_2L_improvement",0.05,0.8,susimp_HR_3_2L,0,28))
 samplesize_logrank_susimp<-cbind(ss_logrank_1_susimp1L,ss_logrank_2_susimp1L,ss_logrank_3_susimp1L,
-                               ss_logrank_1_susimp2L,ss_logrank_2_susimp2L,ss_logrank_3_susimp2L)
+                                 ss_logrank_1_susimp2L,ss_logrank_2_susimp2L,ss_logrank_3_susimp2L)
 write.csv(samplesize_logrank_susimp,"/home/skerr/Git/SF94/Outputs/samplesize_logrank_susimp.csv")
 
 ################################# protocolised measurement #############################################
