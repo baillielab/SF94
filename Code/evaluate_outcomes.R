@@ -440,10 +440,10 @@ cstat_10<-cstat_function(df_cstat$sf94.10, 10)
 cstat_df<-rbind(cstat_1, cstat_2, cstat_3, cstat_4, cstat_5, cstat_6, cstat_7,
                 cstat_8, cstat_9, cstat_10)
 cstat_df<-data.frame(cstat_df)
-cstat_df$day_since_start<-as.factor(cstat_df$day_since_start)
-cstat_df$c_statistic<-as.numeric(cstat_df$c_statistic)
 #change column names
 colnames(cstat_df)<-c("c_statistic", "day_since_start", "model_group")
+cstat_df$day_since_start<-as.factor(cstat_df$day_since_start)
+cstat_df$c_statistic<-as.numeric(cstat_df$c_statistic)
 #make graph
 library(ggplot2)
 cstat_graph<-ggplot(cstat_df, aes(x=day_since_start, y=c_statistic, colour= model_group, group=model_group))
