@@ -846,7 +846,36 @@ p1_2L_numbers3<- sum(subset3$sustained_2L_improvement == 1, na.rm = T)/ sum(!is.
 p1p2_output<-rbind(p1_1L_number, p1_2L_number, p1_1L_numbers2, p1_2L_numbers2,p1_1L_numbers3, p1_2L_numbers3)
 write.csv(p1p2_output,"/home/skerr/Git/SF94/Outputs/p1p2_output.csv")
 
+#calculate the estimated treatment effect
+# subset 1
+es<-0.0273862022747544
+p1<-0.425296796834167
+p2<-p1+es
+(p1-p2)/p1
+es<-0.0290504940102538
+p1<-0.164750242664078
+p2<-p1+es
+(p1-p2)/p1
+# subset 2
+es<-0.0276468243632414
+p1<-0.422364729458918
+p2<-p1+es
+(p1-p2)/p1
+es<-0.0293247524568871
+p1<-0.164288577154309
+p2<-p1+es
+(p1-p2)/p1
+# subset 3
+es<-0.0270478403905907
+p1<-0.396216482974173
+p2<-p1+es
+(p1-p2)/p1
+es<-0.0287785239336453
+p1<-0.152854087843395
+p2<-p1+es
+(p1-p2)/p1
 
+#calculate sample size
 susimp_pwr_func<-function(subset_df, effectsize_1L, effectsize_2L){
   p1_1L <- sum(subset_df$sustained_1L_improvement == 1, na.rm = T)/ sum(!is.na(subset_df$sustained_1L_improvement))
   p2_1L=p1_1L+effectsize_1L
