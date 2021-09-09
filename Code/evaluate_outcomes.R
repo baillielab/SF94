@@ -842,7 +842,7 @@ RR_1L<-(p1_1L_number-p2_1L)/ p1_1L_number
 p2_2L<-p1_2L_number + effectsize_susump1[,2]
 RR_2L<-(p1_2L_number-p2_1L)/ p1_2L_number
 write.csv(RR_1L,"/home/skerr/Git/SF94/Outputs/RR_1L.csv")
-write.csv(p1_1L_number,"/home/skerr/Git/SF94/Outputs/p1_1L_number.csv")
+write.csv(RR_2L,"/home/skerr/Git/SF94/Outputs/RR_2L.csv")
 write.csv(p1_1L_number,"/home/skerr/Git/SF94/Outputs/p1_1L_number.csv")
 write.csv(p1_2L_number,"/home/skerr/Git/SF94/Outputs/p1_2L_number.csv")
 
