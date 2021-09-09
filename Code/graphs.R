@@ -560,7 +560,7 @@ write.csv(sd_effectsize,"/home/skerr/Git/SF94/Outputs/sd_effectsize.csv")
 #assess relationship mortality and S/F94 D5
 # data used: subset 1 (filters from main analysis)
 #remove rows with missing values
-correlation_subset<-subset(subset1,(!is.na(sf94_day5_P)&!is.na(sf94_day0) & !is.na(mortality_28)))
+correlation_subset<-subset1
 correlation_subset<-correlation_subset[,c("subjid", "sf94_day5_P", "sf94_day0", "mortality_28")]
 correlation_subset<-data.frame(correlation_subset)
 
@@ -571,6 +571,12 @@ options(datadist='ddist')
 detach(correlation_subset)
 #Fit model
 linear_model <- lrm(mortality_28 ~ sf94_day0 + sf94_day5_P, correlation_subset, x=TRUE, y=TRUE)
+title_mult<-as.character(sum(!is.na(correlation_subset$mortality_28) & !is.na(correlation_subset$sf94_day0) & 
+                                   !is.na(correlation_subset$sf94_day5_P) ))
+title_d5mult<-paste("S/F94 day 5 (N=", title_mult, ")", sep = "")
+title_d0mult<-paste("S/F94 day 0 (N=", title_mult, ")", sep = "")
+title_uni<-as.character(sum(!is.na(correlation_subset$mortality_28) & !is.na(correlation_subset$sf94_day0)))
+title_uni<-paste("S/F94 day 0 (N=", title_uni, ")", sep = "")
 PseudoR2(linear_model, which="McFadden")
 
 #create predicted plot
@@ -581,27 +587,26 @@ plot_d0_multi<- ggplot(Predict(linear_model, fun=plogis),sepdiscrete="vertical",
 plot_d0_multi$data<-plot_d0_multi$data[-c(201:400),-c(2)]
 #change label name
 plot_d0_multi$data$.predictor.<-factor(plot_d0_multi$data$.predictor.,
-                                       labels="S/F94 day 0")
+                                       labels=title_d0mult)
 plot_d0_multi<-plot_d0_multi + facet_grid(. ~ .predictor., labeller = label_value)
-plot_d0_multi
 #same for day 5, remove column 1 (day 0) and first 200 rows
 plot_d5_multi<- ggplot(Predict(linear_model, fun=plogis),sepdiscrete="vertical",
                        ylab= "Risk of 28-day mortality") + theme_bw()
 plot_d5_multi$data<-plot_d5_multi$data[-c(1:200),-c(1)] #change label names
 plot_d5_multi$data$.predictor.<-factor(plot_d5_multi$data$.predictor.,
-                                       labels="S/F94 day 5")
+                                       labels=title_d5mult)
 plot_d5_multi<-plot_d5_multi + facet_grid(. ~ .predictor., labeller = label_value)
 
 
 #univariate day 0- mortality 28 model
 uni_model<-lrm(mortality_28 ~ sf94_day0, correlation_subset, x=TRUE, y=TRUE)
+
 plot_uni_model<-ggplot(Predict(uni_model, fun=plogis),
                        ylab= "Risk of 28-day mortality", ylim=c(0,0.8), sepdiscrete="vertical")+ theme_bw()
 plot_uni_model$data$.predictor. <- factor(plot_uni_model$data$.predictor., 
-                                          labels = c("S/F94 day 0"))
+                                          labels = c(title_uni))
 #  this 'label_value' labeller() call alters the facet labels
 plot_uni<-plot_uni_model + facet_grid(. ~ .predictor., labeller = label_value)
-
 # combine the 2 day 0 models into 1 figure
 library(egg)
 day_0_plots<-ggarrange(plot_d0_multi, 
