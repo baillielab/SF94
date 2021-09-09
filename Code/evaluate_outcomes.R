@@ -835,16 +835,17 @@ sus1_booted_0.70<-boot.ci(boot_result_sus_0.70, conf = 0.95, type="basic")
 
 #numbers for Natalie/ for table 1 (Estimated treatment effect sustained 1/2 L improvement)
 write.csv(effectsize_susump1,"/home/skerr/Git/SF94/Outputs/effectsize_susump1.csv")
+write.csv(effectsize_susump2,"/home/skerr/Git/SF94/Outputs/effectsize_susump2.csv")
+write.csv(effectsize_susump3,"/home/skerr/Git/SF94/Outputs/effectsize_susump3.csv")
 p1_1L_number <- sum(subset1$sustained_1L_improvement == 1, na.rm = T)/ sum(!is.na(subset1$sustained_1L_improvement))
 p1_2L_number<- sum(subset1$sustained_2L_improvement == 1, na.rm = T)/ sum(!is.na(subset1$sustained_2L_improvement))
-p2_1L<-p1_1L_number + effectsize_susump1[,1]
-RR_1L<-(p1_1L_number-p2_1L)/ p1_1L_number
-p2_2L<-p1_2L_number + effectsize_susump1[,2]
-RR_2L<-(p1_2L_number-p2_1L)/ p1_2L_number
-write.csv(RR_1L,"/home/skerr/Git/SF94/Outputs/RR_1L.csv")
-write.csv(RR_2L,"/home/skerr/Git/SF94/Outputs/RR_2L.csv")
-write.csv(p1_1L_number,"/home/skerr/Git/SF94/Outputs/p1_1L_number.csv")
-write.csv(p1_2L_number,"/home/skerr/Git/SF94/Outputs/p1_2L_number.csv")
+p1_1L_numbers2 <- sum(subset2$sustained_1L_improvement == 1, na.rm = T)/ sum(!is.na(subset2$sustained_1L_improvement))
+p1_2L_numbers2<- sum(subset2$sustained_2L_improvement == 1, na.rm = T)/ sum(!is.na(subset2$sustained_2L_improvement))
+p1_1L_numbers3 <- sum(subset3$sustained_1L_improvement == 1, na.rm = T)/ sum(!is.na(subset3$sustained_1L_improvement))
+p1_2L_numbers3<- sum(subset3$sustained_2L_improvement == 1, na.rm = T)/ sum(!is.na(subset3$sustained_2L_improvement))
+p1p2_output<-rbind(p1_1L_number, p1_2L_number, p1_1L_numbers2, p1_2L_numbers2,p1_1L_numbers3, p1_2L_numbers3)
+write.csv(p1p2_output,"/home/skerr/Git/SF94/Outputs/p1p2_output.csv")
+
 
 susimp_pwr_func<-function(subset_df, effectsize_1L, effectsize_2L){
   p1_1L <- sum(subset_df$sustained_1L_improvement == 1, na.rm = T)/ sum(!is.na(subset_df$sustained_1L_improvement))
