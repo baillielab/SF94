@@ -401,7 +401,6 @@ subset3<-regresson_df_P[regresson_df_P$subjid %in% subjects_to_include$subjid,]
 subset3 <- as.data.frame(subset3)
 
 #Missing data
-head(missing_df,40)
 missing_df<-df_1[,c("subjid","sf94", "days_since_start")]
 # only keep data up to day 14
 missing_df<-subset(missing_df, days_since_start<=14)
