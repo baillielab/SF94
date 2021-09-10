@@ -400,7 +400,47 @@ subjects_to_include <- filter(df_1, (age_estimateyears >19 & age_estimateyears <
 subset3<-regresson_df_P[regresson_df_P$subjid %in% subjects_to_include$subjid,] 
 subset3 <- as.data.frame(subset3)
 
+#Missing data
+head(missing_df,40)
+missing_df<-df_1[,c("subjid","sf94", "days_since_start")]
+# only keep data up to day 14
+missing_df<-subset(missing_df, days_since_start<=14)
+# reshape into wide to have a variable for each day in 14 days for each subject
+missing_df<-reshape(missing_df, idvar="subjid", timevar="days_since_start", direction="wide")
+# back to long to make code easier
+missing_df<-reshape(missing_df, direction = "long", varying= list(names(missing_df)[2:16]),
+                    v.names="SF94",
+                    idvar="subjid",
+                    timevar="days_since_start",
+                    times=0:14)
+#create smalle dataset with just day of outcome
+day_of_outcome<-df_1[,c("subjid","day_of_death", "day_of_discharge")]
+day_of_outcome<-distinct(day_of_outcome)
+#merge two dataframes
+missing_df<-merge(x=missing_df, y=day_of_outcome, by="subjid", all.x=T)
+#add values to sf94 variable
+missing_df<-missing_df%>%mutate(
+  SF94= case_when(
+    !is.na(SF94) ~ SF94,
+    day_of_death <= days_since_start ~ 0.5,
+    day_of_discharge<= days_since_start ~ 4.76
+  )
+)
 
+table_function<-function(day){
+dead<-sum(missing_df$days_since_start== day & missing_df$SF94 == 0.5, na.rm=T)/ sum(missing_df$days_since_start== day)
+home<-sum(missing_df$days_since_start== day & missing_df$SF94 == 4.76, na.rm=T)/ sum(missing_df$days_since_start== day)
+study<-sum(missing_df$days_since_start== day & !is.na(missing_df$SF94) & missing_df$SF94!=4.76 & missing_df$SF94!=0.5,
+    na.rm=T)/ sum(missing_df$days_since_start== day)
+missing<-sum(missing_df$days_since_start== day & is.na(missing_df$SF94))/ sum(missing_df$days_since_start== day)
+output_missing<-rbind(dead,home,study,missing)
+return(output_missing)
+}
+
+days_input<-c(0:14)
+table_missingdays<- lapply(days_input, table_function)
+table_missingdays<-do.call(rbind.data.frame, table_missingdays)
+write.csv(table_missingdays,"/home/skerr/Git/SF94/Outputs/table_missingdays.csv")
 
 # C statistic
 # use df_1, so there are no proportionally added values on any days
