@@ -197,6 +197,10 @@ sample_size_susimp = data.frame(outcome_measure = rep("Sustained 1 level improve
                               sample_size_ucl = susimp_sample_size_ucl)
 
 
+
+
+#### Protocolised sf94
+
 # Assumed parameters of measurement error model
 sd_mult = 0.8
 rho_opp_prot = 0.7
@@ -243,6 +247,9 @@ sample_size_sf94_prot = data.frame(outcome_measure = rep("Protocolised S/F94 day
                                 sample_size = sf94_prot_sample_size,
                                 sample_size_lcl = sf94_prot_sample_size_lcl,
                                 sample_size_ucl = sf94_prot_sample_size_ucl)
+
+
+
 
 #### Combine all and create plot
 
