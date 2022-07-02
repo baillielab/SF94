@@ -13,6 +13,32 @@ df_comparegroups<-df_comparegroups %>%
       is.na(sf94) & !is.na(sfr) ~ "not_sf94"))
 #remove rows with missing group (because of missing SF data)
 df_comparegroups<-subset(df_comparegroups, !is.na(sf94_group))
+
+# use finalfit
+
+explanatory_cg<-c("age_estimateyears", "sex", "clinical_frailty", "infiltrates_faorres",
+                  "daily_temp_vsorres", "systolic_vsorres", "diastolic_vsorres",
+                  "onset2admission", "sf94", "sfr","rr_vsorres","daily_urine_lborres",
+                  "daily_bun_lborres","daily_gcs_vsorres", "daily_creat_lborres",
+                  "daily_crp_lborres","severity_scale_ordinal", "days_since_start", "death", "discharge", "sao2", "fio2")
+dependent_cg<-"sf94_group"
+
+table_cg<-df_comparegroups%>% 
+  summary_factorlist(dependent_cg, explanatory_cg, cont="median", 
+                       cont_range=T, add_dependent_label = T)
+knitr::kable(table_cg, align=c("l", "l", "l", "l", "l")) #change table format, align left
+write.csv(table_cg,"/home/skerr/Git/SF94/Outputs/tablecg.csv")
+
+df_day0<-subset(df_comparegroups, df_comparegroups$days_since_start == 0)
+
+table_cgday0<-df_day0%>% 
+  summary_factorlist(dependent_cg, explanatory_cg, cont="median", 
+                     cont_range=T, add_dependent_label = T)
+knitr::kable(table_cgday0, align=c("l", "l", "l", "l", "l")) #change table format, align left
+write.csv(table_cgday0,"/home/skerr/Git/SF94/Outputs/tablecgday0.csv")
+
+# --------------------------------------------------------------------------------------------------------------#
+
 #numerical variables
 numerical_sf94<-summary(df_comparegroups[df_comparegroups$sf94_group == "S/F94",])
 numerical_notsf94<-summary(df_comparegroups[df_comparegroups$sf94_group == "not_sf94",])

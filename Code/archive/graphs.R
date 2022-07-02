@@ -299,7 +299,7 @@ samplesize_graph<-ggplot(samplesize_dataframe, aes(x=factor(treatment_effect,
                                   group= outcome_measure, colour=outcome_measure, fill=outcome_measure))
 s1<-samplesize_graph + geom_path(aes(linetype=outcome_measure)) + 
   geom_ribbon(aes(ymin=lower_limits, ymax=upper_limits), linetype=1, alpha=0.2, colour = NA)+
-  xlab("Treatment effect (predicited 28-day mortality relative risk ratio)")+ 
+  xlab("Treatment effect (predicted 28-day mortality relative risk ratio)")+ 
   ylab("Sample size") +
   scale_linetype_manual(values=c("solid","solid","solid","solid","dashed"),
                         limits= c("Sustained 1 level improvement", "28-day mortality",
