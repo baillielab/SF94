@@ -3,7 +3,7 @@
 ## Code author: Steven Kerr
 
 ## Description: 
-#   Post processing of simulated ccp data to create a minimal dataset
+#  Post processing of simulated ccp data to create a minimal dataset
 # that is efficient for use in the web API
 
 ###################################################################### 

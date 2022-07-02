@@ -20,7 +20,7 @@ df[df == 'NO'] <- 0
 # Variables that will be used to take subsets of the data for power calculations. Age will also be used as selection
 selectionVars <-  c('clinical_frailty', 'respiratory_support')
 
-# Ppredictor variables in the various models
+# Predictor variables in the various models
 indVars <- c('sf94_day0', 'sf94_day5', 'sf94_day8', 'age_estimateyears', 'sex')
 
 # Dependent variables in the various models
