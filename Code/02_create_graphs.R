@@ -460,6 +460,7 @@ ggplot(day0_all,
   ggtitle(title)+ 
   scale_fill_manual(values =c("#f60000", "#0000f6"))+
   ylab("S/F94 day0")+
+  xlab("")+
   scale_x_discrete(labels = c("Discharge",'Death'))+
   theme(legend.position = "none",
         plot.title = element_text (hjust = 0.5)) #remove legend + center title
@@ -479,6 +480,7 @@ ggplot(day5_all,
   ggtitle(title)+ 
   scale_fill_manual(values =c("#f60000", "#0000f6"))+
   ylab("S/F94 day5")+
+  xlab("")+
   scale_x_discrete(labels = c("Discharge",'Death'))+
   theme(legend.position = "none",
         plot.title = element_text (hjust = 0.5)) #remove legend + center title
