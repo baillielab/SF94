@@ -265,7 +265,7 @@ ggplot(df_sample_size ,
   group= outcome_measure, colour = outcome_measure, fill = outcome_measure)) +
   geom_line() +
   geom_ribbon(aes(ymin = sample_size_lcl, ymax = sample_size_ucl), linetype=1, alpha=0.2, colour = NA) +
-  xlab("Treatment effect (predicited 28-day mortality relative risk ratio)")+ 
+  xlab("Treatment effect (predicted 28-day mortality relative risk ratio)")+ 
   ylab("Sample size") +
   theme_bw()  
 
