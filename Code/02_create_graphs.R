@@ -360,8 +360,8 @@ who_day5 = filter(data_1, days_since_start == 5, !is.na(severity_scale_ordinal))
                                                       levels=c("WHO level 4","WHO level 5",
                                                                "WHO level 6","WHO level 7",
                                                                "WHO level 8","WHO level 9","WHO level 10")) )
-
-title = paste0("WHO ordinal severity scale and S/F94 (N=", sum(!is.na(who_day5$sf94)), ")")
+n_day5 = length(unique(who_day5$subjid))
+title = paste0("WHO ordinal severity scale and S/F94 (N=", n_day5, ")")
 
 ggplot(who_day5,
        aes(x=severity_scale_ordinal, y=sf94, fill=severity_scale_ordinal)) +
@@ -381,8 +381,8 @@ ggsave(dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="who_sf94_day5_
 
 # sf94 day 0 violin plot
 day0 = filter(data_1, days_since_start == 0)
-
-title = paste0("Selected patients (N=", sum(!is.na(day0$sf94)), ")")
+n_day0 = length(unique(day0$subjid))
+title = paste0("Selected patients (N=", n_day0, ")")
 
 ggplot(day0,
   aes(x=as.factor(mortality_28), y=sf94, fill=as.factor(mortality_28) )) +
@@ -400,8 +400,8 @@ ggsave(dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="mort_sf94_day0
 
 # sf94 day 5 violin plot
 day5 = filter(data_1, days_since_start == 5)
-
-title = paste0("Selected patients (N=", sum(!is.na(day5$sf94)), ")")
+nday5 = length(unique(day5$subjid))
+title = paste0("Selected patients (N=", nday5, ")")
 
 ggplot(day5,
        aes(x=as.factor(mortality_28), y=sf94, fill=as.factor(mortality_28) )) +
@@ -427,8 +427,8 @@ who_day5_all = filter(data, days_since_start == 5, !is.na(severity_scale_ordinal
                                          levels=c("WHO level 4","WHO level 5",
                                                   "WHO level 6","WHO level 7",
                                                   "WHO level 8","WHO level 9","WHO level 10")) )
-
-title = paste0("WHO ordinal severity scale for unselected patients (N=", sum(!is.na(who_day5_all$sf94)), ")", sep = "")
+n_who5all = length(unique(who_day5_all$subjid))
+title = paste0("WHO ordinal severity scale for unselected patients (N=", n_who5all, ")", sep = "")
 
 ggplot(who_day5_all,
        aes(x=severity_scale_ordinal, y=sf94, fill=severity_scale_ordinal)) +
@@ -450,8 +450,8 @@ ggsave(dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="who_sf94_day5_
 
 # sf94 day 0 violin plot for everyone
 day0_all = subset(data, days_since_start == 0)
-
-title = paste0("Unselected patients (N=", sum(!is.na(day0_all$sf94)), ")", sep = "")
+n_day0all = length(unique(day0_all$subjid))
+title = paste0("Unselected patients (N=", n_day0all, ")", sep = "")
 
 ggplot(day0_all,
   aes(x=as.factor(mortality_28), y=sf94, fill=as.factor(mortality_28) )) +
@@ -470,8 +470,8 @@ ggsave(dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="mort_sf94_day0
 
 # sf94 day 5 violin plot for everyone
 day5_all = subset(data, days_since_start == 5)
-
-title = paste0("Unselected patients (N=", sum(!is.na(day5_all$sf94)), ")", sep = "")
+n_day5all = length(unique(day5_all$subjid))
+title = paste0("Unselected patients (N=", n_day5all, ")", sep = "")
 
 ggplot(day5_all,
        aes(x=as.factor(mortality_28), y=sf94, fill=as.factor(mortality_28) )) +
