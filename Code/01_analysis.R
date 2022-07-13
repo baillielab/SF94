@@ -249,7 +249,6 @@ data_3 = filter(data, subjid %in% subjids_3)
 subset3 = filter(df_sf94, subjid %in% pull(data_3, subjid)) %>%
   data.frame()
 
-
 ################################## Summary statistics #####################################
 
 # Day 5 dead and discharged cumulative summary

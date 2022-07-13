@@ -11,6 +11,7 @@ library(tidyverse)
 library(DescTools)
 library(egg)
 library(gtsummary)
+library(broom)
 
 source('~/Git/SF94/Code/01_analysis.R')
 
@@ -260,13 +261,14 @@ df_sample_size = rbind(sample_size_mort, sample_size_sf94, sample_size_who, samp
 write.csv(df_sample_size, "/home/skerr/Git/SF94/Outputs/sample_sizes_all_outcomes.csv")
 
 ggplot(df_sample_size , 
-  aes(x= factor(treatment_effect, level=c("0.85", "0.80", "0.75", "0.70")),
+  aes(x= treatment_effect,
   y = sample_size,
   group= outcome_measure, colour = outcome_measure, fill = outcome_measure)) +
   geom_line() +
   geom_ribbon(aes(ymin = sample_size_lcl, ymax = sample_size_ucl), linetype=1, alpha=0.2, colour = NA) +
   xlab("Treatment effect (predicted 28-day mortality relative risk ratio)")+ 
   ylab("Sample size") +
+  scale_x_reverse() +
   theme_bw()  
 
 ggsave(dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="samplesize_graph.pdf")
@@ -495,7 +497,17 @@ ggsave(dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="mort_sf94_day5
 
 # tbl_regression appears only to work with glm and not lrm
 multivariate_model <- glm(mortality_28 ~ sf94_day0 + sf94_day5_P, subset1, family = 'binomial')
-saveRDS(multivariate_model %>% tbl_regression(exponentiate=T), '/home/skerr/Git/SF94/Outputs/day0_day5_P_multivariate_model_summary.rds')
+
+results = tidy(multivariate_model) %>%
+  mutate(ucl = estimate + 1.96 * std.error,
+         lcl = estimate - 1.96 * std.error,
+         term = gsub('period', '', term)) %>%
+  select(term, estimate, lcl, ucl) %>%
+  mutate_if(is.numeric, ~formatC(round(exp(.), 2), format = "f", big.mark = ",", drop0trailing = TRUE)) %>%
+  mutate(estimate = paste0(estimate, ' (', lcl, ' - ', ucl, ')' )) %>%
+  select(-lcl, -ucl) 
+
+saveRDS(results, '/home/skerr/Git/SF94/Outputs/day0_day5_P_multivariate_model_summary.csv')
 
 # Predict function only appears to work with lrm, not glm
 

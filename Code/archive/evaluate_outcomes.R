@@ -16,7 +16,7 @@ df_1<-readRDS("/home/skerr/Data/ccp_subset_derived_2021-05-26_1941.rds")
 
 numberSubs <- data.frame( before_filter =  length(unique(df_1$subjid)) ,
                           after_filter = length(unique(subset1$subjid))   ) #26420
-write.csv(numberSubs,"/home/skerr/Git/SF94/Outputs/numberSubs.csv")
+#write.csv(numberSubs,"/home/skerr/Git/SF94/Outputs/numberSubs.csv")
 
 
 ########################## FUNCTIONS ############################
@@ -105,7 +105,7 @@ mort28 <- sum(mort$mortality_28 == 1, na.rm = T)/ sum(!is.na(mort$mortality_28))
 #OUTPUT
 #percentage of subjects who died in the first 28 days
 
-write.csv(mort28,"/home/skerr/Git/SF94/Outputs/mort28.csv")
+#write.csv(mort28,"/home/skerr/Git/SF94/Outputs/mort28.csv")
 
 
 
@@ -117,7 +117,7 @@ medians <- subset1 %>%
 
 #OUTPUT
 # 7 median values
-write.csv(medians,"/home/skerr/Git/SF94/Outputs/medians.csv")
+#write.csv(medians,"/home/skerr/Git/SF94/Outputs/medians.csv")
 
 #additional numbers:
 
@@ -132,7 +132,7 @@ notMissing <- data.frame(  variable =   c('sf94_day5', 'sf94_day8', 'who_day5', 
                                           'severity_dif_2level', 'mortality_28'),
                            value = notMissingV)
 
-write.csv(notMissing,"/home/skerr/Git/SF94/Outputs/notMissing.csv")
+#write.csv(notMissing,"/home/skerr/Git/SF94/Outputs/notMissing.csv")
 
 
 missingV <- c(  sapply(basedd_sf94_10[c('5', '8')], function(x) sum(is.na(x))),       
@@ -146,12 +146,12 @@ missing <- data.frame(  variable =   c('sf94_day5', 'sf94_day8', 'who_day5', 'wh
                                        'who_days_to_improve2', 'mortality_28'),
                         value = missingV)
 
-write.csv(missing,"/home/skerr/Git/SF94/Outputs/missing.csv")
+#write.csv(missing,"/home/skerr/Git/SF94/Outputs/missing.csv")
 
 
 
 
-write.csv(table(mort$mortality_28),"/home/skerr/Git/SF94/Outputs/mort28Table.csv")
+#write.csv(table(mort$mortality_28),"/home/skerr/Git/SF94/Outputs/mort28Table.csv")
 
 
 #make small dataframe for 28-day mortality and outcome
@@ -202,7 +202,7 @@ sum_d16<-dead_alive_to_add(16)
 
 proportional_numbers<-cbind(sum_d5[c(1,2)], sum_d8[c(1,2)],sum_d10[c(1,2)],sum_d11[c(1,2)],sum_d12[c(1,2)],sum_d13[c(1,2)], 
                             sum_d14[c(1,2)],sum_d15[c(1,2)],sum_d16[c(1,2)])
-write.csv(proportional_numbers,"/home/skerr/Git/SF94/Outputs/proportional_numbers.csv")
+#write.csv(proportional_numbers,"/home/skerr/Git/SF94/Outputs/proportional_numbers.csv")
 
 day05_P<-day05 #for proportional deaths
 mortality<-df_1[,c("subjid","mortality_28", "day_of_death", "day_of_discharge")]
@@ -238,7 +238,7 @@ day5_P<-sf94_D5_D8[,c("subjid","sf94_day5_P", "sf94_day8_P")]
 prop_original<-left_join(day5_P, day05, by="subjid") #merge with daily values
 missing_add_prop<-miss_var_summary(prop_original)
 miss_var_summary(subset1)
-write.csv(missing_add_prop,"/home/skerr/Git/SF94/Outputs/missing_add_prop.csv")
+#write.csv(missing_add_prop,"/home/skerr/Git/SF94/Outputs/missing_add_prop.csv")
 day_of_outcome<-df_1[,c("subjid", "day_of_death", "day_of_discharge")] #add these to calculate deaths/discharges in cohort D5+D8
 day_of_outcome<-day_of_outcome%>% #1 value for each subject
   group_by(subjid) %>% 
@@ -259,7 +259,7 @@ prop_original<-data.frame(prop_original)
 #  summarise_all(funs(f))
 #dd_dataset<-data.frame(dd_dataset)
 #miss_dd<-miss_var_summary(dd_dataset)
-#write.csv(miss_dd,"/home/skerr/Git/SF94/Outputs/miss_dd.csv")
+##write.csv(miss_dd,"/home/skerr/Git/SF94/Outputs/miss_dd.csv")
 #cohort_size_total<-nrow(dd_dataset)
 #cohort D5
 day5_prop<-subset(prop_original, !is.na(sf94_day5_P)) #starting set: D5 is known
@@ -281,11 +281,11 @@ d5_cohort_sumD16<-dead_alive_function_D5(16)
 cohort_size_d5<-nrow(day5_prop)
 
 miss_day5<-miss_var_summary(day5_prop)
-write.csv(miss_day5,"/home/skerr/Git/SF94/Outputs/miss_day5.csv")
+#write.csv(miss_day5,"/home/skerr/Git/SF94/Outputs/miss_day5.csv")
 
 dead_alive_d5<-cbind(d5_cohort_sumD5, d5_cohort_sumD8, d5_cohort_sumD10, d5_cohort_sumD11, d5_cohort_sumD12, 
                      d5_cohort_sumD13, d5_cohort_sumD14, d5_cohort_sumD15, d5_cohort_sumD16)
-write.csv(dead_alive_d5,"/home/skerr/Git/SF94/Outputs/dead_alive_d5.csv")
+#write.csv(dead_alive_d5,"/home/skerr/Git/SF94/Outputs/dead_alive_d5.csv")
 
 #cohort D8
 day8_prop<-subset(prop_original, !is.na(sf94_day8_P)) #starting set: D8 is known
@@ -307,14 +307,14 @@ d8_cohort_sumD16<-dead_alive_function_D8(16)
 cohort_size_d8<-nrow(day8_prop)
 
 miss_day8<-miss_var_summary(day8_prop)
-write.csv(miss_day8,"/home/skerr/Git/SF94/Outputs/miss_day8.csv")
+#write.csv(miss_day8,"/home/skerr/Git/SF94/Outputs/miss_day8.csv")
 
 #cohort_sizes<-cbind(cohort_size_total, cohort_size_d5, cohort_size_d8)
-#write.csv(cohort_sizes,"/home/skerr/Git/SF94/Outputs/cohort_sizes.csv")
+##write.csv(cohort_sizes,"/home/skerr/Git/SF94/Outputs/cohort_sizes.csv")
 
 dead_alive_d8<-cbind(d8_cohort_sumD5, d8_cohort_sumD8, d8_cohort_sumD10, d8_cohort_sumD11, d8_cohort_sumD12, 
                      d8_cohort_sumD13, d8_cohort_sumD14, d8_cohort_sumD15, d8_cohort_sumD16)
-write.csv(dead_alive_d8,"/home/skerr/Git/SF94/Outputs/dead_alive_d8.csv")
+#write.csv(dead_alive_d8,"/home/skerr/Git/SF94/Outputs/dead_alive_d8.csv")
 
 
 
@@ -376,7 +376,7 @@ table(time_to_improvement$sustained_1L_improvement)
 #bind to rest of data
 regresson_df_P<-left_join(regresson_df_P, time_to_improvement, by="subjid")
 
-#write.csv(regresson_df_P,"regresson_df_P.csv")
+##write.csv(regresson_df_P,"regresson_df_P.csv")
 #regresson_df_P<-read.csv("/home/u034/mcswets/regresson_df_P.csv")
 #attach(regresson_df_P)
 #ddist <- datadist(sf94_day5_P, sf94_day8_P, sf94_day0, sex, age_estimateyears, mortality_28, WHOD5_P, WHOD8_P,
@@ -391,8 +391,8 @@ df_1 <- mutate_at(df_1, 'sex',  as.character)
 
 #apply age filter and supp oxygen filter
 subjects_to_include <- filter(df_1, ( fio2 >=0.22 & days_since_start %in% c(0,1,2)  & age_estimateyears >19 & age_estimateyears <76 ) )['subjid']
-subset1<-regresson_df_P[regresson_df_P$subjid %in% subjects_to_include$subjid,] 
-subset1 <- as.data.frame(subset1)
+subset12<-regresson_df_P[regresson_df_P$subjid %in% subjects_to_include$subjid,] 
+subset12 <- as.data.frame(subset1)
 
 #apply age filter and need for oxygen at day 0
 subjects_to_include <- filter(df_1, ( fio2 >=0.22 & days_since_start %in% c(0)  & age_estimateyears >19 & age_estimateyears <76 ) )['subjid']
@@ -447,7 +447,7 @@ return(output_missing)
 days_input<-c(0:14)
 table_missingdays<- lapply(days_input, table_function)
 table_missingdays<-do.call(rbind.data.frame, table_missingdays)
-write.csv(table_missingdays,"/home/skerr/Git/SF94/Outputs/table_missingdays.csv")
+#write.csv(table_missingdays,"/home/skerr/Git/SF94/Outputs/table_missingdays.csv")
 
 # C statistic
 # use df_1, so there are no proportionally added values on any days
@@ -517,7 +517,7 @@ rr_subset1<-riskratio_function(subset1, 0.85)
 rr_subset2<-riskratio_function(subset2, 0.85)
 rr_subset3<-riskratio_function(subset3, 0.85)
 rr_mort<-rbind(rr_subset1, rr_subset2, rr_subset3)
-write.csv(rr_mort,"/home/skerr/Git/SF94/Outputs/rr_mort.csv")
+#write.csv(rr_mort,"/home/skerr/Git/SF94/Outputs/rr_mort.csv")
 
 sample_function<-function(subset_df, mort_dif){
   p1 <- sum(subset_df$mortality_28 == 1, na.rm = T)/ sum(!is.na(subset_df$mortality_28))
@@ -539,7 +539,7 @@ sample_cont_correction_1<-cont_cor_function(sample_subset1)
 sample_cont_correction_2<-cont_cor_function(sample_subset2)
 sample_cont_correction_3<-cont_cor_function(sample_subset3)
 samplesize_mortality<-cbind(sample_cont_correction_1,sample_cont_correction_2, sample_cont_correction_3)
-write.csv(samplesize_mortality,"/home/skerr/Git/SF94/Outputs/samplesize_mortality.csv")
+#write.csv(samplesize_mortality,"/home/skerr/Git/SF94/Outputs/samplesize_mortality.csv")
 
 mort_table_function<-function(subset_df){
   mortTable <- table(subset_df[["mortality_28"]])
@@ -551,7 +551,7 @@ mort_table_1<-mort_table_function(subset1)
 mort_table_2<-mort_table_function(subset2)
 mort_table_3<-mort_table_function(subset3)
 mort_table_output<-rbind(mort_table_1, mort_table_2, mort_table_3)
-write.csv(mort_table_output,"/home/skerr/Git/SF94/Outputs/mort_table_output.csv")
+#write.csv(mort_table_output,"/home/skerr/Git/SF94/Outputs/mort_table_output.csv")
 
 
 ##############################################################
@@ -599,12 +599,12 @@ HR_ss_1<-HR_func(subset1, 0.85)
 HR_ss_2<-HR_func(subset2, 0.85)
 HR_ss_3<-HR_func(subset3, 0.85)
 HR_mort<-cbind(HR_ss_1,HR_ss_2,HR_ss_3)
-write.csv(HR_mort,"/home/skerr/Git/SF94/Outputs/HR_mort.csv")
+#write.csv(HR_mort,"/home/skerr/Git/SF94/Outputs/HR_mort.csv")
 ss_logrank_ss1<-round(lrsamplesize(subset1,0.05,0.8,HR_ss_1,0,28))
 ss_logrank_ss2<-round(lrsamplesize(subset2,0.05,0.8,HR_ss_2,0,28))
 ss_logrank_ss3<-round(lrsamplesize(subset3,0.05,0.8,HR_ss_3,0,28))
 samplesize_logrank_mort<-cbind(ss_logrank_ss1,ss_logrank_ss2,ss_logrank_ss3)
-write.csv(samplesize_logrank_mort,"/home/skerr/Git/SF94/Outputs/samplesize_logrank_mort.csv")
+#write.csv(samplesize_logrank_mort,"/home/skerr/Git/SF94/Outputs/samplesize_logrank_mort.csv")
 
 #############################################################################################################
 library(Rmisc)
@@ -715,10 +715,10 @@ subset3_D8_SS<-power_sf94(0.05,0.8,sf94_regression_subset3[2], meanSD_subset3[2,
 sf94_samplesize<-cbind(subset1_D5_SS,subset1_D8_SS,subset2_D5_SS,subset2_D8_SS,subset3_D5_SS,subset3_D8_SS)
 
 #write to github
-write.csv(meanSD_output,"/home/skerr/Git/SF94/Outputs/meanSD_output.csv")
-write.csv(correlation_output,"/home/skerr/Git/SF94/Outputs/correlation_output.csv")
-write.csv(sf94_effectsize,"/home/skerr/Git/SF94/Outputs/sf94_effectsize.csv")
-write.csv(sf94_samplesize,"/home/skerr/Git/SF94/Outputs/sf94_samplesize.csv")
+#write.csv(meanSD_output,"/home/skerr/Git/SF94/Outputs/meanSD_output.csv")
+#write.csv(correlation_output,"/home/skerr/Git/SF94/Outputs/correlation_output.csv")
+#write.csv(sf94_effectsize,"/home/skerr/Git/SF94/Outputs/sf94_effectsize.csv")
+#write.csv(sf94_samplesize,"/home/skerr/Git/SF94/Outputs/sf94_samplesize.csv")
 
 
 ###########################################################################################################################
@@ -759,7 +759,7 @@ who_table_1<-who_table_function(subset1)
 who_table_2<-who_table_function(subset2)
 who_table_3<-who_table_function(subset3)
 who_table_output<-rbind(who_table_1, who_table_2, who_table_3)
-write.csv(who_table_output,"/home/skerr/Git/SF94/Outputs/who_table_output.csv")
+#write.csv(who_table_output,"/home/skerr/Git/SF94/Outputs/who_table_output.csv")
 
 #bootstrapped effect size
 effect_size_boot_who <- function(data, indices){
@@ -805,7 +805,7 @@ who_prop_ss1<-who_prop(subset1)
 who_prop_ss2<-who_prop(subset2)
 who_prop_ss3<-who_prop(subset3)
 who_prop_output<-cbind(who_prop_ss1, who_prop_ss2, who_prop_ss3)
-write.csv(who_prop_output,"/home/skerr/Git/SF94/Outputs/who_prop_output.csv")
+#write.csv(who_prop_output,"/home/skerr/Git/SF94/Outputs/who_prop_output.csv")
 
 
 
@@ -830,8 +830,8 @@ who_samplesize_SS3<-who_effectsize_function_ss(subset3, who_subset3[1], who_subs
 
 who_samplesize<-cbind(who_samplesize_SS1,who_samplesize_SS2,who_samplesize_SS3)
 
-write.csv(who_effectsize,"/home/skerr/Git/SF94/Outputs/who_effectsize.csv")
-write.csv(who_samplesize,"/home/skerr/Git/SF94/Outputs/who_samplesize.csv")
+#write.csv(who_effectsize,"/home/skerr/Git/SF94/Outputs/who_effectsize.csv")
+#write.csv(who_samplesize,"/home/skerr/Git/SF94/Outputs/who_samplesize.csv")
 
 
 ####################################################################################################################################
@@ -881,9 +881,9 @@ boot_result_sus_0.70 <- boot(data = subset1, statistic = effect_size_boot_sus, R
 sus1_booted_0.70<-boot.ci(boot_result_sus_0.70, conf = 0.95, type="basic")
 
 #numbers for Natalie/ for table 1 (Estimated treatment effect sustained 1/2 L improvement)
-write.csv(effectsize_susump1,"/home/skerr/Git/SF94/Outputs/effectsize_susump1.csv")
-write.csv(effectsize_susump2,"/home/skerr/Git/SF94/Outputs/effectsize_susump2.csv")
-write.csv(effectsize_susump3,"/home/skerr/Git/SF94/Outputs/effectsize_susump3.csv")
+#write.csv(effectsize_susump1,"/home/skerr/Git/SF94/Outputs/effectsize_susump1.csv")
+#write.csv(effectsize_susump2,"/home/skerr/Git/SF94/Outputs/effectsize_susump2.csv")
+#write.csv(effectsize_susump3,"/home/skerr/Git/SF94/Outputs/effectsize_susump3.csv")
 p1_1L_number <- sum(subset1$sustained_1L_improvement == 1, na.rm = T)/ sum(!is.na(subset1$sustained_1L_improvement))
 p1_2L_number<- sum(subset1$sustained_2L_improvement == 1, na.rm = T)/ sum(!is.na(subset1$sustained_2L_improvement))
 p1_1L_numbers2 <- sum(subset2$sustained_1L_improvement == 1, na.rm = T)/ sum(!is.na(subset2$sustained_1L_improvement))
@@ -891,7 +891,7 @@ p1_2L_numbers2<- sum(subset2$sustained_2L_improvement == 1, na.rm = T)/ sum(!is.
 p1_1L_numbers3 <- sum(subset3$sustained_1L_improvement == 1, na.rm = T)/ sum(!is.na(subset3$sustained_1L_improvement))
 p1_2L_numbers3<- sum(subset3$sustained_2L_improvement == 1, na.rm = T)/ sum(!is.na(subset3$sustained_2L_improvement))
 p1p2_output<-rbind(p1_1L_number, p1_2L_number, p1_1L_numbers2, p1_2L_numbers2,p1_1L_numbers3, p1_2L_numbers3)
-write.csv(p1p2_output,"/home/skerr/Git/SF94/Outputs/p1p2_output.csv")
+#write.csv(p1p2_output,"/home/skerr/Git/SF94/Outputs/p1p2_output.csv")
 
 #calculate the estimated treatment effect
 # subset 1
@@ -952,7 +952,7 @@ sus_imp_ss1<-table_sus_imp(subset1)
 sus_imp_ss2<-table_sus_imp(subset2)
 sus_imp_ss3<-table_sus_imp(subset3)
 sus_imp_output<-cbind(sus_imp_ss1, sus_imp_ss2, sus_imp_ss3)
-write.csv(sus_imp_output,"/home/skerr/Git/SF94/Outputs/sus_imp_output.csv")
+#write.csv(sus_imp_output,"/home/skerr/Git/SF94/Outputs/sus_imp_output.csv")
 
 ## INPUTS REQUIRED ##
 # alpha - significance level 
@@ -997,7 +997,7 @@ susimp_HR_2_2L<-susimp_HR_func(subset2, "sustained_2L_improvement",effectsize_su
 susimp_HR_3_2L<-susimp_HR_func(subset3, "sustained_2L_improvement",effectsize_susump3[,2]  )
 
 HR_mort_susimp<-cbind(susimp_HR_1_1L,susimp_HR_2_1L,susimp_HR_3_1L,susimp_HR_1_2L,susimp_HR_2_2L,susimp_HR_3_2L)
-write.csv(HR_mort_susimp,"/home/skerr/Git/SF94/Outputs/HR_mort_susimp.csv")
+#write.csv(HR_mort_susimp,"/home/skerr/Git/SF94/Outputs/HR_mort_susimp.csv")
 #                                       subset_df,level_imp,                alpha,power,HR,         a,f
 ss_logrank_1_susimp1L<-round(lrsamplesize_susimp(subset1,"sustained_1L_improvement",0.05,0.8,susimp_HR_1_1L,0,28))
 ss_logrank_2_susimp1L<-round(lrsamplesize_susimp(subset2,"sustained_1L_improvement",0.05,0.8,susimp_HR_2_1L,0,28))
@@ -1007,7 +1007,7 @@ ss_logrank_2_susimp2L<-round(lrsamplesize_susimp(subset2,"sustained_2L_improveme
 ss_logrank_3_susimp2L<-round(lrsamplesize_susimp(subset3,"sustained_2L_improvement",0.05,0.8,susimp_HR_3_2L,0,28))
 samplesize_logrank_susimp<-cbind(ss_logrank_1_susimp1L,ss_logrank_2_susimp1L,ss_logrank_3_susimp1L,
                                  ss_logrank_1_susimp2L,ss_logrank_2_susimp2L,ss_logrank_3_susimp2L)
-write.csv(samplesize_logrank_susimp,"/home/skerr/Git/SF94/Outputs/samplesize_logrank_susimp.csv")
+#write.csv(samplesize_logrank_susimp,"/home/skerr/Git/SF94/Outputs/samplesize_logrank_susimp.csv")
 
 ################################# protocolised measurement #############################################
 # Just running the model to get coefficients etc
@@ -1094,4 +1094,4 @@ sample_size_prot_09 <- power_sf94(0.05, 0.8, effect_size_prot_09, SD_prot, rho_p
 
 samplesize_protocolised<-cbind(sample_size_prot_05,sample_size_prot_06,sample_size_prot_07,
                                sample_size_prot_08,sample_size_prot_09)
-write.csv(samplesize_protocolised,"/home/skerr/Git/SF94/Outputs/samplesize_protocolised.csv")
+#write.csv(samplesize_protocolised,"/home/skerr/Git/SF94/Outputs/samplesize_protocolised.csv")
