@@ -298,6 +298,7 @@ missing_summary_subset1 = sapply(subset1, function(x) sum(!is.na(x))) %>%
   data.frame() 
 
 write.csv(missing_summary_subset1,"/home/skerr/Git/SF94/Outputs/missing_summary_subset1.csv")
+
 #subset 2
 missing_summary_subset2 = sapply(subset2, function(x) sum(!is.na(x))) %>%
   rbind(sapply(subset2, function(x) sum(is.na(x))) ) %>%
@@ -305,6 +306,7 @@ missing_summary_subset2 = sapply(subset2, function(x) sum(!is.na(x))) %>%
   data.frame() 
 
 write.csv(missing_summary_subset2,"/home/skerr/Git/SF94/Outputs/missing_summary_subset2.csv")
+
 #subset 3
 missing_summary_subset3 = sapply(subset3, function(x) sum(!is.na(x))) %>%
   rbind(sapply(subset3, function(x) sum(is.na(x))) ) %>%
