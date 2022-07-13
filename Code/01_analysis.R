@@ -291,6 +291,29 @@ write.csv(missing_summary,"/home/skerr/Git/SF94/Outputs/missing_summary.csv")
 
 write.csv(table(df_sf94$mortality_28),"/home/skerr/Git/SF94/Outputs/mort28Table.csv")
 
+#subset 1
+missing_summary_subset1 = sapply(subset1, function(x) sum(!is.na(x))) %>%
+  rbind(sapply(subset1, function(x) sum(is.na(x))) ) %>%
+  t() %>%
+  data.frame() 
+
+write.csv(missing_summary_subset1,"/home/skerr/Git/SF94/Outputs/missing_summary_subset1.csv")
+#subset 2
+missing_summary_subset2 = sapply(subset2, function(x) sum(!is.na(x))) %>%
+  rbind(sapply(subset2, function(x) sum(is.na(x))) ) %>%
+  t() %>%
+  data.frame() 
+
+write.csv(missing_summary_subset2,"/home/skerr/Git/SF94/Outputs/missing_summary_subset2.csv")
+#subset 3
+missing_summary_subset3 = sapply(subset3, function(x) sum(!is.na(x))) %>%
+  rbind(sapply(subset3, function(x) sum(is.na(x))) ) %>%
+  t() %>%
+  data.frame() 
+
+write.csv(missing_summary_subset3,"/home/skerr/Git/SF94/Outputs/missing_summary_subset3.csv")
+
+
 # C statistic for day 28 mortality as predicted by sf94, days 1-14
 df_cstat = calculate_cstat_by_day(df_sf94, 1:14)
 

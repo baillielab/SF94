@@ -1,0 +1,2 @@
+load("/Users/Maaike/Documents/GitHub/SF94/Outputs/html_output_glm.rds")
+load("/Users/Maaike/Documents/GitHub/SF94/Outputs/day0_day5_P_multivariate_model_summary.rds")
