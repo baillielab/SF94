@@ -1,7 +1,7 @@
 # compare groups
 # Supplementary table 1
 
-library(finalfit)c
+library(finalfit)
 
 # data and df_1 from the original code are slightly different.
 # The reason appears to be that df_1 contains some duplicates, which we remove here
