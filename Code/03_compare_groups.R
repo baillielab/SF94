@@ -1,15 +1,15 @@
 # compare groups
 # Supplementary table 1
 
-library(finalfit)
+library(finalfit)c
 
 # data and df_1 from the original code are slightly different.
 # The reason appears to be that df_1 contains some duplicates, which we remove here
 df_comparegroups = readRDS("/home/skerr/Data/ccp_subset_derived_2021-05-26_1941.rds") %>%
   dplyr::select(subjid, age_estimateyears, sex, days_since_start, day_of_death, day_of_discharge,
-                fio2, sf94, severity_scale_ordinal, clinical_frailty, infiltrates_faorres,
+                fio2, sf94, sfr, severity_scale_ordinal, clinical_frailty, infiltrates_faorres,
                 daily_temp_vsorres, systolic_vsorres, diastolic_vsorres, onset2admission,
-                rr_vsorres, daily_urine_vsorres, daily_bun_lborres, daily_gcs_vsorres,
+                rr_vsorres, daily_urine_lborres, daily_bun_lborres, daily_gcs_vsorres,
                 daily_creat_lborres, daily_crp_lborres, 
                 outcome, mortality_28, sustained_1L_improvement, sustained_2L_improvement, 
                 who_days_to_improve1, who_days_to_improve2, rr_vsorres) %>%
