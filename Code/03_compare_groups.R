@@ -34,6 +34,11 @@ df_comparegroups<-df_comparegroups %>%
 #remove rows with missing group (because of missing SF data)
 df_comparegroups<-subset(df_comparegroups, !is.na(sf94_group))
 
+# set frailty to numeric
+df_comparegroups$clinical_frailty<-as.numeric(df_comparegroups$clinical_frailty)
+# and who to a factor
+df_comparegroups$severity_scale_ordinal<-as.factor(df_comparegroups$severity_scale_ordinal)
+
 # use finalfit to create summary tables
 dependent<-"sf94_group"
 explanatory<- c("age_estimateyears", "sex","rr_vsorres", "daily_temp_vsorres", "systolic_vsorres",
@@ -69,4 +74,11 @@ d0measurementsnotsf94<-nrow(compareday0[compareday0$sf94_group == "not_sf94",])
 patientnumbers<-cbind(uniquepatientssf94, uniquepatientsnotsf94, measurementssf94, measurementsnotsf94,
                       d0uniquepatientssf94, d0uniquepatientsnotsf94, d0measurementssf94, d0measurementsnotsf94)
 write.csv(patientnumbers, "/home/skerr/Git/SF94/Outputs/patientnumbers.csv")
+
+# mortality
+df_mortality<-df_comparegroups[,c("subjid", "mortality_28", "sf94_group")]
+df_mortality<-df_mortality%>%group_by(subjid)%>%slice(1)
+unique_mortality<-table(df_mortality$mortality_28, df_mortality$sf94_group)
+
+write.csv(unique_mortality, "/home/skerr/Git/SF94/Outputs/unique_mortality.csv")
 
