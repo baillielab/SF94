@@ -507,7 +507,7 @@ results = tidy(multivariate_model) %>%
   mutate(estimate = paste0(estimate, ' (', lcl, ' - ', ucl, ')' )) %>%
   select(-lcl, -ucl) 
 
-saveRDS(results, '/home/skerr/Git/SF94/Outputs/day0_day5_P_multivariate_model_summary.csv')
+write.csv(results, '/home/skerr/Git/SF94/Outputs/day0_day5_P_multivariate_model_summary.csv')
 
 # Predict function only appears to work with lrm, not glm
 
