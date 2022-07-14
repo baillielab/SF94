@@ -52,11 +52,21 @@ compareday0_table<-compareday0%>%summary_factorlist(dependent, explanatory, cont
 write.csv(compareday0_table, "/home/skerr/Git/SF94/Outputs/compareday0_table.csv")
 
 # number of patients
-uniquepatients<-length(unique(df_comparegroups$subjid))
-measurements<-nrow(df_comparegroups)
-uniqueday0<-length(unique(compareday0$subjid))
-measurementsday0<-nrow(compareday0)
 
-patientnumbers<-cbind(uniquepatients, measurements, uniqueday0, measurementsday0)
+# all
+uniquepatientssf94<-length(unique(df_comparegroups$subjid[df_comparegroups$sf94_group== "S/F94"]))
+uniquepatientsnotsf94<-length(unique(df_comparegroups$subjid[df_comparegroups$sf94_group== "not_sf94"]))
+measurementssf94<-nrow(df_comparegroups[df_comparegroups$sf94_group == "S/F94",])
+measurementsnotsf94<-nrow(df_comparegroups[df_comparegroups$sf94_group == "not_sf94",])
+#day 0
+d0uniquepatientssf94<-length(unique(compareday0$subjid[compareday0$sf94_group== "S/F94"]))
+d0uniquepatientsnotsf94<-length(unique(compareday0$subjid[compareday0$sf94_group== "not_sf94"]))
+d0measurementssf94<-nrow(compareday0[compareday0$sf94_group == "S/F94",])
+d0measurementsnotsf94<-nrow(compareday0[compareday0$sf94_group == "not_sf94",])
+
+
+
+patientnumbers<-cbind(uniquepatientssf94, uniquepatientsnotsf94, measurementssf94, measurementsnotsf94,
+                      d0uniquepatientssf94, d0uniquepatientsnotsf94, d0measurementssf94, d0measurementsnotsf94)
 write.csv(patientnumbers, "/home/skerr/Git/SF94/Outputs/patientnumbers.csv")
 
