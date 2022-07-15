@@ -181,7 +181,7 @@ for (treatment in c(0.85, 0.8, 0.75, 0.7)){
   susimp_effect_size_lcl = c(susimp_effect_size_lcl, boot_ci$basic[,4])
 }
 
-effect_size_susimp = data.frame(outcome_measure = rep("WHO day 5",4),
+effect_size_susimp = data.frame(outcome_measure = rep("Sustained 1 level improvement",4),
                              treatment_effect = c(0.85, 0.8, 0.75, 0.7),
                              effect_size = susimp_effect_size,
                              effect_size_lcl = susimp_effect_size_lcl,
@@ -221,7 +221,7 @@ for (treatment in c(0.85, 0.8, 0.75, 0.7)){
   sf94_prot_effect_size_lcl = c(sf94_prot_effect_size_lcl, boot_ci$basic[,4])
 }
 
-effect_size_sf94_prot = data.frame(outcome_measure = rep("WHO day 5",4),
+effect_size_sf94_prot = data.frame(outcome_measure = rep("Protocolised S/F94 day 5",4),
                                 treatment_effect = c(0.85, 0.8, 0.75, 0.7),
                                 effect_size = sf94_prot_effect_size,
                                 effect_size_lcl = sf94_prot_effect_size_lcl,
@@ -516,6 +516,7 @@ attach(subset1)
 ddist <- datadist(sf94_day0, sf94_day5_P, mortality_28)
 options(datadist='ddist')
 detach(subset1)
+
 
 multivariate_model <- lrm(mortality_28 ~ sf94_day0 + sf94_day5_P, subset1, x=TRUE, y=TRUE)
 not_na = sum(!is.na(subset1$mortality_28) & !is.na(subset1$sf94_day0) & !is.na(subset1$sf94_day5_P) )
