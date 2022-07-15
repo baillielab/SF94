@@ -865,7 +865,7 @@ df_susimp1_lr_sample_size = rbind(calculate_sample_size_lr(subset1, 'sustained_1
 
 rownames(df_susimp1_lr_sample_size) = c('subset1', 'subset2', 'subset3')
 
-write.csv(df_susimp1_lr_sample_size, "/home/skerr/Git/SF94/Outputs/mort_logrank_susimp1_sample_size.csv")
+write.csv(df_susimp1_lr_sample_size, "/home/skerr/Git/SF94/Outputs/susimp1_logrank_sample_size.csv")
 
 # 2 level sustained improvement
 df_susimp2_lr_sample_size = rbind(calculate_sample_size_lr(subset1, 'sustained_2L_improvement', 0.85, 0.05, 0.8, 0, 28),
@@ -875,7 +875,7 @@ df_susimp2_lr_sample_size = rbind(calculate_sample_size_lr(subset1, 'sustained_2
 
 rownames(df_susimp2_lr_sample_size) = c('subset1', 'subset2', 'subset3')
 
-write.csv(df_susimp2_lr_sample_size, "/home/skerr/Git/SF94/Outputs/mort_logrank_susimp2_sample_size.csv")
+write.csv(df_susimp2_lr_sample_size, "/home/skerr/Git/SF94/Outputs/susimp2_logrank_sample_size.csv")
 
 
 
