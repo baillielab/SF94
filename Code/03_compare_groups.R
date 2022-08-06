@@ -30,7 +30,7 @@ df_comparegroups<-df_comparegroups %>%
   mutate(
     sf94_group = case_when(
       !is.na(sf94) ~ "S/F94",
-      is.na(sf94) & !is.na(sfr) ~ "not_sf94"))
+      is.na(sf94) & !is.na(sfr) & days_since_start != day_of_discharge ~ "not_sf94"))
 #remove rows with missing group (because of missing SF data)
 df_comparegroups<-subset(df_comparegroups, !is.na(sf94_group))
 
@@ -49,7 +49,11 @@ explanatory<- c("age_estimateyears", "sex","rr_vsorres", "daily_temp_vsorres", "
 comparegroups_table<-df_comparegroups%>%summary_factorlist(dependent, explanatory, cont="median")
 write.csv(comparegroups_table, "/home/skerr/Git/SF94/Outputs/comparegroups_table.csv")
 
+# table with unique outcomes for supplementary table 1
+mort_complete<-df_comparegroups%>%group_by(subjid)%>%slice(which.max(mortality_28))
+mort_table_sup1<-table(mort_complete$mortality_28, mort_complete$sf94_group)
 
+write.csv(mort_table_sup1, "/home/skerr/Git/SF94/Outputs/mort_table_sup1.csv")
 
 #compare groups based on SFgroup on day 0
 compareday0<-subset(df_comparegroups, df_comparegroups$days_since_start == 0)
