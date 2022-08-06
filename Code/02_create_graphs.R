@@ -269,7 +269,8 @@ ggplot(df_sample_size ,
   xlab("Treatment effect (predicted 28-day mortality relative risk ratio)")+ 
   ylab("Sample size") +
   scale_x_reverse() +
-  theme_bw()  
+  theme_bw()+
+  guides(fill=guide_legend(title="Outcome measure"))
 
 ggsave(dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="samplesize_graph.pdf")
 
