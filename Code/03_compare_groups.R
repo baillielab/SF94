@@ -47,18 +47,18 @@ explanatory<- c("age_estimateyears", "sex","rr_vsorres", "daily_temp_vsorres", "
                 "infiltrates_faorres", "severity_scale_ordinal","mortality_28")
 
 comparegroups_table<-df_comparegroups%>%summary_factorlist(dependent, explanatory, cont="median")
-write.csv(comparegroups_table, "/home/skerr/Git/SF94/Outputs/comparegroups_table.csv")
+write.csv(comparegroups_table, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/comparegroups_table.csv"))
 
 # table with unique outcomes for supplementary table 1
 mort_complete<-df_comparegroups%>%group_by(subjid)%>%slice(which.max(mortality_28))
 mort_table_sup1<-table(mort_complete$mortality_28, mort_complete$sf94_group)
 
-write.csv(mort_table_sup1, "/home/skerr/Git/SF94/Outputs/mort_table_sup1.csv")
+write.csv(mort_table_sup1, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/mort_table_sup1.csv"))
 
 #compare groups based on SFgroup on day 0
 compareday0<-subset(df_comparegroups, df_comparegroups$days_since_start == 0)
 compareday0_table<-compareday0%>%summary_factorlist(dependent, explanatory, cont="median")
-write.csv(compareday0_table, "/home/skerr/Git/SF94/Outputs/compareday0_table.csv")
+write.csv(compareday0_table, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/compareday0_table.csv"))
 
 # number of patients
 
@@ -77,12 +77,12 @@ d0measurementsnotsf94<-nrow(compareday0[compareday0$sf94_group == "not_sf94",])
 
 patientnumbers<-cbind(uniquepatientssf94, uniquepatientsnotsf94, measurementssf94, measurementsnotsf94,
                       d0uniquepatientssf94, d0uniquepatientsnotsf94, d0measurementssf94, d0measurementsnotsf94)
-write.csv(patientnumbers, "/home/skerr/Git/SF94/Outputs/patientnumbers.csv")
+write.csv(patientnumbers, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/patientnumbers.csv"))
 
 # mortality
 df_mortality<-df_comparegroups[,c("subjid", "mortality_28", "sf94_group")]
 df_mortality<-df_mortality%>%group_by(subjid)%>%slice(1)
 unique_mortality<-table(df_mortality$mortality_28, df_mortality$sf94_group)
 
-write.csv(unique_mortality, "/home/skerr/Git/SF94/Outputs/unique_mortality.csv")
+write.csv(unique_mortality, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/unique_mortality.csv"))
 

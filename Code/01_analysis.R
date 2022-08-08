@@ -18,9 +18,17 @@ library(tidyverse)
 
 ######################################### Load data ###############################################################
 
+#time_stamp = "2021-05-26_1941"
+time_stamp = "2021-06-22_1715"
+#time_stamp = "2022-07-21_1148"
+
+# Create output directory
+output_dir = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp)
+if (!dir.exists(output_dir)){dir.create(output_dir)} 
+
 # data and df_1 from the original code are slightly different.
 # The reason appears to be that df_1 contains some duplicates, which we remove here
-data = readRDS("/home/skerr/Data/ccp_subset_derived_2021-05-26_1941.rds") %>%
+data = readRDS(paste0('/home/skerr/Data/ccp_subset_derived_', time_stamp, '.rds')) %>%
   dplyr::select(subjid, age_estimateyears, sex, days_since_start, day_of_death, day_of_discharge,
          fio2, sf94, severity_scale_ordinal,
          outcome, mortality_28, sustained_1L_improvement, sustained_2L_improvement, 
@@ -32,7 +40,8 @@ data = readRDS("/home/skerr/Data/ccp_subset_derived_2021-05-26_1941.rds") %>%
                              TRUE ~ sf94),
         who_dd = case_when(days_since_start >= day_of_death ~ 10,
                            days_since_start >= day_of_discharge ~ 4,
-        TRUE ~ severity_scale_ordinal))
+        TRUE ~ severity_scale_ordinal)) %>%
+  data.frame()
 
 # Dataframes with each row containing all observations of sf94/who over time for each patient
 #
@@ -45,7 +54,8 @@ data = readRDS("/home/skerr/Data/ccp_subset_derived_2021-05-26_1941.rds") %>%
 df_sf94 = dplyr::select(data, -sf94_dd, -severity_scale_ordinal, -who_dd, -fio2, -rr_vsorres) %>%
   filter(days_since_start <= 16, !is.na(sf94)) %>%
   distinct() %>%
-  pivot_wider(names_from = (days_since_start), values_from = sf94, names_prefix = "sf94_day")
+  pivot_wider(names_from = (days_since_start), values_from = sf94, names_prefix = "sf94_day") %>%
+  data.frame()
 df_sf94[df_sf94 == 'NULL'] = NA
 
 df_who =  dplyr::select(data, -sf94, -severity_scale_ordinal, -sf94_dd, -fio2, -rr_vsorres) %>%
@@ -208,7 +218,7 @@ calculate_cstat_by_day = function(df, days){
 ########################## Proportionally add sf94 values for dead and discharged ###########################
 
 dead_discharge_proportions = dead_alive_to_add(data, c(5, 8, 10:16))
-write.csv(dead_discharge_proportions,"/home/skerr/Git/SF94/Outputs/proportional_numbers.csv")
+write.csv(dead_discharge_proportions, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/proportional_numbers.csv"))
 
 # Add columns for proportionally add sf94 for those who died or where discharged
 df_sf94 = prop_add(df_sf94, dead_discharge_proportions, 5)
@@ -253,33 +263,33 @@ subset3 = filter(df_sf94, subjid %in% pull(data_3, subjid)) %>%
 
 # Day 5 dead and discharged cumulative summary
 write.csv(dead_alive_summary_cum(df_sf94 %>% filter(!is.na(sf94_day5_P)), c(5, 8, 10:16)),
-          "/home/skerr/Git/SF94/Outputs/dead_alive_d5.csv")
+          paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/dead_alive_d5.csv"))
 
-write.csv(miss_var_summary(df_sf94 %>% filter(!is.na(sf94_day5_P))) ,"/home/skerr/Git/SF94/Outputs/miss_day5.csv")
+write.csv(miss_var_summary(df_sf94 %>% filter(!is.na(sf94_day5_P))) , paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/miss_day5.csv"))
 
 # Day 8 dead and discharged cumulative summary
 write.csv(dead_alive_summary_cum(df_sf94 %>% filter(!is.na(sf94_day8_P)), c(5, 8, 10:16)),
-          "/home/skerr/Git/SF94/Outputs/dead_alive_d8.csv")
+          paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/dead_alive_d8.csv"))
 
-write.csv(miss_var_summary(df_sf94 %>% filter(!is.na(sf94_day8_P))) ,"/home/skerr/Git/SF94/Outputs/miss_day8.csv")
+write.csv(miss_var_summary(df_sf94 %>% filter(!is.na(sf94_day8_P))) , paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/miss_day8.csv"))
 
 # Dead and discharged day 0-14 summary, with proportionally added sf94 values for dead and discharged
 #
 # This produces slightly different results than the original code
 # This is because the original misses people who have an sf94 on the day they died or were discharged,
 # because of an unfortunate use of a case_when statement
-write.csv(dead_alive_summary(df_sf94_dd, 0:14) ,"/home/skerr/Git/SF94/Outputs/table_missingdays.csv")
+write.csv(dead_alive_summary(df_sf94_dd, 0:14) ,paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/table_missingdays.csv"))
 
 # Mortality rate at 28 days
 mort28 = mean(df_sf94$mortality_28, na.rm = TRUE)
-write.csv(mort28,"/home/skerr/Git/SF94/Outputs/mort28.csv")
+write.csv(mort28,paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/mort28.csv"))
 
 # Median SF94 between by who severity scale
 medians = data_1 %>%
   group_by(severity_scale_ordinal)%>%
   summarise_at("sf94", median, na.rm=T)
 
-write.csv(medians,"/home/skerr/Git/SF94/Outputs/medians.csv")
+write.csv(medians, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/medians.csv"))
 
 # Summary of missing values for df_sf94_dd
 missing_summary = sapply(df_sf94_dd, function(x) sum(!is.na(x))) %>%
@@ -287,9 +297,9 @@ missing_summary = sapply(df_sf94_dd, function(x) sum(!is.na(x))) %>%
                   t() %>%
                   data.frame() 
 
-write.csv(missing_summary,"/home/skerr/Git/SF94/Outputs/missing_summary.csv")
+write.csv(missing_summary,paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/missing_summary.csv"))
 
-write.csv(table(df_sf94$mortality_28),"/home/skerr/Git/SF94/Outputs/mort28Table.csv")
+write.csv(table(df_sf94$mortality_28), paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/mort28Table.csv"))
 
 #subset 1
 missing_summary_subset1 = sapply(subset1, function(x) sum(!is.na(x))) %>%
@@ -297,7 +307,7 @@ missing_summary_subset1 = sapply(subset1, function(x) sum(!is.na(x))) %>%
   t() %>%
   data.frame() 
 
-write.csv(missing_summary_subset1,"/home/skerr/Git/SF94/Outputs/missing_summary_subset1.csv")
+write.csv(missing_summary_subset1,paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/missing_summary_subset1.csv"))
 
 #subset 2
 missing_summary_subset2 = sapply(subset2, function(x) sum(!is.na(x))) %>%
@@ -305,7 +315,7 @@ missing_summary_subset2 = sapply(subset2, function(x) sum(!is.na(x))) %>%
   t() %>%
   data.frame() 
 
-write.csv(missing_summary_subset2,"/home/skerr/Git/SF94/Outputs/missing_summary_subset2.csv")
+write.csv(missing_summary_subset2,paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/missing_summary_subset2.csv"))
 
 #subset 3
 missing_summary_subset3 = sapply(subset3, function(x) sum(!is.na(x))) %>%
@@ -313,7 +323,7 @@ missing_summary_subset3 = sapply(subset3, function(x) sum(!is.na(x))) %>%
   t() %>%
   data.frame() 
 
-write.csv(missing_summary_subset3,"/home/skerr/Git/SF94/Outputs/missing_summary_subset3.csv")
+write.csv(missing_summary_subset3, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/missing_summary_subset3.csv"))
 
 
 # C statistic for day 28 mortality as predicted by sf94, days 1-14
@@ -324,7 +334,7 @@ ggplot(df_cstat, aes(x=day, y=C_statistic, colour= model, group=model)) +
   scale_x_continuous(breaks = 1:14) + 
   ylab('C statistic')
 
-ggsave(width=13, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="cstat_graphic.pdf")
+ggsave(width=13, dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="cstat_graphic.pdf")
 
 
 
@@ -362,7 +372,7 @@ sample_size_mort = rbind(calculate_sample_size_mort( mean(subset1$mortality_28, 
 
 rownames(sample_size_mort) = c('subset1', 'subset2', 'subset3')
 
-write.csv(sample_size_mort,"/home/skerr/Git/SF94/Outputs/sample_size_mortality.csv")
+write.csv(sample_size_mort, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sample_size_mortality.csv"))
 
 mort_table_function=function(df){
   mortTable = table(df[["mortality_28"]])
@@ -377,7 +387,7 @@ mort_table = rbind( table(subset1[["mortality_28"]]),
 
 rownames(mort_table) = c('subset1', 'subset2', 'subset3')
 
-write.csv(mort_table, "/home/skerr/Git/SF94/Outputs/mort_table_output.csv")
+write.csv(mort_table, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/mort_table_output.csv"))
 
 
 
@@ -433,7 +443,7 @@ df_mort_lr_sample_size = rbind(calculate_sample_size_lr(subset1, 'mortality_28',
 
 rownames(df_mort_lr_sample_size) = c('subset1', 'subset2', 'subset3')
 
-write.csv(df_mort_lr_sample_size, "/home/skerr/Git/SF94/Outputs/mort_logrank_sample_size.csv")
+write.csv(df_mort_lr_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/mort_logrank_sample_size.csv"))
 
 
 
@@ -585,11 +595,11 @@ rownames(df_sf94_sample_size) = c('subset1', 'subset2', 'subset3')
                                     
 
 # Write out
-write.csv(df_sf94_mean,"/home/skerr/Git/SF94/Outputs/sf94_means.csv")
-write.csv(df_sf94_sd,"/home/skerr/Git/SF94/Outputs/sf94_sd.csv")
-write.csv(df_sf94_corr,"/home/skerr/Git/SF94/Outputs/sf94_correlation.csv")
-write.csv(df_sf94_effect_size,"/home/skerr/Git/SF94/Outputs/sf94_effect_size.csv")
-write.csv(df_sf94_sample_size,"/home/skerr/Git/SF94/Outputs/sf94_sample_size.csv")
+write.csv(df_sf94_mean, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sf94_means.csv"))
+write.csv(df_sf94_sd, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sf94_sd.csv"))
+write.csv(df_sf94_corr, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sf94_correlation.csv"))
+write.csv(df_sf94_effect_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sf94_effect_size.csv"))
+write.csv(df_sf94_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sf94_sample_size.csv"))
 
 
 
@@ -713,10 +723,10 @@ names(df_who_sample_size) = c('day5_P', 'day8_P')
 rownames(df_who_sample_size) = c('subset1', 'subset2', 'subset3')       
 
 # Write out
-write.csv(who_table,"/home/skerr/Git/SF94/Outputs/who_table_output.csv")
-write.csv(who_prop_table,"/home/skerr/Git/SF94/Outputs/who_prop_output.csv")
-write.csv(df_who_effect_size, "/home/skerr/Git/SF94/Outputs/who_effect_size.csv")
-write.csv(df_who_sample_size,"/home/skerr/Git/SF94/Outputs/who_sample_size.csv")
+write.csv(who_table, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/who_table_output.csv"))
+write.csv(who_prop_table, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/who_prop_output.csv"))
+write.csv(df_who_effect_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/who_effect_size.csv"))
+write.csv(df_who_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/who_sample_size.csv"))
 
 
 
@@ -836,10 +846,10 @@ rownames(df_susimp_sample_size) = c('subset1', 'subset2', 'subset3')
 
 
 # Write out
-write.csv(sus_imp_table,"/home/skerr/Git/SF94/Outputs/sus_imp_output.csv")
-write.csv(susimp_prop_table,"/home/skerr/Git/SF94/Outputs/susimp_prop_output.csv")
-write.csv(df_susimp_effect_size, "/home/skerr/Git/SF94/Outputs/susimp_effect_size.csv")
-write.csv(df_susimp_sample_size, "/home/skerr/Git/SF94/Outputs/susimp_sample_size.csv")
+write.csv(sus_imp_table, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sus_imp_output.csv"))
+write.csv(susimp_prop_table, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/susimp_prop_output.csv"))
+write.csv(df_susimp_effect_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/susimp_effect_size.csv"))
+write.csv(df_susimp_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/susimp_sample_size.csv"))
 
 
 
@@ -865,7 +875,7 @@ df_susimp1_lr_sample_size = rbind(calculate_sample_size_lr(subset1, 'sustained_1
 
 rownames(df_susimp1_lr_sample_size) = c('subset1', 'subset2', 'subset3')
 
-write.csv(df_susimp1_lr_sample_size, "/home/skerr/Git/SF94/Outputs/susimp1_logrank_sample_size.csv")
+write.csv(df_susimp1_lr_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/susimp1_logrank_sample_size.csv"))
 
 # 2 level sustained improvement
 df_susimp2_lr_sample_size = rbind(calculate_sample_size_lr(subset1, 'sustained_2L_improvement', 0.85, 0.05, 0.8, 0, 28),
@@ -875,7 +885,7 @@ df_susimp2_lr_sample_size = rbind(calculate_sample_size_lr(subset1, 'sustained_2
 
 rownames(df_susimp2_lr_sample_size) = c('subset1', 'subset2', 'subset3')
 
-write.csv(df_susimp2_lr_sample_size, "/home/skerr/Git/SF94/Outputs/susimp2_logrank_sample_size.csv")
+write.csv(df_susimp2_lr_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/susimp2_logrank_sample_size.csv"))
 
 
 
@@ -998,7 +1008,7 @@ df_sf94_prot_effect_sample_size = data.frame(rho = seq(0.5, 0.9, 0.1),
 
 
 # Write out
-write.csv(df_coef_prot, "/home/skerr/Git/SF94/Outputs/sf94_prot_coef.csv")
-write.csv(df_sf94_prot_effect_sample_size, "/home/skerr/Git/SF94/Outputs/sf94_prot_effect_sample_size.csv")
+write.csv(df_coef_prot, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sf94_prot_coef.csv"))
+write.csv(df_sf94_prot_effect_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sf94_prot_effect_sample_size.csv"))
 
 

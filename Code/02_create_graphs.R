@@ -13,7 +13,7 @@ library(egg)
 library(gtsummary)
 library(broom)
 
-source('~/Git/SF94/Code/01_analysis.R')
+#source("~/Git/SF94/Code/01_analysis.R")
 
 set.seed(1234)
 
@@ -65,7 +65,7 @@ calculate_sample_size_mort_vec = Vectorize(calculate_sample_size_mort)
 sample_size_mort = calculate_sample_size_mort_vec(mean_death, c(0.85, 0.8, 0.75, 0.7)) %>%
   t() %>%
   data.frame() %>%
-  mutate(outcome_measure = '28-day mortality',
+  mutate(outcome_measure = "28-day mortality",
          treatment_effect = c(0.85, 0.8, 0.75, 0.7)) %>%
   dplyr::select(outcome_measure, treatment_effect, continuity_corrected_sample_size) %>%
   dplyr::rename(sample_size = continuity_corrected_sample_size)
@@ -78,8 +78,8 @@ sample_size_mort$sample_size_ucl = calculate_sample_size_mort_vec(death_lcl, c(0
 
 
 #### Opportunistic sf94
-sd_sf94 = df_sf94_sd['subset1', 'day5_P']
-corr_sf94 = df_sf94_corr['subset1', 'day5_P']
+sd_sf94 = df_sf94_sd["subset1", "day5_P"]
+corr_sf94 = df_sf94_corr["subset1", "day5_P"]
 
 calculate_sample_size_sf94_vec = Vectorize(calculate_sample_size_sf94)
 
@@ -138,20 +138,20 @@ effect_size_who = data.frame(outcome_measure = rep("WHO day 5",4),
                              effect_size_lcl = who_effect_size_lcl,
                              effect_size_ucl = who_effect_size_ucl)
 
-who_sample_size = c( calculate_sample_size_who(0.05 ,0.8 , who_effect_size[1], who_prop_table['subset1_day5_P', ]),
-                         calculate_sample_size_who(0.05 ,0.8 , who_effect_size[2], who_prop_table['subset1_day5_P', ]),
-                         calculate_sample_size_who(0.05 ,0.8 , who_effect_size[3], who_prop_table['subset1_day5_P', ]),
-                         calculate_sample_size_who(0.05 ,0.8 , who_effect_size[4], who_prop_table['subset1_day5_P', ]) )
+who_sample_size = c( calculate_sample_size_who(0.05 ,0.8 , who_effect_size[1], who_prop_table["subset1_day5_P", ]),
+                         calculate_sample_size_who(0.05 ,0.8 , who_effect_size[2], who_prop_table["subset1_day5_P", ]),
+                         calculate_sample_size_who(0.05 ,0.8 , who_effect_size[3], who_prop_table["subset1_day5_P", ]),
+                         calculate_sample_size_who(0.05 ,0.8 , who_effect_size[4], who_prop_table["subset1_day5_P", ]) )
 
-who_sample_size_ucl = c( calculate_sample_size_who(0.05 ,0.8 , who_effect_size_ucl[1], who_prop_table['subset1_day5_P', ]),
-                              calculate_sample_size_who(0.05 ,0.8 , who_effect_size_ucl[2], who_prop_table['subset1_day5_P', ]),
-                              calculate_sample_size_who(0.05 ,0.8 , who_effect_size_ucl[3], who_prop_table['subset1_day5_P', ]),
-                              calculate_sample_size_who(0.05 ,0.8 , who_effect_size_ucl[4], who_prop_table['subset1_day5_P', ]) )
+who_sample_size_ucl = c( calculate_sample_size_who(0.05 ,0.8 , who_effect_size_ucl[1], who_prop_table["subset1_day5_P", ]),
+                              calculate_sample_size_who(0.05 ,0.8 , who_effect_size_ucl[2], who_prop_table["subset1_day5_P", ]),
+                              calculate_sample_size_who(0.05 ,0.8 , who_effect_size_ucl[3], who_prop_table["subset1_day5_P", ]),
+                              calculate_sample_size_who(0.05 ,0.8 , who_effect_size_ucl[4], who_prop_table["subset1_day5_P", ]) )
 
-who_sample_size_lcl = c( calculate_sample_size_who(0.05 ,0.8 , who_effect_size_lcl[1], who_prop_table['subset1_day5_P', ]),
-                             calculate_sample_size_who(0.05 ,0.8 , who_effect_size_lcl[2], who_prop_table['subset1_day5_P', ]),
-                             calculate_sample_size_who(0.05 ,0.8 , who_effect_size_lcl[3], who_prop_table['subset1_day5_P', ]),
-                             calculate_sample_size_who(0.05 ,0.8 , who_effect_size_lcl[4], who_prop_table['subset1_day5_P', ]) )
+who_sample_size_lcl = c( calculate_sample_size_who(0.05 ,0.8 , who_effect_size_lcl[1], who_prop_table["subset1_day5_P", ]),
+                             calculate_sample_size_who(0.05 ,0.8 , who_effect_size_lcl[2], who_prop_table["subset1_day5_P", ]),
+                             calculate_sample_size_who(0.05 ,0.8 , who_effect_size_lcl[3], who_prop_table["subset1_day5_P", ]),
+                             calculate_sample_size_who(0.05 ,0.8 , who_effect_size_lcl[4], who_prop_table["subset1_day5_P", ]) )
 
 
 sample_size_who = data.frame(outcome_measure = rep("WHO day 5",4),
@@ -187,9 +187,9 @@ effect_size_susimp = data.frame(outcome_measure = rep("Sustained 1 level improve
                              effect_size_lcl = susimp_effect_size_lcl,
                              effect_size_ucl = susimp_effect_size_ucl)
 
-susimp_sample_size = calculate_sample_size_susimp_vec(0.8 , susimp_effect_size, susimp_prop_table['subset1', 'sustained_1L_improvement'])
-susimp_sample_size_lcl = calculate_sample_size_susimp_vec(0.8 , susimp_effect_size_ucl, susimp_prop_table['subset1', 'sustained_1L_improvement'])
-susimp_sample_size_ucl = calculate_sample_size_susimp_vec(0.8 , susimp_effect_size_lcl, susimp_prop_table['subset1', 'sustained_1L_improvement'])
+susimp_sample_size = calculate_sample_size_susimp_vec(0.8 , susimp_effect_size, susimp_prop_table["subset1", "sustained_1L_improvement"])
+susimp_sample_size_lcl = calculate_sample_size_susimp_vec(0.8 , susimp_effect_size_ucl, susimp_prop_table["subset1", "sustained_1L_improvement"])
+susimp_sample_size_ucl = calculate_sample_size_susimp_vec(0.8 , susimp_effect_size_lcl, susimp_prop_table["subset1", "sustained_1L_improvement"])
 
 sample_size_susimp = data.frame(outcome_measure = rep("Sustained 1 level improvement",4),
                               treatment_effect = c(0.85, 0.8, 0.75, 0.7),
@@ -232,7 +232,7 @@ mean_opp = mean(subset1$sf94_day5_P, na.rm = TRUE)
 sd_opp = sd(subset1$sf94_day5_P, na.rm = TRUE)
 
 # Calculate correlation between sf94 day 5 and sf94 day 0.
-rho = cor(subset1$sf94_day5_P,  subset1$sf94_day0, use = 'complete.obs')
+rho = cor(subset1$sf94_day5_P,  subset1$sf94_day0, use = "complete.obs")
 
 # Assume that protocolised measurements have 0.8* standard deviation of opportunistic measurements,
 # and there is 0.7 correlation between them
@@ -255,10 +255,10 @@ sample_size_sf94_prot = data.frame(outcome_measure = rep("Protocolised S/F94 day
 #### Combine all and create plot
 
 df_effect_size = rbind(effect_size_sf94, effect_size_who, effect_size_susimp, effect_size_sf94_prot)
-write.csv(df_effect_size, "/home/skerr/Git/SF94/Outputs/effect_sizes_all_outcomes.csv")
+write.csv(df_effect_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/effect_sizes_all_outcomes.csv"))
 
 df_sample_size = rbind(sample_size_mort, sample_size_sf94, sample_size_who, sample_size_susimp, sample_size_sf94_prot)
-write.csv(df_sample_size, "/home/skerr/Git/SF94/Outputs/sample_sizes_all_outcomes.csv")
+write.csv(df_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sample_sizes_all_outcomes.csv"))
 
 ggplot(df_sample_size , 
   aes(x= treatment_effect,
@@ -272,7 +272,7 @@ ggplot(df_sample_size ,
   theme_bw()+
   guides(fill=guide_legend(title="Outcome measure"))
 
-ggsave(dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="samplesize_graph.pdf")
+ggsave(dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="samplesize_graph.pdf")
 
 
 
@@ -300,7 +300,7 @@ ggplot(df,
   scale_fill_manual(values =c("#f60000", "#0000f6"),
                     name="28-day outcome", labels=c("Discharged alive", "Death"))
 
-ggsave(width=13, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="sf94_violin_plot_12_days.pdf")
+ggsave(width=13, dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="sf94_violin_plot_12_days.pdf")
 
 #Respiratory rate and SF9/4 function, including regression line (Sup figure 5)
 pearson_value = as.character(round(cor(x=data_1$sf94, y=data_1$rr_vsorres, method = "pearson", use = "complete.obs"), 2))
@@ -313,11 +313,11 @@ ggplot(data_1, aes(x=sf94, y=rr_vsorres)) +
   theme_bw()+
   annotate("text", x=c(3.7,4), y=68, label= c("R=", pearson_value))
 
-ggsave(dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="sf94_rr_plot.pdf")
+ggsave(dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="sf94_rr_plot.pdf")
 
 write.csv(data.frame(unique_subjids_subset1 = length(unique(subset1$subjid)),
                      unique_subjids_before_day12 = n_12),
-          "/home/skerr/Git/SF94/Outputs/number_unique_subjids.csv")
+          paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/number_unique_subjids.csv"))
 
 
 #time series SF94 for each day split by outcome
@@ -331,7 +331,7 @@ ggplot(df, aes(x=days_since_start, y=sf94,
   scale_color_manual(values =c("#f60000", "#0000f6"),
                      name= "Outcome", labels=c("Discharged alive", "Death"))
 
-ggsave(dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="timeseries_sf94.pdf")
+ggsave(dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="timeseries_sf94.pdf")
 
 # sf94 violin plots over 28 days
 df = dplyr::select(data, subjid, days_since_start, sf94, mortality_28) %>%
@@ -353,7 +353,7 @@ ggplot(df,
   scale_fill_manual(values =c("#f60000", "#0000f6"),
                     name="28-day outcome", labels=c("Discharged alive", "Death"))
 
-ggsave(width=13, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="sf94_violin_plot_28_days.pdf")
+ggsave(width=13, dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="sf94_violin_plot_28_days.pdf")
 
 
 # sf94 day 5 violin plot for everyone in subjids_1 who has a severity scale
@@ -374,12 +374,12 @@ ggplot(who_day5,
   ylab("S/F94 day5") +
   scale_fill_manual(values=c("#ff0000", "#d7001b", "#a5002b","#7e0055",
                              "#530073","#350087", "#0000aa"))+
-  xlab('') +
+  xlab("") +
   theme(legend.position = "none",
         plot.title = element_text (hjust = 0.5))+ #remove legend + center title
   scale_x_discrete(labels=c("4 Hosp", "5 Ox", "6 CPAP/HFNO", "7 IMV", "8 IMV S/F<2", "9 MOF", "10 Dead"))
 
-ggsave(dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="who_sf94_day5_violin_plot.pdf")
+ggsave(dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="who_sf94_day5_violin_plot.pdf")
 
 
 # sf94 day 0 violin plot
@@ -393,13 +393,13 @@ ggplot(day0,
   theme_bw()+
   ggtitle(title)+
   scale_fill_manual(values =c("#f60000", "#0000f6"))+
-  scale_x_discrete(labels = c("Discharge",'Death'))+
+  scale_x_discrete(labels = c("Discharge","Death"))+
   ylab("S/F94 day0")+
-  xlab('') +
+  xlab("") +
   theme(legend.position = "none",
         plot.title = element_text (hjust = 0.5)) #remove legend + center title
 
-ggsave(dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="mort_sf94_day0_violin_plot.pdf")
+ggsave(dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="mort_sf94_day0_violin_plot.pdf")
 
 # sf94 day 5 violin plot
 day5 = filter(data_1, days_since_start == 5)
@@ -412,13 +412,13 @@ ggplot(day5,
   theme_bw()+
   ggtitle(title)+
   scale_fill_manual(values =c("#f60000", "#0000f6"))+
-  scale_x_discrete(labels = c("Discharge",'Death'))+
+  scale_x_discrete(labels = c("Discharge","Death"))+
   ylab("S/F94 day5")+
-  xlab('') +
+  xlab("") +
   theme(legend.position = "none",
         plot.title = element_text (hjust = 0.5)) #remove legend + center title
 
-ggsave(dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="mort_sf94_day5_violin_plot.pdf")
+ggsave(dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="mort_sf94_day5_violin_plot.pdf")
 
 
 
@@ -441,12 +441,12 @@ ggplot(who_day5_all,
                              "#530073","#350087", "#0000aa"))+
   ggtitle(title)+ 
   ylab("S/F94 day5") +
-  xlab('') +
+  xlab("") +
   theme(legend.position = "none",
         plot.title = element_text (hjust = 0.5))+ #remove legend + center title
   scale_x_discrete(labels=c("4 Hosp", "5 Ox", "6 CPAP/HFNO", "7 IMV", "8 IMV S/F<2", "9 MOF", "10 Dead"))
 
-ggsave(dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="who_sf94_day5_violin_plot_all.pdf")
+ggsave(dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="who_sf94_day5_violin_plot_all.pdf")
 
 
 
@@ -464,11 +464,11 @@ ggplot(day0_all,
   scale_fill_manual(values =c("#f60000", "#0000f6"))+
   ylab("S/F94 day0")+
   xlab("")+
-  scale_x_discrete(labels = c("Discharge",'Death'))+
+  scale_x_discrete(labels = c("Discharge","Death"))+
   theme(legend.position = "none",
         plot.title = element_text (hjust = 0.5)) #remove legend + center title
 
-ggsave(dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="mort_sf94_day0_violin_plot_all.pdf")
+ggsave(dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="mort_sf94_day0_violin_plot_all.pdf")
 
 
 # sf94 day 5 violin plot for everyone
@@ -484,11 +484,11 @@ ggplot(day5_all,
   scale_fill_manual(values =c("#f60000", "#0000f6"))+
   ylab("S/F94 day5")+
   xlab("")+
-  scale_x_discrete(labels = c("Discharge",'Death'))+
+  scale_x_discrete(labels = c("Discharge","Death"))+
   theme(legend.position = "none",
         plot.title = element_text (hjust = 0.5)) #remove legend + center title
 
-ggsave(dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="mort_sf94_day5_violin_plot_all.pdf")
+ggsave(dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="mort_sf94_day5_violin_plot_all.pdf")
 
 
 
@@ -497,25 +497,25 @@ ggsave(dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="mort_sf94_day5
 ############################# Model summary and predictions #############################################
 
 # tbl_regression appears only to work with glm and not lrm
-multivariate_model <- glm(mortality_28 ~ sf94_day0 + sf94_day5_P, subset1, family = 'binomial')
+multivariate_model <- glm(mortality_28 ~ sf94_day0 + sf94_day5_P, subset1, family = "binomial")
 
 results = tidy(multivariate_model) %>%
   mutate(ucl = estimate + 1.96 * std.error,
          lcl = estimate - 1.96 * std.error,
-         term = gsub('period', '', term)) %>%
+         term = gsub("period", "", term)) %>%
   select(term, estimate, lcl, ucl) %>%
   mutate_if(is.numeric, ~formatC(round(exp(.), 2), format = "f", big.mark = ",", drop0trailing = TRUE)) %>%
-  mutate(estimate = paste0(estimate, ' (', lcl, ' - ', ucl, ')' )) %>%
+  mutate(estimate = paste0(estimate, " (", lcl, " - ", ucl, ")" )) %>%
   select(-lcl, -ucl) 
 
-write.csv(results, '/home/skerr/Git/SF94/Outputs/day0_day5_P_multivariate_model_summary.csv')
+write.csv(results, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/day0_day5_P_multivariate_model_summary.csv"))
 
 # Predict function only appears to work with lrm, not glm
 
 #First need to set data distribution for rms functions
 attach(subset1)
 ddist <- datadist(sf94_day0, sf94_day5_P, mortality_28)
-options(datadist='ddist')
+options(datadist="ddist")
 detach(subset1)
 
 
@@ -564,7 +564,7 @@ plot_uni<-ggplot(Predict(univariate_model, fun=plogis),
                        ylab= "Risk of 28-day mortality", ylim=c(0,0.8), sepdiscrete="vertical")+ theme_bw()
 plot_uni$data$.predictor. <- factor(plot_uni$data$.predictor., 
                                           labels = paste0("S/F94 day 0 (N=", not_na, ")"))
-#  this 'label_value' labeller() call alters the facet labels
+#  this "label_value" labeller() call alters the facet labels
 plot_uni<-plot_uni + facet_grid(. ~ .predictor., labeller = label_value)
 
 
@@ -576,10 +576,10 @@ day_0_plots = ggarrange(plot_d0_multi,
                                        axis.title.y=element_blank()), ncol=2, widths=c(1,1)) #make same size
 
 
-ggsave(plot=day_0_plots, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="day_0_predicted_mortality_plots.pdf")
-ggsave(plot=plot_d5_multi, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="day_5_predicted_mortality_multivariate_model_plot.pdf",
+ggsave(plot=day_0_plots, dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="day_0_predicted_mortality_plots.pdf")
+ggsave(plot=plot_d5_multi, dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="day_5_predicted_mortality_multivariate_model_plot.pdf",
        width = 4, height=7, units = "cm")
-ggsave(plot=plot_uni, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="day_0_predicted_mortality_univariate_model_plot.pdf")
-ggsave(plot=plot_d0_multi, dpi=300, path = '/home/skerr/Git/SF94/Outputs/', filename="day_0_predicted_mortality_multivariate_model_plot.pdf")
+ggsave(plot=plot_uni, dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="day_0_predicted_mortality_univariate_model_plot.pdf")
+ggsave(plot=plot_d0_multi, dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="day_0_predicted_mortality_multivariate_model_plot.pdf")
 
 
