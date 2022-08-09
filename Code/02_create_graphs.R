@@ -265,17 +265,15 @@ ggplot(df_sample_size ,
   y = sample_size,
   group= outcome_measure, colour = outcome_measure, fill = outcome_measure)) +
   geom_line() +
-  geom_ribbon(aes(ymin = sample_size_lcl, ymax = sample_size_ucl), linetype=1, alpha=0.2, colour = NA) +
+  geom_ribbon(aes(ymin = sample_size_lcl, ymax = sample_size_ucl), linetype=1, alpha=0.2, colour = NA, 
+              show.legend = F) +
   xlab("Treatment effect (predicted 28-day mortality relative risk ratio)")+ 
   ylab("Sample size") +
   scale_x_reverse() +
   theme_bw()+
-  guides(fill=guide_legend(title="Outcome measure"))
+  labs(colour = "Outcome measure") 
 
 ggsave(dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="samplesize_graph.pdf")
-
-
-
 
 
 #################################### sf94 violin plots ####################################################
