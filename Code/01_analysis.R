@@ -16,11 +16,13 @@ library(MASS)
 library(Hmisc)
 library(tidyverse)
 
+set.seed(1234)
+
 ######################################### Load data ###############################################################
 
 #time_stamp = "2021-05-26_1941"
-time_stamp = "2021-06-22_1715"
-#time_stamp = "2022-07-21_1148"
+#time_stamp = "2021-06-22_1715"
+time_stamp = "2022-07-21_1148"
 
 # Create output directory
 output_dir = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp)
@@ -116,7 +118,7 @@ prop_add = function(df, dead_discharge_proportions, day){
   
   df[new_col] = df[col]
   
-  rows_to_replace=which(is.na(df[[new_col]]) &df$day_of_death < day ) #find rows with missing values and who died
+  rows_to_replace=which( is.na(df[[new_col]]) &df$day_of_death < day ) #find rows with missing values and who died
   
   df[[new_col]][sample(rows_to_replace, dead_to_add)]= 0.5 #and add correct number of dead patients
   
@@ -357,6 +359,7 @@ calculate_sample_size_mort = function(mort, mort_multiplier){
   
   n = model$n
   
+  # This is a continuity correction
   sample_size = round(2 * (n/4)*( 1+sqrt( 1+(4/(n*(p1-p2))) ) )^2)
   
   out = c('p1' = p1, 'p2' = p2, 'mortality_multiplier' = mort_multiplier,

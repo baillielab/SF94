@@ -30,7 +30,7 @@ df_comparegroups<-df_comparegroups %>%
   mutate(
     sf94_group = case_when(
       !is.na(sf94) ~ "S/F94",
-      is.na(sf94) & !is.na(sfr)  ~ "not_sf94")))
+      is.na(sf94) & !is.na(sfr)  ~ "not_sf94"))
 #remove rows with missing group (because of missing SF data)
 df_comparegroups<-subset(df_comparegroups, !is.na(sf94_group))
 
