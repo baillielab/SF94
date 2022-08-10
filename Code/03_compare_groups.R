@@ -74,8 +74,9 @@ patientnumbers<-cbind(uniquepatientssf94, uniquepatientsnotsf94, measurementssf9
 write.csv(patientnumbers, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/patientnumbers.csv"))
 
 # mortality
+
 df_mortality<-df_comparegroups[,c("subjid", "mortality_28", "sf94_group")]
-df_mortality<-df_mortality%>%group_by(subjid)%>%slice(which.max(mortality_28)) %>% ungroup()
+df_mortality<-df_mortality%>%group_by(subjid, sf94_group)%>%slice(which.max(mortality_28))
 unique_mortality<-table(df_mortality$mortality_28, df_mortality$sf94_group)
 
 write.csv(unique_mortality, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/unique_mortality.csv"))

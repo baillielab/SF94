@@ -20,9 +20,9 @@ set.seed(1234)
 
 ######################################### Load data ###############################################################
 
-time_stamp = "2021-05-26_1941"
+#time_stamp = "2021-05-26_1941"
 #time_stamp = "2021-06-22_1715"
-#time_stamp = "2022-07-21_1148"
+time_stamp = "2022-07-21_1148"
 
 # Create output directory
 output_dir = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp)
