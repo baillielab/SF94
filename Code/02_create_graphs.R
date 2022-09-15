@@ -296,6 +296,7 @@ df_sample_size = rbind(sample_size_mort, sample_size_sf94, sample_size_who, samp
 write.csv(df_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sample_sizes_all_outcomes.csv"))
 
 
+
 df_sample_size$outcome_measure = gsub('Sustained 1 level improvement', 'WHO sustained 1-level improvement', 
                                       df_sample_size$outcome_measure )
 
@@ -304,12 +305,10 @@ df_sample_size$outcome_measure = gsub('Sustained 2 level improvement', 'WHO sust
 
 df_sample_size$outcome_measure<-factor(df_sample_size$outcome_measure, levels=c("28-day mortality", 
                                                                                 "WHO sustained 1-level improvement",
-                                                                                "WHO sustained 2-level improvement",
                                                                                 "WHO day 5", 
+                                                                                "WHO sustained 2-level improvement",
                                                                                 "S/F94 day 5", 
                                                                                 "Protocolised S/F94 day 5"))
-
-
 
 ggplot(df_sample_size , 
   aes(x= treatment_effect,
