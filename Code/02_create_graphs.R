@@ -297,8 +297,8 @@ write.csv(df_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/
 
 df_sample_size$outcome_measure<-factor(df_sample_size$outcome_measure, levels=c("28-day mortality", 
                                                                                 "Sustained 1 level improvement",
-                                                                                "Sustained 2 level improvement",
                                                                                 "WHO day 5", 
+                                                                                "Sustained 2 level improvement",
                                                                                 "S/F94 day 5", 
                                                                                 "Protocolised S/F94 day 5"))
 
@@ -314,8 +314,8 @@ ggplot(df_sample_size ,
   y = sample_size,
   group= outcome_measure, colour = outcome_measure, fill = outcome_measure)) +
   geom_line() +
-  scale_fill_manual(values=c("black", "darkblue", "blue", "darkred", "red")) +
-  scale_color_manual(values=c("black", "darkblue", "blue", "darkred", "red"))+
+  scale_fill_manual(values=c("black", "darkblue", "blue", "lightblue", "darkred", "red")) +
+  scale_color_manual(values=c("black", "darkblue", "blue", "lightblue", "darkred", "red"))+
   geom_ribbon(aes(ymin = sample_size_lcl, ymax = sample_size_ucl), linetype=1, alpha=0.2, colour = NA, 
               show.legend = F) +
   xlab("Treatment effect (predicted 28-day mortality relative risk ratio)")+ 
