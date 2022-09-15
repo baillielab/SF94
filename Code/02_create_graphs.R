@@ -199,6 +199,41 @@ sample_size_susimp = data.frame(outcome_measure = rep("Sustained 1 level improve
 
 
 
+#### Sustained 2 level improvement
+
+# Effect sizes and their upper and lower confidence intervals
+susimp_effect_size2 = c()
+susimp_effect_size_ucl2 = c()
+susimp_effect_size_lcl2 = c()
+
+for (treatment in c(0.85, 0.8, 0.75, 0.7)){
+  
+  boot_result = boot(data = subset1, statistic = effect_size_boot_susimp, R=1000, improvement = 2, treatment = treatment)
+  boot_ci = boot.ci(boot_result, conf = 0.95, type="basic")
+  
+  susimp_effect_size2 = c(susimp_effect_size2, boot_result$t0)
+  susimp_effect_size_ucl2 = c(susimp_effect_size_ucl2, boot_ci$basic[,5])
+  susimp_effect_size_lcl2 = c(susimp_effect_size_lcl2, boot_ci$basic[,4])
+}
+
+effect_size_susimp2 = data.frame(outcome_measure = rep("Sustained 2 level improvement",4),
+                                treatment_effect = c(0.85, 0.8, 0.75, 0.7),
+                                effect_size = susimp_effect_size2,
+                                effect_size_lcl = susimp_effect_size_lcl2,
+                                effect_size_ucl = susimp_effect_size_ucl2)
+
+susimp_sample_size2 = calculate_sample_size_susimp_vec(0.8 , susimp_effect_size2, susimp_prop_table["subset1", "sustained_2L_improvement"])
+susimp_sample_size_lcl2 = calculate_sample_size_susimp_vec(0.8 , susimp_effect_size_ucl2, susimp_prop_table["subset1", "sustained_2L_improvement"])
+susimp_sample_size_ucl2 = calculate_sample_size_susimp_vec(0.8 , susimp_effect_size_lcl2, susimp_prop_table["subset1", "sustained_2L_improvement"])
+
+sample_size_susimp2 = data.frame(outcome_measure = rep("Sustained 2 level improvement",4),
+                                treatment_effect = c(0.85, 0.8, 0.75, 0.7),
+                                sample_size = susimp_sample_size2,
+                                sample_size_lcl = susimp_sample_size_lcl2,
+                                sample_size_ucl = susimp_sample_size_ucl2)
+
+
+
 
 #### Protocolised sf94
 
@@ -254,17 +289,25 @@ sample_size_sf94_prot = data.frame(outcome_measure = rep("Protocolised S/F94 day
 
 #### Combine all and create plot
 
-df_effect_size = rbind(effect_size_sf94, effect_size_who, effect_size_susimp, effect_size_sf94_prot)
+df_effect_size = rbind(effect_size_sf94, effect_size_who, effect_size_susimp, effect_size_susimp2, effect_size_sf94_prot)
 write.csv(df_effect_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/effect_sizes_all_outcomes.csv"))
 
-df_sample_size = rbind(sample_size_mort, sample_size_sf94, sample_size_who, sample_size_susimp, sample_size_sf94_prot)
+df_sample_size = rbind(sample_size_mort, sample_size_sf94, sample_size_who, sample_size_susimp, sample_size_susimp2, sample_size_sf94_prot)
 write.csv(df_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sample_sizes_all_outcomes.csv"))
 
-df_sample_size$outcome_measure<-factor(df_sample_size$outcome_measure, levels=c("28-day mortality", "Sustained 1 level improvement",
-                                                                                "WHO day 5", "S/F94 day 5", 
+df_sample_size$outcome_measure<-factor(df_sample_size$outcome_measure, levels=c("28-day mortality", 
+                                                                                "Sustained 1 level improvement",
+                                                                                "Sustained 2 level improvement",
+                                                                                "WHO day 5", 
+                                                                                "S/F94 day 5", 
                                                                                 "Protocolised S/F94 day 5"))
 
-df_sample_size$outcome_measure[df_sample_size$outcome_measure]<- "WHO Sustained 1 level improvement"
+df_sample_size$outcome_measure = gsub('Sustained 1 level improvement', 'WHO sustained 1-level improvement', 
+                                      df_sample_size$outcome_measure )
+
+df_sample_size$outcome_measure = gsub('Sustained 2 level improvement', 'WHO sustained 2-level improvement', 
+                                      df_sample_size$outcome_measure )
+
 
 ggplot(df_sample_size , 
   aes(x= treatment_effect,
@@ -280,7 +323,7 @@ ggplot(df_sample_size ,
   scale_x_reverse() +
   theme_bw()+
   labs(colour = "Outcome measure") +
-  theme(legend.position=c(0.8,0.85)
+  theme(legend.position=c(0.8,0.85) )
 
 ggsave(dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="samplesize_graph.pdf")
 
