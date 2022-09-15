@@ -295,12 +295,6 @@ write.csv(df_effect_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/
 df_sample_size = rbind(sample_size_mort, sample_size_sf94, sample_size_who, sample_size_susimp, sample_size_susimp2, sample_size_sf94_prot)
 write.csv(df_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sample_sizes_all_outcomes.csv"))
 
-df_sample_size$outcome_measure<-factor(df_sample_size$outcome_measure, levels=c("28-day mortality", 
-                                                                                "Sustained 1 level improvement",
-                                                                                "Sustained 2 level improvement",
-                                                                                "WHO day 5", 
-                                                                                "S/F94 day 5", 
-                                                                                "Protocolised S/F94 day 5"))
 
 df_sample_size$outcome_measure = gsub('Sustained 1 level improvement', 'WHO sustained 1-level improvement', 
                                       df_sample_size$outcome_measure )
@@ -308,14 +302,22 @@ df_sample_size$outcome_measure = gsub('Sustained 1 level improvement', 'WHO sust
 df_sample_size$outcome_measure = gsub('Sustained 2 level improvement', 'WHO sustained 2-level improvement', 
                                       df_sample_size$outcome_measure )
 
+df_sample_size$outcome_measure<-factor(df_sample_size$outcome_measure, levels=c("28-day mortality", 
+                                                                                "WHO sustained 1-level improvement",
+                                                                                "WHO sustained 2-level improvement",
+                                                                                "WHO day 5", 
+                                                                                "S/F94 day 5", 
+                                                                                "Protocolised S/F94 day 5"))
+
+
 
 ggplot(df_sample_size , 
   aes(x= treatment_effect,
   y = sample_size,
   group= outcome_measure, colour = outcome_measure, fill = outcome_measure)) +
   geom_line() +
-  scale_fill_manual(values=c("black", "darkblue", "blue", "darkred", "red")) +
-  scale_color_manual(values=c("black", "darkblue", "blue", "darkred", "red"))+
+  scale_fill_manual(values=c("black", "darkblue", "blue", "lightblue", "darkred", "red")) +
+  scale_color_manual(values=c("black", "darkblue", "blue", "lightblue", "darkred", "red"))+
   geom_ribbon(aes(ymin = sample_size_lcl, ymax = sample_size_ucl), linetype=1, alpha=0.2, colour = NA, 
               show.legend = F) +
   xlab("Treatment effect (predicted 28-day mortality relative risk ratio)")+ 
