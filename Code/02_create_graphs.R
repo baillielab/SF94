@@ -332,6 +332,8 @@ ggsave(dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), file
 
 #################################### sf94 violin plots ####################################################
 
+  
+
 # sf94 violin plots over 12 days
 df = dplyr::select(data, subjid, days_since_start, sf94, mortality_28) %>%
   filter(!is.na(sf94), days_since_start <= 12, subjid %in% pull(data_1, subjid) ) %>%
@@ -340,13 +342,16 @@ df = dplyr::select(data, subjid, days_since_start, sf94, mortality_28) %>%
 
 n_12 = length(unique(df$subjid))
 
+sum_text<-df%>%group_by(days_since_start)%>%summarise(n=n())
+sum_text$numbers<-paste0("N=", sum_text$n)
+
 # Split violin plot
-ggplot(df, 
-       aes(x=days_since_start, y=sf94, fill=mortality_28)) +
-  geom_split_violin(width=1.5)+
+ggplot(df) +
+  geom_split_violin(aes(x=days_since_start, y=sf94, fill=mortality_28), width=1.5)+
+  geom_text(aes(x=days_since_start, y=4.8, label=(numbers)), data=sum_text)+
   xlab("Day")+
   ylab("S/F94")+
-  ggtitle(paste0("S/F94 in the first 12 days since admission (N=", n_12, ")") )+
+  ggtitle(paste0("S/F94 in the first 12 days since admission")+
   theme_bw()+
   theme(plot.title = element_text(hjust = 0.5))+
   scale_fill_manual(values =c("#f60000", "#0000f6"),
