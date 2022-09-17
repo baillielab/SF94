@@ -575,28 +575,28 @@ multivariate_model <- lrm(mortality_28 ~ sf94_day0 + sf94_day5_P, subset1, x=TRU
 not_na = sum(!is.na(subset1$mortality_28) & !is.na(subset1$sf94_day0) & !is.na(subset1$sf94_day5_P) )
 
 
-title_d5mult<-paste("S/F94 day 5 (N=", not_na, ")", sep = "")
-title_d0mult<-paste("S/F94 day 0 (N=", not_na, ")", sep = "")
+title_d5mult<-paste("N=", not_na, sep = "")
+title_d0mult<-paste("N=", not_na, sep = "")
 
 ### Predicted mortality risk plots
 
 ## Multivariate
 # Day 0
 plot_d0_multi = ggplot(Predict(multivariate_model, fun=plogis), sepdiscrete="vertical",
-                       ylab= "Risk of 28-day mortality", ylim=c(0,0.8)) + theme_bw()
+                       ylab= "Risk of 28-day mortality", ylim=c(0,0.8), xlab="S/F94 day 0") + theme_bw()
 
 # Remove column day 5 (column 2) and final 200 rows
 plot_d0_multi$data<-plot_d0_multi$data[-c(201:400),-c(2)]
 
 # Change label name
 plot_d0_multi$data$.predictor.<-factor(plot_d0_multi$data$.predictor.,
-                                       labels= paste0("S/F94 day 0 (N=", not_na, ")")) 
+                                       labels= paste0("N=", not_na)) 
 plot_d0_multi<-plot_d0_multi + facet_grid(. ~ .predictor., labeller = label_value)
 
 
 # Day 5
 plot_d5_multi<- ggplot(Predict(multivariate_model, fun=plogis),sepdiscrete="vertical",
-                       ylab= "Risk of 28-day mortality") + theme_bw()
+                       ylab= "Risk of 28-day mortality", xlab="S/F94 day 5") + theme_bw()
 
 # Change label name
 plot_d5_multi$data<-plot_d5_multi$data[-c(1:200),-c(1)] #change label names
@@ -613,9 +613,9 @@ univariate_model <- lrm(mortality_28 ~ sf94_day0, subset1, x=TRUE, y=TRUE)
 not_na = sum(!is.na(subset1$mortality_28) & !is.na(subset1$sf94_day0))
 
 plot_uni<-ggplot(Predict(univariate_model, fun=plogis),
-                       ylab= "Risk of 28-day mortality", ylim=c(0,0.8), sepdiscrete="vertical")+ theme_bw()
+                       ylab= "Risk of 28-day mortality", ylim=c(0,0.8),xlab="S/F94 day 0", sepdiscrete="vertical")+ theme_bw()
 plot_uni$data$.predictor. <- factor(plot_uni$data$.predictor., 
-                                          labels = paste0("S/F94 day 0 (N=", not_na, ")"))
+                                          labels = paste0("N=", not_na))
 #  this "label_value" labeller() call alters the facet labels
 plot_uni<-plot_uni + facet_grid(. ~ .predictor., labeller = label_value)
 
