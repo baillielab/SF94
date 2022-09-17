@@ -348,10 +348,10 @@ sum_text$numbers<-paste0("N=", sum_text$n)
 # Split violin plot
 ggplot(df) +
   geom_split_violin(aes(x=days_since_start, y=sf94, fill=mortality_28), width=1.5)+
-  geom_text(aes(x=days_since_start, y=4.8, label=(numbers)), data=sum_text)+
+  geom_text(aes(x=days_since_start, y=4.9, label=(numbers)), data=sum_text)+
   xlab("Day")+
   ylab("S/F94")+
-  ggtitle(paste0("S/F94 in the first 12 days since admission")+
+  ggtitle(paste0("S/F94 in the first 12 days since admission"))+
   theme_bw()+
   theme(plot.title = element_text(hjust = 0.5))+
   scale_fill_manual(values =c("#f60000", "#0000f6"),
