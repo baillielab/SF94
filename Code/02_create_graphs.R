@@ -599,7 +599,7 @@ plot_d0_multi = ggplot(filter(predictions, .predictor. == 'sf94_day0'), aes(x = 
   ggtitle(paste0("N=", not_na) ) +
   ylab("Risk of 28-day mortality") + 
   ylim(0, 0.8)+
-  theme(plot.title = element_text(hjust = 0.5))
+  theme(plot.title = element_text(hjust = 0.5, size = 18))
 
 plot_d5_multi = ggplot(filter(predictions, .predictor. == 'sf94_day5_P'), aes(x = sf94_day5_P, y = yhat)) + 
   geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.1) +
@@ -607,7 +607,7 @@ plot_d5_multi = ggplot(filter(predictions, .predictor. == 'sf94_day5_P'), aes(x 
   ggtitle(paste0("N=", not_na) ) +
   ylab("")+ 
   ylim(0, 0.8)+
-  theme(plot.title = element_text(hjust = 0.5))
+  theme(plot.title = element_text(hjust = 0.5, size = 18))
 
 ggarrange(plot_d0_multi, plot_d5_multi,
           ncol = 2, nrow = 1)
