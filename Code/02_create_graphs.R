@@ -594,20 +594,32 @@ predictions = Predict(multivariate_model, fun=plogis) %>%
   data.frame()
 
 plot_d0_multi = ggplot(filter(predictions, .predictor. == 'sf94_day0'), aes(x = sf94_day0, y = yhat)) + 
+  geom_line() +
+  theme_bw() +
   geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.1) +
   xlab("S/F94 day 0") + 
   ggtitle(paste0("N=", not_na) ) +
   ylab("Risk of 28-day mortality") + 
   ylim(0, 0.8)+
-  theme(plot.title = element_text(hjust = 0.5, size = 18))
+  theme(plot.title = element_text(hjust = 0.5, size = 9),
+        axis.text.y = element_text(size=6),
+        axis.text.x = element_text(size=6),
+        axis.title.y = element_text(size=6),
+        axis.title.x = element_text(size=6))
 
 plot_d5_multi = ggplot(filter(predictions, .predictor. == 'sf94_day5_P'), aes(x = sf94_day5_P, y = yhat)) + 
+  geom_line() +
+  theme_bw() +
   geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.1) +
   xlab("S/F94 day 5") + 
   ggtitle(paste0("N=", not_na) ) +
   ylab("")+ 
   ylim(0, 0.8)+
-  theme(plot.title = element_text(hjust = 0.5, size = 18))
+  theme(plot.title = element_text(hjust = 0.5, size = 9),
+        axis.text.y = element_text(size=6),
+        axis.text.x = element_text(size=6),
+        axis.title.y = element_text(size=6),
+        axis.title.x = element_text(size=6))
 
 ggarrange(plot_d0_multi, plot_d5_multi,
           ncol = 2, nrow = 1)
@@ -651,11 +663,16 @@ predictions = Predict(univariate_model, fun=plogis) %>%
 
 plot_d0_uni = ggplot(predictions, aes(x = sf94_day0, y = yhat)) +
   geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.1) +
+  theme_bw() +
   xlab("S/F94 day 0") + 
   ggtitle(paste0("N=", not_na) ) +
   ylab("Risk of 28-day mortality") + 
   ylim(0, 0.8)+
-  theme(plot.title = element_text(hjust = 0.5))
+  theme(plot.title = element_text(hjust = 0.5, size = 9),
+        axis.text.y = element_text(size=6),
+        axis.text.x = element_text(size=6),
+        axis.title.y = element_text(size=6),
+        axis.title.x = element_text(size=6))
 
 day_0_plots = ggarrange(plot_d0_multi, plot_d0_uni,
           ncol = 2, nrow = 1)
