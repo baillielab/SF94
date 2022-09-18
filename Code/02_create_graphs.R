@@ -12,6 +12,7 @@ library(DescTools)
 library(egg)
 library(gtsummary)
 library(broom)
+library(ggpubr)
 
 #source("~/Git/SF94/Code/01_analysis.R")
 
@@ -348,7 +349,7 @@ sum_text$numbers<-paste0("N=", sum_text$n)
 # Split violin plot
 ggplot(df) +
   geom_split_violin(aes(x=days_since_start, y=sf94, fill=mortality_28), width=1.5)+
-  geom_text(aes(x=days_since_start, y=4.9, label=(numbers)), data=sum_text)+
+  geom_text(aes(x=days_since_start, y=5, label=(numbers)), data=sum_text)+
   xlab("Day")+
   ylab("S/F94")+
   ggtitle(paste0("S/F94 in the first 12 days since admission"))+
@@ -576,39 +577,65 @@ options(datadist="ddist")
 detach(subset1)
 
 
-multivariate_model <- lrm(mortality_28 ~ sf94_day0 + sf94_day5_P, subset1, x=TRUE, y=TRUE)
-not_na = sum(!is.na(subset1$mortality_28) & !is.na(subset1$sf94_day0) & !is.na(subset1$sf94_day5_P) )
 
 
-title_d5mult<-paste("N=", not_na, sep = "")
-title_d0mult<-paste("N=", not_na, sep = "")
+
+# title_d5mult<-paste("N=", not_na, sep = "")
+# title_d0mult<-paste("N=", not_na, sep = "")
 
 ### Predicted mortality risk plots
 
 ## Multivariate
+multivariate_model <- lrm(mortality_28 ~ sf94_day0 + sf94_day5_P, subset1, x=TRUE, y=TRUE)
+not_na = sum(!is.na(subset1$mortality_28) & !is.na(subset1$sf94_day0) & !is.na(subset1$sf94_day5_P) )
+
 # Day 0
-plot_d0_multi = ggplot(Predict(multivariate_model, fun=plogis), sepdiscrete="vertical",
-                       ylab= "Risk of 28-day mortality", ylim=c(0,0.8), xlab="S/F94 day 0") + theme_bw()
+predictions = Predict(multivariate_model, fun=plogis) %>%
+  data.frame()
 
-# Remove column day 5 (column 2) and final 200 rows
-plot_d0_multi$data<-plot_d0_multi$data[-c(201:400),-c(2)]
+plot_d0_multi = ggplot(filter(predictions, .predictor. == 'sf94_day0'), aes(x = sf94_day0, y = yhat)) + 
+  geom_line(col='red') +
+  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.1) +
+  xlab( paste0("S/F94 day 0, N=", not_na) ) + 
+  ylab("Risk of 28-day mortality") + 
+  ylim(0, 0.8)
 
-# Change label name
-plot_d0_multi$data$.predictor.<-factor(plot_d0_multi$data$.predictor.,
-                                       labels= paste0("N=", not_na)) 
-plot_d0_multi<-plot_d0_multi + facet_grid(. ~ .predictor., labeller = label_value)
+plot_d5_multi = ggplot(filter(predictions, .predictor. == 'sf94_day5_P'), aes(x = sf94_day5_P, y = yhat)) + 
+  geom_line(col='blue') +
+  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.1) +
+  xlab( paste0("S/F94 day 5, N=", not_na) ) + 
+  ylab("")+ 
+  ylim(0, 0.8)
+
+ggarrange(plot_d0_multi, plot_d5_multi,
+          ncol = 2, nrow = 1)
 
 
-# Day 5
-plot_d5_multi<- ggplot(Predict(multivariate_model, fun=plogis),sepdiscrete="vertical",
-                       ylab= "Risk of 28-day mortality", xlab="S/F94 day 5") + theme_bw()
 
-# Change label name
-plot_d5_multi$data<-plot_d5_multi$data[-c(1:200),-c(1)] #change label names
-plot_d5_multi$data$.predictor.<-factor(plot_d5_multi$data$.predictor.,
-                                       labels=title_d5mult)
-
-plot_d5_multi<-plot_d5_multi + facet_grid(. ~ .predictor., labeller = label_value)
+# plot_d0_multi = ggplot(Predict(multivariate_model, fun=plogis), sepdiscrete="vertical",
+#                        ylab= "Risk of 28-day mortality", ylim=c(0,0.8)) +
+#                     theme_bw() +
+#                     xlab("S/F94 day 0")
+# 
+# # Remove column day 5 (column 2) and final 200 rows
+# plot_d0_multi$data<-plot_d0_multi$data[-c(201:400),-c(2)]
+# 
+# # Change label name
+# plot_d0_multi$data$.predictor.<-factor(plot_d0_multi$data$.predictor.,
+#                                        labels= paste0("N=", not_na))
+# plot_d0_multi<-plot_d0_multi + facet_grid(. ~ .predictor., labeller = label_value)
+# 
+# 
+# # Day 5
+# plot_d5_multi<- ggplot(Predict(multivariate_model, fun=plogis),sepdiscrete="vertical",
+#                        ylab= "Risk of 28-day mortality", xlab="S/F94 day 5") + theme_bw()
+# 
+# # Change label name
+# plot_d5_multi$data<-plot_d5_multi$data[-c(1:200),-c(1)] #change label names
+# plot_d5_multi$data$.predictor.<-factor(plot_d5_multi$data$.predictor.,
+#                                        labels=title_d5mult)
+# 
+# plot_d5_multi<-plot_d5_multi + facet_grid(. ~ .predictor., labeller = label_value)
 
 
 
@@ -617,26 +644,43 @@ univariate_model <- lrm(mortality_28 ~ sf94_day0, subset1, x=TRUE, y=TRUE)
 
 not_na = sum(!is.na(subset1$mortality_28) & !is.na(subset1$sf94_day0))
 
-plot_uni<-ggplot(Predict(univariate_model, fun=plogis),
-                       ylab= "Risk of 28-day mortality", ylim=c(0,0.8),xlab="S/F94 day 0", sepdiscrete="vertical")+ theme_bw()
-plot_uni$data$.predictor. <- factor(plot_uni$data$.predictor., 
-                                          labels = paste0("N=", not_na))
-#  this "label_value" labeller() call alters the facet labels
-plot_uni<-plot_uni + facet_grid(. ~ .predictor., labeller = label_value)
+predictions = Predict(univariate_model, fun=plogis) %>%
+  data.frame()
+
+plot_d0_uni = ggplot(predictions, aes(x = sf94_day0, y = yhat)) + 
+  geom_line(col='blue') +
+  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.1) +
+  xlab( paste0("S/F94 day 0, N=", not_na) ) + 
+  ylab("Risk of 28-day mortality") + 
+  ylim(0, 0.8)
+
+day_0_plots = ggarrange(plot_d0_multi, plot_d0_uni,
+          ncol = 2, nrow = 1)
+
+
+# plot_uni<-ggplot(Predict(univariate_model, fun=plogis),
+#                        ylab= "Risk of 28-day mortality", ylim=c(0,0.8),xlab="S/F94 day 0", sepdiscrete="vertical")+ theme_bw()
+# plot_uni$data$.predictor. <- factor(plot_uni$data$.predictor.,
+#                                           labels = paste0("N=", not_na))
+# #  this "label_value" labeller() call alters the facet labels
+# plot_uni<-plot_uni + facet_grid(. ~ .predictor., labeller = label_value)
 
 
 
 # Combine the two day 0 plots into 1 figure
-day_0_plots = ggarrange(plot_d0_multi, 
-                        plot_uni+ theme(axis.text.y=element_blank(), #remove Y axis labels and text
-                                       axis.ticks.y=element_blank(),
-                                       axis.title.y=element_blank()), ncol=2, widths=c(1,1)) #make same size
+# day_0_plots = ggarrange(plot_d0_multi, plot_d0_uni)
+# 
+# 
+# day_0_plots = ggarrange(plot_d0_multi,
+#                         plot_uni+ theme(axis.text.y=element_blank(), #remove Y axis labels and text
+#                                        axis.ticks.y=element_blank(),
+#                                        axis.title.y=element_blank()), ncol=2, widths=c(1,1)) #make same size
 
 
 ggsave(plot=day_0_plots, dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="day_0_predicted_mortality_plots.pdf")
 ggsave(plot=plot_d5_multi, dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="day_5_predicted_mortality_multivariate_model_plot.pdf",
        width = 4, height=7, units = "cm")
-ggsave(plot=plot_uni, dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="day_0_predicted_mortality_univariate_model_plot.pdf")
+ggsave(plot=plot_d0_uni, dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="day_0_predicted_mortality_univariate_model_plot.pdf")
 ggsave(plot=plot_d0_multi, dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="day_0_predicted_mortality_multivariate_model_plot.pdf")
 
 
