@@ -594,16 +594,16 @@ predictions = Predict(multivariate_model, fun=plogis) %>%
   data.frame()
 
 plot_d0_multi = ggplot(filter(predictions, .predictor. == 'sf94_day0'), aes(x = sf94_day0, y = yhat)) + 
-  geom_line(col='red') +
   geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.1) +
-  xlab( paste0("S/F94 day 0, N=", not_na) ) + 
+  xlab("S/F94 day 0") + 
+  ggtitle(paste0("N=", not_na) ) +
   ylab("Risk of 28-day mortality") + 
   ylim(0, 0.8)
 
 plot_d5_multi = ggplot(filter(predictions, .predictor. == 'sf94_day5_P'), aes(x = sf94_day5_P, y = yhat)) + 
-  geom_line(col='blue') +
   geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.1) +
-  xlab( paste0("S/F94 day 5, N=", not_na) ) + 
+  xlab("S/F94 day 5") + 
+  ggtitle(paste0("N=", not_na) ) +
   ylab("")+ 
   ylim(0, 0.8)
 
@@ -647,10 +647,10 @@ not_na = sum(!is.na(subset1$mortality_28) & !is.na(subset1$sf94_day0))
 predictions = Predict(univariate_model, fun=plogis) %>%
   data.frame()
 
-plot_d0_uni = ggplot(predictions, aes(x = sf94_day0, y = yhat)) + 
-  geom_line(col='blue') +
+plot_d0_uni = ggplot(predictions, aes(x = sf94_day0, y = yhat)) +
   geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.1) +
-  xlab( paste0("S/F94 day 0, N=", not_na) ) + 
+  xlab("S/F94 day 0") + 
+  ggtitle(paste0("N=", not_na) ) +
   ylab("Risk of 28-day mortality") + 
   ylim(0, 0.8)
 
