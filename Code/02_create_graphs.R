@@ -330,6 +330,8 @@ ggplot(df_sample_size ,
 ggsave(dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="samplesize_graph.pdf")
 
 
+cor(subset1$mortality_28, subset1$sustained_1L_improvement, use = 'complete.obs')
+cor(subset1$mortality_28, subset1$sustained_2L_improvement, use = 'complete.obs')
 
 #################################### sf94 violin plots ####################################################
 
@@ -662,6 +664,7 @@ predictions = Predict(univariate_model, fun=plogis) %>%
   data.frame()
 
 plot_d0_uni = ggplot(predictions, aes(x = sf94_day0, y = yhat)) +
+  geom_line() +
   geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.1) +
   theme_bw() +
   xlab("S/F94 day 0") + 
