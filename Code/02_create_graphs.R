@@ -424,7 +424,7 @@ who_day5 = filter(data_1, days_since_start == 5, !is.na(severity_scale_ordinal))
                                                                "WHO level 6","WHO level 7",
                                                                "WHO level 8","WHO level 9","WHO level 10")) )
 n_day5 = length(unique(who_day5$subjid))
-title = paste0("WHO ordinal severity scale and S/F94 (N=", n_day5, ")")
+title = paste0("N=", n_day5)
 
 ggplot(who_day5,
        aes(x=severity_scale_ordinal, y=sf94, fill=severity_scale_ordinal)) +
@@ -434,7 +434,7 @@ ggplot(who_day5,
   ylab("S/F94 day5") +
   scale_fill_manual(values=c("#ff0000", "#d7001b", "#a5002b","#7e0055",
                              "#530073","#350087", "#0000aa"))+
-  xlab("") +
+  xlab("WHO ordinal severity scale") +
   theme(legend.position = "none",
         plot.title = element_text (hjust = 0.5))+ #remove legend + center title
   scale_x_discrete(labels=c("4 Hosp", "5 Ox", "6 CPAP/HFNO", "7 IMV", "8 IMV S/F<2", "9 MOF", "10 Dead"))
@@ -491,7 +491,7 @@ who_day5_all = filter(data, days_since_start == 5, !is.na(severity_scale_ordinal
                                                   "WHO level 6","WHO level 7",
                                                   "WHO level 8","WHO level 9","WHO level 10")) )
 n_who5all = length(unique(who_day5_all$subjid))
-title = paste0("WHO ordinal severity scale for unselected patients (N=", n_who5all, ")", sep = "")
+title = paste0("Unselected patients (N=", n_who5all, ")", sep = "")
 
 ggplot(who_day5_all,
        aes(x=severity_scale_ordinal, y=sf94, fill=severity_scale_ordinal)) +
@@ -501,7 +501,7 @@ ggplot(who_day5_all,
                              "#530073","#350087", "#0000aa"))+
   ggtitle(title)+ 
   ylab("S/F94 day5") +
-  xlab("") +
+  xlab("WHO ordinal severity scale") +
   theme(legend.position = "none",
         plot.title = element_text (hjust = 0.5))+ #remove legend + center title
   scale_x_discrete(labels=c("4 Hosp", "5 Ox", "6 CPAP/HFNO", "7 IMV", "8 IMV S/F<2", "9 MOF", "10 Dead"))
