@@ -706,4 +706,23 @@ ggsave(plot=plot_d5_multi, dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/
 ggsave(plot=plot_d0_uni, dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="day_0_predicted_mortality_univariate_model_plot.pdf")
 ggsave(plot=plot_d0_multi, dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="day_0_predicted_mortality_multivariate_model_plot.pdf")
 
+# graph for added deaths/ discharges
+# assuming the dataset looks as follows
+# long dataframe, with 1 column sf94, with all sf94 values
+# second column (called group_sf94) indicating if the data is 'original' or 'dd'
+# dd=> added values for death/discharge
+# the dd should only be added values, so 0.5 or 4.78; not 'normal' measurements
+# dataframe is called df_countplot
+
+df_countplot$sf94<-df_countplot%>%count(sf94,group_sf94)
+
+
+countplot<-ggplot(df_countplot, aes(x=sf94, y= n, fill=group_sf94)) + 
+  geom_bar(stat="identity", show.legend = FALSE)+
+  theme_light()+
+  xlab("S/F94")+
+  scale_fill_manual(values=c("red", "blue"))+
+  ylab("Count")
+
+ggsave(plot=countplot, dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="countplot.pdf")
 
