@@ -330,9 +330,6 @@ ggplot(df_sample_size ,
 ggsave(dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="samplesize_graph.pdf")
 
 
-cor(subset1$mortality_28, subset1$sustained_1L_improvement, use = 'complete.obs')
-cor(subset1$mortality_28, subset1$sustained_2L_improvement, use = 'complete.obs')
-
 #################################### sf94 violin plots ####################################################
 
   
@@ -578,10 +575,6 @@ ddist <- datadist(sf94_day0, sf94_day5_P, mortality_28)
 options(datadist="ddist")
 detach(subset1)
 
-
-
-
-
 # title_d5mult<-paste("N=", not_na, sep = "")
 # title_d0mult<-paste("N=", not_na, sep = "")
 
@@ -714,15 +707,45 @@ ggsave(plot=plot_d0_multi, dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/
 # the dd should only be added values, so 0.5 or 4.78; not 'normal' measurements
 # dataframe is called df_countplot
 
-df_countplot$sf94<-df_countplot%>%count(sf94,group_sf94)
+# df_countplot$sf94 = df_countplot %>% count(sf94, group_sf94)
+# 
+# df_bar = bind_rows(subset1 %>%
+#                     mutate(group = 'original',
+#                            sf94_bin = cut(sf94_day5, breaks = seq(from = 0.4, to = 4.8, by = 0.1),
+#                                           labels = seq(from = 0.5, to = 4.8, by = 0.1), right = FALSE) ) %>%
+#                     select(sf94_bin, group),
+#                    subset1 %>%
+#                     mutate(group = 'dd',
+#                            sf94_bin = cut(sf94_day5_P, breaks = seq(from = 0.4, to = 4.8, by = 0.1),
+#                                           labels = seq(from = 0.5, to = 4.8, by = 0.1), right = FALSE)) %>%
+#                      select(sf94_bin, group)) %>% 
+#           count(sf94_bin, group)
 
-
-countplot<-ggplot(df_countplot, aes(x=sf94, y= n, fill=group_sf94)) + 
+ggplot(df_bar, aes(x=sf94_bin, y= n, fill=group)) + 
   geom_bar(stat="identity", show.legend = FALSE)+
   theme_light()+
   xlab("S/F94")+
   scale_fill_manual(values=c("red", "blue"))+
   ylab("Count")
 
-ggsave(plot=countplot, dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="countplot.pdf")
+
+df_hist = bind_rows(select(subset1, sf94_day5) %>%
+                      mutate(group = 'original') %>%
+                      rename(sf94 = sf94_day5) %>%
+                      select(sf94, group),
+                    select(subset1, sf94_day5_P) %>%
+                      mutate(group = 'dd') %>%
+                      rename(sf94 = sf94_day5_P) %>%
+                      select(sf94, group)) 
+
+ggplot(df_hist, aes(x = sf94, fill = group)) + 
+  #call geom_histogram with position="dodge" to offset the bars and manual binwidth of 2
+  geom_histogram(position = "stack") +
+  theme_light() +
+  xlab("S/F94") +
+  scale_fill_manual(values=c("red", "blue"))+
+  ylab("Count")
+
+
+ggsave(dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="countplot.pdf")
 
