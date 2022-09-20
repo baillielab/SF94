@@ -608,7 +608,7 @@ plot_d5_multi = ggplot(filter(predictions, .predictor. == 'sf94_day5_P'), aes(x 
   geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.1) +
   xlab("S/F94 day 5") + 
   ggtitle(paste0("N=", not_na) ) +
-  ylab("Risk of 28-day mortality")+ 
+  ylab("")+ 
   ylim(0, 0.8)+
   theme(plot.title = element_text(hjust = 0.5, size = 9),
         axis.text.y = element_text(size=6),
@@ -736,6 +736,7 @@ df_hist = bind_rows(select(subset1, sf94_day5) %>%
                     select(subset1, sf94_day5_P) %>%
                       mutate(group = 'dd') %>%
                       rename(sf94 = sf94_day5_P) %>%
+                      filter(sf94 %in% c(0.5, 4.76)) %>%
                       select(sf94, group)) 
 
 ggplot(df_hist, aes(x = sf94, fill = group)) + 
