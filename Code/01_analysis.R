@@ -342,8 +342,6 @@ ggsave(width=13, dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_st
 
 
 
-
-
 ######################### Sample size calculation with mortality as endpoint ###############################
 ## INPUTS REQUIRED ##
 # power - Desired power
@@ -816,9 +814,14 @@ calculate_sample_size_susimp = function(power, effect_size, p1){
   p2 = p1 + effect_size
   
   # Calculate sample size for a t test
-  sample_size = power.prop.test(power = power, p1 = p1, p2 = p2) 
+  model = power.prop.test(power = power, p1 = p1, p2 = p2) 
+  
+  n = model$n
+  
+  # This is a continuity correction
+  sample_size = round(2 * (n/4)*( 1+sqrt( 1+(4/(n*(p1-p2))) ) )^2)
 
-  return(sample_size$n)
+  return(sample_size)
 }
 
 

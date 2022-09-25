@@ -745,7 +745,8 @@ ggplot(df_hist, aes(x = sf94, fill = group)) +
   theme_light() +
   xlab("S/F94") +
   scale_fill_manual(values=c("red", "blue"))+
-  ylab("Count")
+  ylab("Count") + 
+  theme(legend.position="none")
 
 
 ggsave(dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="countplot.pdf")
