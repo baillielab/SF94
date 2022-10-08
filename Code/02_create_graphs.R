@@ -239,7 +239,8 @@ sample_size_susimp2 = data.frame(outcome_measure = rep("Sustained 2 level improv
 #### Protocolised sf94
 
 # Assumed parameters of measurement error model
-sd_mult = 0.8
+#sd_mult = 0.8
+sd_mult = 1
 sd_recovery_mult= 0.97
 rho_opp_prot = 0.7
 
@@ -264,28 +265,6 @@ effect_size_sf94_prot = data.frame(outcome_measure = rep("Protocolised S/F94 day
                                 effect_size_lcl = sf94_prot_effect_size_lcl,
                                 effect_size_ucl = sf94_prot_effect_size_ucl)
 
-# effect size protocolised measurement using recovery data
-
-# Effect sizes and their upper and lower confidence intervals
-sf94_prot_effect_size_recovery = c()
-sf94_prot_effect_size_ucl_recovery = c()
-sf94_prot_effect_size_lcl_recovery = c()
-
-for (treatment in c(0.85, 0.8, 0.75, 0.7)){
-  
-  boot_result_recovery = boot(data = subset1, statistic = effect_size_boot_sf94_prot, R=1000, treatment = treatment, sd_mult = sd_recovery_mult, rho_opp_prot = rho_opp_prot)
-  boot_ci_recovery = boot.ci(boot_result, conf = 0.95, type="basic")
-  
-  sf94_prot_effect_size_recovery = c(sf94_prot_effect_size_recovery, boot_result_recovery$t0)
-  sf94_prot_effect_size_ucl_recovery = c(sf94_prot_effect_size_ucl_recovery, boot_ci_recovery$basic[,5])
-  sf94_prot_effect_size_lcl_recovery = c(sf94_prot_effect_size_lcl_recovery, boot_ci_recovery$basic[,4])
-}
-
-effect_size_sf94_prot_recovery = data.frame(outcome_measure = rep("Protocolised S/F94 day 5- RECOVERY data",4),
-                                   treatment_effect = c(0.85, 0.8, 0.75, 0.7),
-                                   effect_size = sf94_prot_effect_size_recovery,
-                                   effect_size_lcl = sf94_prot_effect_size_lcl_recovery,
-                                   effect_size_ucl = sf94_prot_effect_size_ucl_recovery)
 
 
 # Mean and standard deviation of opportunistic measurements
@@ -298,8 +277,8 @@ rho = cor(subset1$sf94_day5_P,  subset1$sf94_day0, use = "complete.obs")
 # Assume that protocolised measurements have 0.8* standard deviation of opportunistic measurements,
 # and there is 0.7 correlation between them
 mean_prot = mean_opp
-sd_prot = sd_mult * sd_opp
-sd_recovery = sd_recovery_mult * sd_opp
+# sd_prot = sd_mult * sd_opp
+sd_prot = 1.25
 
 sf94_prot_sample_size = calculate_sample_size_sf94_vec(0.05 , 0.8, sf94_prot_effect_size, sd_prot, rho/rho_opp_prot^2) 
 sf94_prot_sample_size_lcl = calculate_sample_size_sf94_vec(0.05 , 0.8, sf94_prot_effect_size_ucl, sd_prot, rho/rho_opp_prot^2) 
@@ -311,15 +290,7 @@ sample_size_sf94_prot = data.frame(outcome_measure = rep("Protocolised S/F94 day
                                 sample_size_lcl = sf94_prot_sample_size_lcl,
                                 sample_size_ucl = sf94_prot_sample_size_ucl)
 
-sf94_prot_sample_size_recovery = calculate_sample_size_sf94_vec(0.05 , 0.8, sf94_prot_effect_size, sd_recovery, rho/rho_opp_prot^2) 
-sf94_prot_sample_size_lcl_recovery = calculate_sample_size_sf94_vec(0.05 , 0.8, sf94_prot_effect_size_ucl, sd_recovery, rho/rho_opp_prot^2) 
-sf94_prot_sample_size_ucl_recovery = calculate_sample_size_sf94_vec(0.05 , 0.8, sf94_prot_effect_size_lcl, sd_recovery, rho/rho_opp_prot^2) 
 
-sample_size_sf94_prot_recovery = data.frame(outcome_measure = rep("Protocolised S/F94 day 5 - RECOVERY data",4),
-                                   treatment_effect = c(0.85, 0.8, 0.75, 0.7),
-                                   sample_size = sf94_prot_sample_size_recovery,
-                                   sample_size_lcl = sf94_prot_sample_size_lcl_recovery,
-                                   sample_size_ucl = sf94_prot_sample_size_ucl_recovery)
 
 
 
@@ -327,11 +298,11 @@ sample_size_sf94_prot_recovery = data.frame(outcome_measure = rep("Protocolised 
 #### Combine all and create plot
 
 df_effect_size = rbind(effect_size_sf94, effect_size_who, effect_size_susimp, effect_size_susimp2, 
-                       effect_size_sf94_prot, effect_size_sf94_prot_recovery)
+                       effect_size_sf94_prot)
 write.csv(df_effect_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/effect_sizes_all_outcomes.csv"))
 
 df_sample_size = rbind(sample_size_mort, sample_size_sf94, sample_size_who, sample_size_susimp,
-                       sample_size_susimp2, sample_size_sf94_prot,sample_size_sf94_prot_recovery)
+                       sample_size_susimp2, sample_size_sf94_prot)
 write.csv(df_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sample_sizes_all_outcomes.csv"))
 
 
@@ -348,16 +319,15 @@ df_sample_size$outcome_measure<-factor(df_sample_size$outcome_measure, levels=c(
                                                                                 "WHO sustained 2-level improvement",
                                                                                 "WHO day 5", 
                                                                                 "S/F94 day 5", 
-                                                                                "Protocolised S/F94 day 5",
-                                                                                "Protocolised S/F94 day 5 - RECOVERY data"))
+                                                                                "Protocolised S/F94 day 5"))
 
 ggplot(df_sample_size , 
   aes(x= treatment_effect,
   y = sample_size,
   group= outcome_measure, colour = outcome_measure, fill = outcome_measure)) +
   geom_line() +
-  scale_fill_manual(values=c( "darkblue", "black", "blue", "lightblue", "darkred", "red", "lightred")) +
-  scale_color_manual(values=c( "darkblue", "black", "blue", "lightblue", "darkred", "red", "lightred"))+
+  scale_fill_manual(values=c( "darkblue", "black", "blue", "lightblue", "darkred", "red")) +
+  scale_color_manual(values=c( "darkblue", "black", "blue", "lightblue", "darkred", "red"))+
   geom_ribbon(aes(ymin = sample_size_lcl, ymax = sample_size_ucl), linetype=1, alpha=0.2, colour = NA, 
               show.legend = F) +
   xlab("Treatment effect (predicted 28-day mortality relative risk ratio)")+ 
