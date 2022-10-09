@@ -923,7 +923,7 @@ mean_prot = mean_opp
 
 # Previously we assumed sd_opp = 0.8 * sd_prot.
 # Now we have data from recovery indicating sd_prot = 1.25
-s_prot = 1.25
+sd_prot = 1.25
 
 rho_opp_prot = 0.7
 
@@ -977,7 +977,8 @@ effect_size_boot_sf94_prot = function(data, indices, treatment, sd_mult, rho_opp
   # Assume that protocolised measurements have 0.8* standard deviation of opportunistic measurements,
   # and there is 0.7 correlation between them
   mean_prot = mean_opp
-  sd_prot = sd_mult * sd_opp
+  #sd_prot = sd_mult * sd_opp
+  sd_prot = 1.25
   
   coef_prot = create_coef_prot(mean_prot, sd_prot, rho_opp_prot, model$coef)
   
