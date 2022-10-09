@@ -241,6 +241,7 @@ sample_size_susimp2 = data.frame(outcome_measure = rep("Sustained 2 level improv
 # Assumed parameters of measurement error model
 #sd_mult = 0.8
 sd_mult = 1.25/sd_opp
+
 rho_opp_prot = 0.7
 
 # Effect sizes and their upper and lower confidence intervals
@@ -264,6 +265,7 @@ effect_size_sf94_prot = data.frame(outcome_measure = rep("Protocolised S/F94 day
                                 effect_size_lcl = sf94_prot_effect_size_lcl,
                                 effect_size_ucl = sf94_prot_effect_size_ucl)
 
+
 # Mean and standard deviation of opportunistic measurements
 mean_opp = mean(subset1$sf94_day5_P, na.rm = TRUE)
 sd_opp = sd(subset1$sf94_day5_P, na.rm = TRUE)
@@ -275,9 +277,9 @@ rho = cor(subset1$sf94_day5_P,  subset1$sf94_day0, use = "complete.obs")
 # and there is 0.7 correlation between them
 mean_prot = mean_opp
 # sd_prot = sd_mult * sd_opp
+
 # We now have data from recvoery trial indicating sd_prot = 1.25
 sd_prot = 1.25
-
 
 sf94_prot_sample_size = calculate_sample_size_sf94_vec(0.05 , 0.8, sf94_prot_effect_size, sd_prot, rho/rho_opp_prot^2) 
 sf94_prot_sample_size_lcl = calculate_sample_size_sf94_vec(0.05 , 0.8, sf94_prot_effect_size_ucl, sd_prot, rho/rho_opp_prot^2) 
@@ -288,8 +290,6 @@ sample_size_sf94_prot = data.frame(outcome_measure = rep("Protocolised S/F94 day
                                 sample_size = sf94_prot_sample_size,
                                 sample_size_lcl = sf94_prot_sample_size_lcl,
                                 sample_size_ucl = sf94_prot_sample_size_ucl)
-
-
 
 
 #### Combine all and create plot
@@ -740,7 +740,6 @@ df_hist = bind_rows(select(subset1, sf94_day5) %>%
                       rename(sf94 = sf94_day5) %>%
                       select(sf94, group),
                     select(subset1, sf94_day5_P) %>%
-                      mutate(group = 'dd') %>%
                       rename(sf94 = sf94_day5_P) %>%
                       filter(sf94 %in% c(0.5, 4.76)) %>%
                       select(sf94, group)) 

@@ -920,9 +920,11 @@ rho = cor(subset1$sf94_day5_P,  subset1$sf94_day0, use = 'complete.obs')
 # and there is 0.7 correlation between them
 mean_prot = mean_opp
 # sd_prot = 0.8 * sd_opp
+
 # Previously we assumed sd_opp = 0.8 * sd_prot.
 # Now we have data from recovery indicating sd_prot = 1.25
 s_prot = 1.25
+
 rho_opp_prot = 0.7
 
 # This creates coefficients for protocolised measurement.
@@ -998,8 +1000,7 @@ sf94_prot_effect_size =
     effect_size_boot_sf94_prot(subset1, 1:nrow(subset1), treatment = 0.85, sd_mult = 0.8, rho_opp_prot = 0.6),
     effect_size_boot_sf94_prot(subset1, 1:nrow(subset1), treatment = 0.85, sd_mult = 0.8, rho_opp_prot = 0.7),
     effect_size_boot_sf94_prot(subset1, 1:nrow(subset1), treatment = 0.85, sd_mult = 0.8, rho_opp_prot = 0.8),
-    effect_size_boot_sf94_prot(subset1, 1:nrow(subset1), treatment = 0.85, sd_mult = 0.8, rho_opp_prot = 0.9),
-    effect_size_boot_sf94_prot(subset1, 1:nrow(subset1), treatment = 0.85, sd_mult = 0.97, rho_opp_prot = 0.7)) # for recovery data, SD=1.25 (1.29*0.97=1.25)
+    effect_size_boot_sf94_prot(subset1, 1:nrow(subset1), treatment = 0.85, sd_mult = 0.8, rho_opp_prot = 0.9)) 
 
 # rho_prot is the correlation between the protocolised sf94 measurements on day 0 and day 5
 # The proof of this follows from the assumptions that have been made, along with the
