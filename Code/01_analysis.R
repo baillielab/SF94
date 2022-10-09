@@ -997,11 +997,11 @@ effect_size_boot_sf94_prot = function(data, indices, treatment, sd_mult, rho_opp
 
 # Calculate effect sizes
 sf94_prot_effect_size = 
- c( effect_size_boot_sf94_prot(subset1, 1:nrow(subset1), treatment = 0.85, sd_mult = 0.8, rho_opp_prot = 0.5),
-    effect_size_boot_sf94_prot(subset1, 1:nrow(subset1), treatment = 0.85, sd_mult = 0.8, rho_opp_prot = 0.6),
-    effect_size_boot_sf94_prot(subset1, 1:nrow(subset1), treatment = 0.85, sd_mult = 0.8, rho_opp_prot = 0.7),
-    effect_size_boot_sf94_prot(subset1, 1:nrow(subset1), treatment = 0.85, sd_mult = 0.8, rho_opp_prot = 0.8),
-    effect_size_boot_sf94_prot(subset1, 1:nrow(subset1), treatment = 0.85, sd_mult = 0.8, rho_opp_prot = 0.9)) 
+ c( effect_size_boot_sf94_prot(subset1, 1:nrow(subset1), treatment = 0.85, sd_mult = 1, rho_opp_prot = 0.5),
+    effect_size_boot_sf94_prot(subset1, 1:nrow(subset1), treatment = 0.85, sd_mult = 1, rho_opp_prot = 0.6),
+    effect_size_boot_sf94_prot(subset1, 1:nrow(subset1), treatment = 0.85, sd_mult = 1, rho_opp_prot = 0.7),
+    effect_size_boot_sf94_prot(subset1, 1:nrow(subset1), treatment = 0.85, sd_mult = 1, rho_opp_prot = 0.8),
+    effect_size_boot_sf94_prot(subset1, 1:nrow(subset1), treatment = 0.85, sd_mult = 1, rho_opp_prot = 0.9)) 
 
 # rho_prot is the correlation between the protocolised sf94 measurements on day 0 and day 5
 # The proof of this follows from the assumptions that have been made, along with the
