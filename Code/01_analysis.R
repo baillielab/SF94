@@ -556,6 +556,7 @@ names(df_sf94_effect_size) = c('day5_P', 'day8_P')
 rownames(df_sf94_effect_size) = c('subset1', 'subset2', 'subset3')
 
 
+
 calculate_sample_size_sf94 = function(alpha, power, delta, sd, rho){
   
   # Calculate sample size for a t test
