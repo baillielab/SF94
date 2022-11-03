@@ -338,7 +338,12 @@ ggsave(dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), file
 
 #################################### sf94 violin plots ####################################################
 
-  
+days_since_start<-sample.int(12, 200, replace = T)
+sf94<-runif(200, min=0.5, max=4.76)
+mortality_28<-sample(c(0,1), replace=TRUE, size=200)
+df<-data.frame(days_since_start, sf94_value, mortality_28)
+df$days_since_start<-as.factor(df$days_since_start)
+df$mortality_28<-as.factor(df$mortality_28)
 
 # sf94 violin plots over 12 days
 df = dplyr::select(data, subjid, days_since_start, sf94, mortality_28) %>%
@@ -354,14 +359,16 @@ sum_text$numbers<-paste0("N=", sum_text$n)
 # Split violin plot
 ggplot(df) +
   geom_split_violin(aes(x=days_since_start, y=sf94, fill=mortality_28), width=1.5)+
-  geom_text(aes(x=days_since_start, y=5, label=(numbers)), data=sum_text)+
+  geom_label(aes(x=days_since_start, y=5, label = numbers),
+             label.r = unit(0, "pt"), data=sum_text)+
   xlab("Day")+
   ylab("S/F94")+
   ggtitle(paste0("S/F94 in the first 12 days since admission"))+
   theme_bw()+
   theme(plot.title = element_text(hjust = 0.5))+
   scale_fill_manual(values =c("#f60000", "#0000f6"),
-                    name="28-day outcome", labels=c("Discharged alive", "Death"))
+                    name="28-day outcome", labels=c("Discharged alive", "Death"))+
+  scale_x_discrete(expand=c(0,0.2))
 
 ggsave(width=13, dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="sf94_violin_plot_12_days.pdf")
 
@@ -712,6 +719,24 @@ ggsave(plot=plot_d0_multi, dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/
 # dd=> added values for death/discharge
 # the dd should only be added values, so 0.5 or 4.78; not 'normal' measurements
 # dataframe is called df_countplot
+days_since_start<-sample.int(12, 200, replace = T)
+sf94<-runif(200, min=0.5, max=4.76)
+mortality_28<-sample(c(0,1), replace=TRUE, size=200)
+df<-data.frame(days_since_start, sf94_value, mortality_28)
+df$days_since_start<-as.factor(df$days_since_start)
+df$mortality_28<-as.factor(df$mortality_28)
+
+sf94_o<-runif(200, min=0.5, max=4.76)
+sf94_dd<-sample(c(0.5,4.78), replace=TRUE, size=200)
+group_o<-rep("original", 200 )
+group_dd<-rep("dd",200)
+original<-data.frame(sf94_o,group_o)
+dd<-data.frame(sf94_dd, group_dd)
+colnames(dd)<-colnames(original)
+df_countplot<-rbind(original, dd)
+df_countplot
+head(df_countplot)
+
 
 # df_countplot$sf94 = df_countplot %>% count(sf94, group_sf94)
 # 
@@ -744,15 +769,34 @@ df_hist = bind_rows(select(subset1, sf94_day5) %>%
                       filter(sf94 %in% c(0.5, 4.76)) %>%
                       select(sf94, group)) 
 
+numbers_countplot<-nrow(df_hist)
+title_countplot<-paste0("N=", numbers_countplot)
+
 ggplot(df_hist, aes(x = sf94, fill = group)) + 
   #call geom_histogram with position="dodge" to offset the bars and manual binwidth of 2
   geom_histogram(position = "stack") +
   theme_light() +
-  xlab("S/F94") +
-  scale_fill_manual(values=c("red", "blue"))+
+  xlab("S/F94 day 5") +
+  scale_fill_manual(values=c("black", "purple"),breaks=c("original", "dd"),
+                    name=" ", labels=c("Measured", "Assigned max/min\nif discharged/died"))+
   ylab("Count") + 
-  theme(legend.position="none")
+  theme( plot.title = element_text (hjust = 0.5))+
+  ggtitle(paste0(title_countplot) )
 
 
-ggsave(dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="countplot.pdf")
+
+# test plot
+ggplot(df_countplot, aes(x = sf94_o, fill = group_o)) + 
+  #call geom_histogram with position="dodge" to offset the bars and manual binwidth of 2
+  geom_histogram(position = "stack") +
+  theme_light() +
+  xlab("S/F94 day 5") +
+  scale_fill_manual(values=c("black", "purple"),breaks=c("original", "dd"),
+                    name=" ", labels=c("Measured", "Assigned max/min\nif discharged/died"))+
+  ylab("Count")+
+  theme( plot.title = element_text (hjust = 0.5))+
+  ggtitle(paste0(title_countplot) )
+
+
+ggsave(dpi=300, width=13, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="countplot.pdf")
 
