@@ -79,8 +79,14 @@ sample_size_mort$sample_size_ucl = calculate_sample_size_mort_vec(death_lcl, c(0
 
 
 #### Opportunistic sf94
-sd_sf94 = df_sf94_sd["subset1", "day5_P"]
-corr_sf94 = df_sf94_corr["subset1", "day5_P"]
+# sd_sf94 = df_sf94_sd["subset1", "day5_P"]
+# We have data from RECOVERY trial indicating sd_prot = 1.25
+sd_prot = 1.25
+
+#corr_sf94 = df_sf94_corr["subset1", "day5_P"]
+# We have data from RECOVERY trial indicating giving this correlation between
+# protocolised measurements on day 0 and day 5
+corr_sf94 = 0.56767
 
 calculate_sample_size_sf94_vec = Vectorize(calculate_sample_size_sf94)
 
@@ -342,7 +348,7 @@ ggsave(dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), file
 days_since_start<-sample.int(12, 200, replace = T)
 sf94<-runif(200, min=0.5, max=4.76)
 mortality_28<-sample(c(0,1), replace=TRUE, size=200)
-df<-data.frame(days_since_start, sf94_value, mortality_28)
+df<-data.frame(days_since_start, sf94, mortality_28)
 df$days_since_start<-as.factor(df$days_since_start)
 df$mortality_28<-as.factor(df$mortality_28)
 

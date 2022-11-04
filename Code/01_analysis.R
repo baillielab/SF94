@@ -919,15 +919,21 @@ rho = cor(subset1$sf94_day5_P,  subset1$sf94_day0, use = 'complete.obs')
 
 # Assume that protocolised measurements have 0.8* standard deviation of opportunistic measurements,
 # and there is 0.7 correlation between them
-mean_prot = mean_opp
+
+# This value for mean of protocolised day 5 sf4 measurements comes from the RECOVERY trial
+mean_prot = 3.41345
 # sd_prot = 0.8 * sd_opp
 
 # Previously we assumed sd_opp = 0.8 * sd_prot.
 # Now we have data from recovery indicating sd_prot = 1.25
 sd_prot = 1.25
 
-# This is assumed
-rho_opp_prot = 0.7
+# 0.56767 is the correlation between protocolised sf94 measurements on day 5 and day 0.
+# This comes from the RECOVERY trial
+# The error measurement model is assumed to be unchanging over time, and we can use
+# it to derive this formula for the correlation between opportunistic and protocolised 
+# measurements
+rho_opp_prot = sqrt(rho / 0.56767)
 
 # This creates coefficients for protocolised measurement.
 create_coef_prot = function(mean_prot, sd_prot, rho_opp_prot, coef_opp){
@@ -976,10 +982,10 @@ effect_size_boot_sf94_prot = function(data, indices, treatment, sd_mult, rho_opp
   # Calculate correlation between sf94 day 5 and sf94 day 0.
   rho = cor(df$sf94_day5_P,  df$sf94_day0, use = 'complete.obs')
   
-  # Assume that protocolised measurements have 0.8* standard deviation of opportunistic measurements,
-  # and there is 0.7 correlation between them
-  mean_prot = mean_opp
+  # This value for mean of protocolised day 5 sf4 measurements comes from the RECOVERY trial
+  mean_prot = 3.41345
   #sd_prot = sd_mult * sd_opp
+  # This value for sd of protocolised day 5sf4 measurements comes from the RECOVERY trial
   sd_prot = 1.25
   
   coef_prot = create_coef_prot(mean_prot, sd_prot, rho_opp_prot, model$coef)
