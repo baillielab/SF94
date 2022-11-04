@@ -926,6 +926,7 @@ mean_prot = mean_opp
 # Now we have data from recovery indicating sd_prot = 1.25
 sd_prot = 1.25
 
+# This is assumed
 rho_opp_prot = 0.7
 
 # This creates coefficients for protocolised measurement.
