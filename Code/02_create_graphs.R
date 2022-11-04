@@ -339,46 +339,47 @@ ggsave(dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), file
 #################################### sf94 violin plots ####################################################
 # experiment to improve graphs, waiting for feedback from kenny before i delete this code
 ######################################################################################################
-days_since_start<-sample.int(12, 200, replace = T)
-sf94<-runif(200, min=0.5, max=4.76)
-mortality_28<-sample(c(0,1), replace=TRUE, size=200)
-df<-data.frame(days_since_start, sf94_value, mortality_28)
-df$days_since_start<-as.factor(df$days_since_start)
-df$mortality_28<-as.factor(df$mortality_28)
-
-head(df)
-table(df$days_since_start)
-sf94_o<-runif(200, min=0.5, max=4.76)
-sf94_dd<-sample(c(0.5,4.78), replace=TRUE, size=200)
-group_o<-rep("original", 200 )
-group_dd<-rep("dd",200)
-original<-data.frame(sf94_o,group_o)
-dd<-data.frame(sf94_dd, group_dd)
-colnames(dd)<-colnames(original)
-df_countplot<-rbind(original, dd)
-df_countplot
-head(df_countplot)
-days_since_start<-c(1:12)
-count_dd<-sample.int(100, 12, replace = T) # number of extreme values added per day
-df_dd<-data.frame(days_since_start, count_dd) # combine to dataframe with days 1-12
-head(df_dd)
-
-ggplot() +
-  geom_split_violin(data=df, aes(x=days_since_start, y=sf94, fill=mortality_28), width=1.5)+
-  geom_label(aes(x=days_since_start, y=5, label = numbers),
-             label.r = unit(0, "pt"), data=sum_text)+
-  geom_col(data=df_dd, aes(x=days_since_start, y= count_dd/20), alpha = 0.3, col="black" )+
-  xlab("Day")+
-  scale_y_continuous(
-    name="S/F94",
-    sec.axis= sec_axis(~.*20, name="Added values")
-  )+ 
-  ggtitle(paste0("S/F94 in the first 12 days since admission"))+
-  theme_bw()+
-  theme(plot.title = element_text(hjust = 0.5))+
-  scale_fill_manual(values =c("#f60000", "#0000f6"),
-                    name="28-day outcome", labels=c("Discharged alive", "Death"))+
-  scale_x_discrete(expand=c(0,0.2))
+# days_since_start<-sample.int(12, 200, replace = T)
+# sf94<-runif(200, min=0.5, max=4.76)
+# mortality_28<-sample(c(0,1), replace=TRUE, size=200)
+# df<-data.frame(days_since_start, sf94_value, mortality_28)
+# df$days_since_start<-as.factor(df$days_since_start)
+# df$mortality_28<-as.factor(df$mortality_28)
+# 
+# head(df)
+# table(df$days_since_start)
+# sf94_o<-runif(200, min=0.5, max=4.76)
+# sf94_dd<-sample(c(0.5,4.78), replace=TRUE, size=200)
+# group_o<-rep("original", 200 )
+# group_dd<-rep("dd",200)
+# original<-data.frame(sf94_o,group_o)
+# dd<-data.frame(sf94_dd, group_dd)
+# colnames(dd)<-colnames(original)
+# df_countplot<-rbind(original, dd)
+# df_countplot
+# head(df_countplot)
+# days_since_start<-c(1:12)
+# count_dead<-sample.int(100, 12, replace = T) # number of extreme values added per day
+# count_alive<-sample.int(100, 12, replace = T) # number of extreme values added per day
+# df_dd<-data.frame(days_since_start, count_dead, count_alive) # combine to dataframe with days 1-12
+# head(df_dd)
+# 
+# ggplot() +
+#   geom_split_violin(data=df, aes(x=days_since_start, y=sf94, fill=mortality_28), width=1.5)+
+#   geom_label(aes(x=days_since_start, y=5, label = numbers),
+#              label.r = unit(0, "pt"), data=sum_text)+
+#   geom_col(data=df_dd, aes(x=days_since_start, y= count_dd/20), alpha = 0.3, col="black" )+
+#   xlab("Day")+
+#   scale_y_continuous(
+#     name="S/F94",
+#     sec.axis= sec_axis(~.*20, name="Added values")
+#   )+ 
+#   ggtitle(paste0("S/F94 in the first 12 days since admission"))+
+#   theme_bw()+
+#   theme(plot.title = element_text(hjust = 0.5))+
+#   scale_fill_manual(values =c("#f60000", "#0000f6"),
+#                     name="28-day outcome", labels=c("Discharged alive", "Death"))+
+#   scale_x_discrete(expand=c(0,0.2))
 
 ######################################################################################################
 
