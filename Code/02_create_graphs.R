@@ -331,7 +331,7 @@ ggplot(df_sample_size ,
   scale_x_reverse() +
   theme_bw()+
   labs(colour = "Outcome measure") +
-  theme(legend.position=c(0.8,0.7) )
+  theme(legend.position=c(0.8,0.675) )
 
 ggsave(dpi=300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename="samplesize_graph.pdf")
 
