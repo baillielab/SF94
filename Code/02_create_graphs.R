@@ -397,6 +397,7 @@ ggplot() +
 
 ######################################################################################################
 
+
 # sf94 violin plots over 12 days
 df = dplyr::select(data, subjid, days_since_start, sf94, mortality_28) %>%
   filter(!is.na(sf94), days_since_start <= 12, subjid %in% pull(data_1, subjid) ) %>%
