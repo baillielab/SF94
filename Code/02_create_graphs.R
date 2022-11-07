@@ -79,14 +79,8 @@ sample_size_mort$sample_size_ucl = calculate_sample_size_mort_vec(death_lcl, c(0
 
 
 #### Opportunistic sf94
-# sd_sf94 = df_sf94_sd["subset1", "day5_P"]
-# We have data from RECOVERY trial indicating sd_prot = 1.25
-sd_prot = 1.25
-
-#corr_sf94 = df_sf94_corr["subset1", "day5_P"]
-# We have data from RECOVERY trial indicating giving this correlation between
-# protocolised measurements on day 0 and day 5
-corr_sf94 = 0.56767
+sd_sf94 = df_sf94_sd["subset1", "day5_P"]
+corr_sf94 = df_sf94_corr["subset1", "day5_P"]
 
 calculate_sample_size_sf94_vec = Vectorize(calculate_sample_size_sf94)
 
@@ -248,7 +242,12 @@ sample_size_susimp2 = data.frame(outcome_measure = rep("Sustained 2 level improv
 #sd_mult = 0.8
 sd_mult = 1.25/sd_opp
 
-rho_opp_prot = 0.7
+# 0.56767 is the correlation between protocolised sf94 measurements on day 5 and day 0.
+# This comes from the RECOVERY trial
+# The error measurement model is assumed to be unchanging over time, and we can use
+# it to derive this formula for the correlation between opportunistic and protocolised 
+# measurements
+rho_opp_prot = sqrt(rho / 0.56767)
 
 # Effect sizes and their upper and lower confidence intervals
 sf94_prot_effect_size = c()
@@ -265,7 +264,7 @@ for (treatment in c(0.85, 0.8, 0.75, 0.7)){
   sf94_prot_effect_size_lcl = c(sf94_prot_effect_size_lcl, boot_ci$basic[,4])
 }
 
-effect_size_sf94_prot = data.frame(outcome_measure = rep("Protocolised S/F94 day 5",4),
+effect_size_sf94_prot = data.frame(outcome_measure = rep("Protocolised S/F94 day 5", 4),
                                 treatment_effect = c(0.85, 0.8, 0.75, 0.7),
                                 effect_size = sf94_prot_effect_size,
                                 effect_size_lcl = sf94_prot_effect_size_lcl,
@@ -276,20 +275,18 @@ effect_size_sf94_prot = data.frame(outcome_measure = rep("Protocolised S/F94 day
 mean_opp = mean(subset1$sf94_day5_P, na.rm = TRUE)
 sd_opp = sd(subset1$sf94_day5_P, na.rm = TRUE)
 
-# Calculate correlation between sf94 day 5 and sf94 day 0.
-rho = cor(subset1$sf94_day5_P,  subset1$sf94_day0, use = "complete.obs")
+# Correlation between protocolised sf94 day 5 and sf94 day 0, from recovery trial
+rho_prot_0_5 = 0.56767
 
-# Assume that protocolised measurements have 0.8* standard deviation of opportunistic measurements,
-# and there is 0.7 correlation between them
-mean_prot = mean_opp
-# sd_prot = sd_mult * sd_opp
+# This value for mean of protocolised day 5 sf4 measurements comes from the RECOVERY trial
+mean_prot = 3.41345
 
 # We now have data from recvoery trial indicating sd_prot = 1.25
 sd_prot = 1.25
 
-sf94_prot_sample_size = calculate_sample_size_sf94_vec(0.05 , 0.8, sf94_prot_effect_size, sd_prot, rho/rho_opp_prot^2) 
-sf94_prot_sample_size_lcl = calculate_sample_size_sf94_vec(0.05 , 0.8, sf94_prot_effect_size_ucl, sd_prot, rho/rho_opp_prot^2) 
-sf94_prot_sample_size_ucl = calculate_sample_size_sf94_vec(0.05 , 0.8, sf94_prot_effect_size_lcl, sd_prot, rho/rho_opp_prot^2) 
+sf94_prot_sample_size = calculate_sample_size_sf94_vec(0.05 , 0.8, sf94_prot_effect_size, sd_prot, rho_prot_0_5) 
+sf94_prot_sample_size_lcl = calculate_sample_size_sf94_vec(0.05 , 0.8, sf94_prot_effect_size_ucl, sd_prot, rho_prot_0_5) 
+sf94_prot_sample_size_ucl = calculate_sample_size_sf94_vec(0.05 , 0.8, sf94_prot_effect_size_lcl, sd_prot, rho_prot_0_5) 
 
 sample_size_sf94_prot = data.frame(outcome_measure = rep("Protocolised S/F94 day 5",4),
                                 treatment_effect = c(0.85, 0.8, 0.75, 0.7),
