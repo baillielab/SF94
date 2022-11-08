@@ -673,7 +673,7 @@ plot_d5_multi = ggplot(filter(predictions, .predictor. == 'sf94_day5_P'), aes(x 
   ggtitle(paste0("N=", not_na) ) +
   ylab("Risk of 28-day mortality") + 
   ylim(0, 0.8)+
-  theme(plot.title = element_text(hjust = 0.5, size = 9),
+  theme(plot.title = element_text(hjust = 0.5, size = 7),
         axis.text.y = element_text(size=6),
         axis.text.x = element_text(size=6),
         axis.title.y = element_text(size=6),
