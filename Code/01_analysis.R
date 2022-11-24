@@ -921,7 +921,10 @@ rho = cor(subset1$sf94_day5_P,  subset1$sf94_day0, use = 'complete.obs')
 # and there is 0.7 correlation between them
 
 # This value for mean of protocolised day 5 sf4 measurements comes from the RECOVERY trial
-mean_prot = 3.41345
+# mean_prot = 3.41345
+# Alternatively, set mean_prot and mean_opp equal
+mean_prot = mean_opp
+
 # sd_prot = 0.8 * sd_opp
 
 # Previously we assumed sd_opp = 0.8 * sd_prot.
@@ -983,7 +986,10 @@ effect_size_boot_sf94_prot = function(data, indices, treatment, sd_mult, rho_opp
   rho = cor(df$sf94_day5_P,  df$sf94_day0, use = 'complete.obs')
   
   # This value for mean of protocolised day 5 sf4 measurements comes from the RECOVERY trial
-  mean_prot = 3.41345
+  # mean_prot = 3.41345
+  # Alternatively, set mean_prot = mean_opp
+  mean_prot = mean_opp
+  
   #sd_prot = sd_mult * sd_opp
   # This value for sd of protocolised day 5sf4 measurements comes from the RECOVERY trial
   sd_prot = 1.25

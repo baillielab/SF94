@@ -279,7 +279,9 @@ sd_opp = sd(subset1$sf94_day5_P, na.rm = TRUE)
 rho_prot_0_5 = 0.56767
 
 # This value for mean of protocolised day 5 sf4 measurements comes from the RECOVERY trial
-mean_prot = 3.41345
+#mean_prot = 3.41345
+# Alternatively, set mean_prot and mean_opp equal
+mean_prot = mean_opp
 
 # We now have data from recvoery trial indicating sd_prot = 1.25
 sd_prot = 1.25
@@ -797,9 +799,10 @@ df_hist = bind_rows(select(subset1, sf94_day5) %>%
                       rename(sf94 = sf94_day5) %>%
                       select(sf94, group),
                     select(subset1, sf94_day5_P) %>%
+                      mutate(group = 'dd') %>%
                       rename(sf94 = sf94_day5_P) %>%
-                      filter(sf94 %in% c(0.5, 4.76)) %>%
-                      select(sf94, group)) 
+                      filter(sf94 %in% c(0.5, 4.76))) %>%
+                      select(sf94, group) 
 
 numbers_countplot<-nrow(df_hist)
 title_countplot<-paste0("N=", numbers_countplot)
