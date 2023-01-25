@@ -768,11 +768,11 @@ plot_d0_multi <- ggplot(filter(predictions, .predictor. == "sf94_day0"), aes(x =
   ylab("Risk of 28-day mortality") +
   ylim(0, 0.8) +
   theme(
-    plot.title = element_text(hjust = 0.5, size = 7),
-    axis.text.y = element_text(size = 6),
-    axis.text.x = element_text(size = 6),
-    axis.title.y = element_text(size = 6),
-    axis.title.x = element_text(size = 6)
+    plot.title = element_text(hjust = 0.5, size = 12),
+    axis.text.y = element_text(size = 9),
+    axis.text.x = element_text(size = 9),
+    axis.title.y = element_text(size = 9),
+    axis.title.x = element_text(size = 9)
   )
 
 plot_d5_multi <- ggplot(filter(predictions, .predictor. == "sf94_day5_P"), aes(x = sf94_day5_P, y = yhat)) +
@@ -784,11 +784,11 @@ plot_d5_multi <- ggplot(filter(predictions, .predictor. == "sf94_day5_P"), aes(x
   ylab("Risk of 28-day mortality") +
   ylim(0, 0.8) +
   theme(
-    plot.title = element_text(hjust = 0.5, size = 7),
-    axis.text.y = element_text(size = 6),
-    axis.text.x = element_text(size = 6),
-    axis.title.y = element_text(size = 6),
-    axis.title.x = element_text(size = 6)
+    plot.title = element_text(hjust = 0.5, size = 12),
+    axis.text.y = element_text(size = 9),
+    axis.text.x = element_text(size = 9),
+    axis.title.y = element_text(size = 9),
+    axis.title.x = element_text(size = 9)
   )
 
 ggarrange(plot_d0_multi, plot_d5_multi,
@@ -841,11 +841,11 @@ plot_d0_uni <- ggplot(predictions, aes(x = sf94_day0, y = yhat)) +
   ylab("Risk of 28-day mortality") +
   ylim(0, 0.8) +
   theme(
-    plot.title = element_text(hjust = 0.5, size = 9),
-    axis.text.y = element_text(size = 6),
-    axis.text.x = element_text(size = 6),
-    axis.title.y = element_text(size = 6),
-    axis.title.x = element_text(size = 6)
+    plot.title = element_text(hjust = 0.5, size = 12),
+    axis.text.y = element_text(size = 9),
+    axis.text.x = element_text(size = 9),
+    axis.title.y = element_text(size = 9),
+    axis.title.x = element_text(size = 9)
   )
 
 day_0_plots <- ggarrange(plot_d0_multi, plot_d0_uni,
