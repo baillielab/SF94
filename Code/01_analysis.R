@@ -37,7 +37,7 @@ if (!dir.exists(output_dir)) {
 data <- readRDS(paste0("/home/skerr/Data/ccp_subset_derived_", time_stamp, ".rds")) %>%
   dplyr::select(
     subjid, age_estimateyears, sex, days_since_start, day_of_death, day_of_discharge,
-    fio2, sf94, severity_scale_ordinal,
+    fio2, sf94, severity_scale_ordinal, dsterm,
     outcome, mortality_28, sustained_1L_improvement, sustained_2L_improvement,
     who_days_to_improve1, who_days_to_improve2, rr_vsorres
   ) %>%
@@ -487,7 +487,7 @@ write.csv(df_mort_lr_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_s
 
 ## Summary stats. This is required for some corrections to the sample size calculation
 # Mean and SD
-calculate_mean_sf94 <- function(df, subset_num) {
+calculate_mean_sf94 <- function(df) {
   mean <- as.data.frame(rbind(sapply(df[c("sf94_day5_P", "sf94_day8_P")], mean, na.rm = T)))
 
   names(mean) <- c("day5_P", "day8_P")
@@ -495,7 +495,7 @@ calculate_mean_sf94 <- function(df, subset_num) {
   return(mean)
 }
 
-calculate_sd_sf94 <- function(df, subset_num) {
+calculate_sd_sf94 <- function(df) {
   sd <- as.data.frame(rbind(sapply(df[c("sf94_day5_P", "sf94_day8_P")], sd, na.rm = T)))
 
   names(sd) <- c("day5_P", "day8_P")

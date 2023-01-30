@@ -2,10 +2,10 @@
 
 # calculate the number of patients that were transferred to another hospital from subset 1
 transfer<-table(subset1$dsterm)
-write.csv(transfer, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity", "/transfer.csv"))
+write.csv(transfer, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity", "/transfer.csv"))
 
 # create a subset that does not include transferred patients from the main analysis (subset 1)
-subset4 <- subset(subset1, discharge_transfer == "NO" ) 
+subset4 <- filter(subset1, dsterm != "Transfer to other facility") 
 
 # repeat main analysis without the transferred patients
 
@@ -18,7 +18,7 @@ sample_size_mort <- rbind(
 
 rownames(sample_size_mort) <- c("subset1", "subset4")
 
-write.csv(sample_size_mort, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity", "/sample_size_mortality.csv"))
+write.csv(sample_size_mort, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity", "/sample_size_mortality.csv"))
 
 # Mortality - logrank
 
@@ -30,13 +30,13 @@ df_mort_lr_sample_size <- rbind(
 
 rownames(df_mort_lr_sample_size) <- c("subset1", "subset4")
 
-write.csv(df_mort_lr_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity", "/mort_logrank_sample_size.csv"))
+write.csv(df_mort_lr_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity", "/mort_logrank_sample_size.csv"))
 
 # Opportunistic SF94
 
 df_sf94_mean <- rbind(
-  calculate_mean_sf94(subset1, 1),
-  calculate_mean_sf94(subset4, 4)
+  calculate_mean_sf94(subset1),
+  calculate_mean_sf94(subset4)
 ) %>%
   data.frame()
 
@@ -44,8 +44,8 @@ names(df_sf94_mean) <- c("day5_P", "day8_P")
 rownames(df_sf94_mean) <- c("subset1", "subset4")
 
 df_sf94_sd <- rbind(
-  calculate_sd_sf94(subset1, 1),
-  calculate_sd_sf94(subset4, 4)
+  calculate_sd_sf94(subset1),
+  calculate_sd_sf94(subset4)
 ) %>%
   data.frame()
 
@@ -105,11 +105,11 @@ names(df_sf94_sample_size) <- c("day5_P", "day8_P")
 rownames(df_sf94_sample_size) <- c("subset1", "subset4")
 
 # Write out
-write.csv(df_sf94_mean, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity", "/sf94_means.csv"))
-write.csv(df_sf94_sd, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity", "/sf94_sd.csv"))
-write.csv(df_sf94_corr, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity", "/sf94_correlation.csv"))
-write.csv(df_sf94_effect_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity", "/sf94_effect_size.csv"))
-write.csv(df_sf94_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity", "/sf94_sample_size.csv"))
+write.csv(df_sf94_mean, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity", "/sf94_means.csv"))
+write.csv(df_sf94_sd, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity", "/sf94_sd.csv"))
+write.csv(df_sf94_corr, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity", "/sf94_correlation.csv"))
+write.csv(df_sf94_effect_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity", "/sf94_effect_size.csv"))
+write.csv(df_sf94_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity", "/sf94_sample_size.csv"))
 
 # WHO
 df_who_effect_size <-
@@ -162,10 +162,10 @@ names(df_who_sample_size) <- c("day5_P", "day8_P")
 rownames(df_who_sample_size) <- c("subset1", "subset4")
 
 # Write out
-write.csv(who_table, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity", "/who_table_output.csv"))
-write.csv(who_prop_table, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity", "/who_prop_output.csv"))
-write.csv(df_who_effect_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity", "/who_effect_size.csv"))
-write.csv(df_who_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity", "/who_sample_size.csv"))
+write.csv(who_table, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity", "/who_table_output.csv"))
+write.csv(who_prop_table, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity", "/who_prop_output.csv"))
+write.csv(df_who_effect_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity", "/who_effect_size.csv"))
+write.csv(df_who_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity", "/who_sample_size.csv"))
 
 # 1/2 level sustained improvement
 
@@ -189,7 +189,7 @@ sus_imp_table <- rbind(
 names(sus_imp_table) <- c("sustained_1L_improvement", "sustained_2L_improvement")
 rownames(sus_imp_table) <- c(
   "subset1_FALSE", "subset1_TRUE",
-  "subset2_FALSE", "subset2_TRUE"
+  "subset4_FALSE", "subset4_TRUE"
 )
 
 susimp_prop_table <- rbind(
@@ -214,7 +214,7 @@ df_susimp_sample_size <- rbind(
     )
   ),
   
-  # subset2
+  # subset4
   c(
     calculate_sample_size_susimp(
       0.8, df_susimp_effect_size["subset4", "sustained_1L_improvement"],
@@ -233,10 +233,10 @@ rownames(df_susimp_sample_size) <- c("subset1", "subset4")
 
 
 # Write out
-write.csv(sus_imp_table, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity", "/sus_imp_output.csv"))
-write.csv(susimp_prop_table, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity", "/susimp_prop_output.csv"))
-write.csv(df_susimp_effect_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity", "/susimp_effect_size.csv"))
-write.csv(df_susimp_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity", "/susimp_sample_size.csv"))
+write.csv(sus_imp_table, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity", "/sus_imp_output.csv"))
+write.csv(susimp_prop_table, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity", "/susimp_prop_output.csv"))
+write.csv(df_susimp_effect_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity", "/susimp_effect_size.csv"))
+write.csv(df_susimp_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity", "/susimp_sample_size.csv"))
 
 # 1/2 level improvement logrank
 # 1 level sustained improvement
@@ -248,7 +248,7 @@ df_susimp1_lr_sample_size <- rbind(
 
 rownames(df_susimp1_lr_sample_size) <- c("subset1", "subset4")
 
-write.csv(df_susimp1_lr_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity", "/susimp1_logrank_sample_size.csv"))
+write.csv(df_susimp1_lr_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity", "/susimp1_logrank_sample_size.csv"))
 
 # 2 level sustained improvement
 df_susimp2_lr_sample_size <- rbind(
@@ -259,7 +259,7 @@ df_susimp2_lr_sample_size <- rbind(
 
 rownames(df_susimp2_lr_sample_size) <- c("subset1", "subset4")
 
-write.csv(df_susimp2_lr_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity", "/susimp2_logrank_sample_size.csv"))
+write.csv(df_susimp2_lr_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity", "/susimp2_logrank_sample_size.csv"))
 
 # protocolised sf94
 
@@ -340,8 +340,8 @@ df_sf94_prot_effect_sample_size <- data.frame(
 
 
 # Write out
-write.csv(df_coef_prot, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity", "/sf94_prot_coef.csv"))
-write.csv(df_sf94_prot_effect_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity", "/sf94_prot_effect_sample_size.csv"))
+write.csv(df_coef_prot, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity", "/sf94_prot_coef.csv"))
+write.csv(df_sf94_prot_effect_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity", "/sf94_prot_effect_sample_size.csv"))
 
 
 ############################################################################################################################################################
@@ -354,23 +354,6 @@ write.csv(df_sf94_prot_effect_sample_size, paste0("/home/skerr/Git/SF94/Outputs/
 # sd - standard deviation of the outcome measure
 # rho - correlation between the outcome measured at baseline and at follow-up
 
-## Summary stats. This is required for some corrections to the sample size calculation
-# Mean and SD
-calculate_mean_sf94 <- function(df, subset_num) {
-  mean <- as.data.frame(rbind(sapply(df[c("sf94_day5", "sf94_day8")], mean, na.rm = T)))
-  
-  names(mean) <- c("day5", "day8")
-  
-  return(mean)
-}
-
-calculate_sd_sf94 <- function(df, subset_num) {
-  sd <- as.data.frame(rbind(sapply(df[c("sf94_day5", "sf94_day8")], sd, na.rm = T)))
-  
-  names(sd) <- c("day5", "day8")
-  
-  return(sd)
-}
 
 df_sf94_mean <- rbind(
   calculate_mean_sf94(subset1, 1),
@@ -514,11 +497,11 @@ rownames(df_sf94_sample_size) <- c("subset1", "subset2", "subset3")
 
 
 # Write out
-write.csv(df_sf94_mean, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity/non_imputed", "/sf94_means.csv"))
-write.csv(df_sf94_sd, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity/non_imputed", "/sf94_sd.csv"))
-write.csv(df_sf94_corr, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity/non_imputed", "/sf94_correlation.csv"))
-write.csv(df_sf94_effect_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity/non_imputed", "/sf94_effect_size.csv"))
-write.csv(df_sf94_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity/non_imputed", "/sf94_sample_size.csv"))
+write.csv(df_sf94_mean, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity/non_imputed", "/sf94_means.csv"))
+write.csv(df_sf94_sd, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity/non_imputed", "/sf94_sd.csv"))
+write.csv(df_sf94_corr, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity/non_imputed", "/sf94_correlation.csv"))
+write.csv(df_sf94_effect_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity/non_imputed", "/sf94_effect_size.csv"))
+write.csv(df_sf94_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity/non_imputed", "/sf94_sample_size.csv"))
 
 
 # Graph regression analysis
@@ -604,12 +587,12 @@ day_0_plots <- ggarrange(plot_d0_multi, plot_d0_uni,
 )
 
 
-ggsave(plot = day_0_plots, dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity/non_imputed"), filename = "day_0_predicted_mortality_plots.pdf")
+ggsave(plot = day_0_plots, dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity/non_imputed"), filename = "day_0_predicted_mortality_plots.pdf")
 ggsave(
-  plot = plot_d5_multi, dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity/non_imputed"), filename = "day_5_predicted_mortality_multivariate_model_plot.pdf",
+  plot = plot_d5_multi, dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity/non_imputed"), filename = "day_5_predicted_mortality_multivariate_model_plot.pdf",
   width = 4, height = 7, units = "cm"
 )
-ggsave(plot = plot_d0_uni, dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity/non_imputed"), filename = "day_0_predicted_mortality_univariate_model_plot.pdf")
-ggsave(plot = plot_d0_multi, dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity/non_imputed"), filename = "day_0_predicted_mortality_multivariate_model_plot.pdf")
+ggsave(plot = plot_d0_uni, dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity/non_imputed"), filename = "day_0_predicted_mortality_univariate_model_plot.pdf")
+ggsave(plot = plot_d0_multi, dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity/non_imputed"), filename = "day_0_predicted_mortality_multivariate_model_plot.pdf")
 
 # WHO graph without imputed data
