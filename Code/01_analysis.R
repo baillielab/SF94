@@ -623,7 +623,7 @@ df_sf94_sample_size <- rbind(
       df_sf94_corr["subset2", "day8_P"]
     )
   ),
-  # subset2
+  # subset3
   c(
     calculate_sample_size_sf94(
       0.05, 0.8, df_sf94_effect_size["subset3", "day5_P"],
@@ -649,11 +649,6 @@ write.csv(df_sf94_sd, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sf94
 write.csv(df_sf94_corr, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sf94_correlation.csv"))
 write.csv(df_sf94_effect_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sf94_effect_size.csv"))
 write.csv(df_sf94_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sf94_sample_size.csv"))
-
-
-
-
-
 
 
 ######################### Sample size calculation with WHO severity scale as endpoint ###############################
