@@ -612,3 +612,4 @@ ggsave(
 ggsave(plot = plot_d0_uni, dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity/non_imputed"), filename = "day_0_predicted_mortality_univariate_model_plot.pdf")
 ggsave(plot = plot_d0_multi, dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity/non_imputed"), filename = "day_0_predicted_mortality_multivariate_model_plot.pdf")
 
+# WHO graph without imputed data
