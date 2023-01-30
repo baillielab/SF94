@@ -321,6 +321,7 @@ write.csv(missing_summary, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "
 write.csv(table(df_sf94$mortality_28), paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/mort28Table.csv"))
 
 # subset 1
+# these results can be used to determine the % imputed values
 missing_summary_subset1 <- sapply(subset1, function(x) sum(!is.na(x))) %>%
   rbind(sapply(subset1, function(x) sum(is.na(x)))) %>%
   t() %>%

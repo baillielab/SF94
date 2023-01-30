@@ -344,3 +344,271 @@ write.csv(df_coef_prot, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Se
 write.csv(df_sf94_prot_effect_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity", "/sf94_prot_effect_sample_size.csv"))
 
 
+############################################################################################################################################################
+# S/F94 without imputed data
+######################### Sample size calculation with opportunistic sf94 as endpoint ###############################
+## INPUTS REQUIRED ##
+# alpha - significance level =0.05
+# power - specified power =0.8
+# delta - change in mean sf94
+# sd - standard deviation of the outcome measure
+# rho - correlation between the outcome measured at baseline and at follow-up
+
+## Summary stats. This is required for some corrections to the sample size calculation
+# Mean and SD
+calculate_mean_sf94 <- function(df, subset_num) {
+  mean <- as.data.frame(rbind(sapply(df[c("sf94_day5", "sf94_day8")], mean, na.rm = T)))
+  
+  names(mean) <- c("day5", "day8")
+  
+  return(mean)
+}
+
+calculate_sd_sf94 <- function(df, subset_num) {
+  sd <- as.data.frame(rbind(sapply(df[c("sf94_day5", "sf94_day8")], sd, na.rm = T)))
+  
+  names(sd) <- c("day5", "day8")
+  
+  return(sd)
+}
+
+df_sf94_mean <- rbind(
+  calculate_mean_sf94(subset1, 1),
+  calculate_mean_sf94(subset2, 2),
+  calculate_mean_sf94(subset3, 3)
+) %>%
+  data.frame()
+
+names(df_sf94_mean) <- c("day5", "day8")
+rownames(df_sf94_mean) <- c("subset1", "subset2", "subset3")
+
+df_sf94_sd <- rbind(
+  calculate_sd_sf94(subset1, 1),
+  calculate_sd_sf94(subset2, 2),
+  calculate_sd_sf94(subset3, 3)
+) %>%
+  data.frame()
+
+names(df_sf94_sd) <- c("day5", "day8")
+rownames(df_sf94_sd) <- c("subset1", "subset2", "subset3")
+
+# Correlation
+calculate_correlation_sf94 <- function(df) {
+  correlation_subset_05 <- subset(df, (!is.na(df[, "sf94_day0"]) & (!is.na(df[, "sf94_day5"]))))
+  correlation_subset_08 <- subset(df, (!is.na(df[, "sf94_day0"]) & (!is.na(df[, "sf94_day8"]))))
+  # DAY 0/5
+  
+  w <- correlation_subset_05[, "sf94_day0"]
+  x <- correlation_subset_05[, "sf94_day5"]
+  day05_cor <- cor(w, x)
+  
+  # DAY 0/8
+  y <- correlation_subset_08[, "sf94_day0"]
+  z <- correlation_subset_08[, "sf94_day8"]
+  day08_cor <- cor(y, z)
+  
+  cor_output <- rbind(day05_cor, day08_cor)
+  return(cor_output)
+}
+
+df_sf94_corr <- cbind(
+  calculate_correlation_sf94(subset1),
+  calculate_correlation_sf94(subset2),
+  calculate_correlation_sf94(subset3)
+) %>%
+  t() %>%
+  data.frame()
+
+names(df_sf94_corr) <- c("day5", "day8")
+rownames(df_sf94_corr) <- c("subset1", "subset2", "subset3")
+
+
+# Effect size calculator for logistic regression
+calculate_effect_size <- function(prob_pred, treatment, coef) {
+  return(mean(log((treatment * (1 - prob_pred)) / (1 - treatment * prob_pred)), na.rm = TRUE) / coef)
+}
+
+effect_size_boot_sf94 <- function(data, indices, day, treatment) {
+  formula <- as.formula(paste0("mortality_28 ~ sf94_day", day, "_P + sf94_day0 + age_estimateyears + sex"))
+  
+  model <- glm(formula,
+               data = data[indices, ],
+               family = binomial
+  )
+  
+  prob_pred <- predict(model, type = "response")
+  
+  coef <- model$coef[2] # is coefficient on sf94 on day of interest
+  
+  effect_size <- calculate_effect_size(prob_pred, treatment, coef)
+  return(effect_size)
+}
+
+
+# Dataframe of effect sizes for different days and subsets
+df_sf94_effect_size <-
+  rbind(
+    c(effect_size_boot_sf94(subset1, 1:nrow(subset1), 5, 0.85), effect_size_boot_sf94(subset1, 1:nrow(subset1), 8, 0.85)),
+    c(effect_size_boot_sf94(subset2, 1:nrow(subset2), 5, 0.85), effect_size_boot_sf94(subset2, 1:nrow(subset2), 8, 0.85)),
+    c(effect_size_boot_sf94(subset3, 1:nrow(subset3), 5, 0.85), effect_size_boot_sf94(subset3, 1:nrow(subset3), 8, 0.85))
+  ) %>%
+  data.frame()
+
+names(df_sf94_effect_size) <- c("day5", "day8")
+rownames(df_sf94_effect_size) <- c("subset1", "subset2", "subset3")
+
+calculate_sample_size_sf94 <- function(alpha, power, delta, sd, rho) {
+  # Calculate sample size for a t test
+  power <- power.t.test(n = NULL, delta = delta, sd = sd, power = power, sig.level = alpha)
+  
+  # Apply ANCOVA correction
+  sample_size <- 2 * round(((1 - (rho^2)) * power$n))
+  return(sample_size)
+}
+
+df_sf94_sample_size <- rbind(
+  # subset1
+  c(
+    calculate_sample_size_sf94(
+      0.05, 0.8, df_sf94_effect_size["subset1", "day5"],
+      df_sf94_sd["subset1", "day5"],
+      df_sf94_corr["subset1", "day5"]
+    ),
+    calculate_sample_size_sf94(
+      0.05, 0.8, df_sf94_effect_size["subset1", "day8"],
+      df_sf94_sd["subset1", "day8"],
+      df_sf94_corr["subset1", "day8"]
+    )
+  ),
+  # subset2
+  c(
+    calculate_sample_size_sf94(
+      0.05, 0.8, df_sf94_effect_size["subset2", "day5"],
+      df_sf94_sd["subset2", "day5"],
+      df_sf94_corr["subset2", "day5"]
+    ),
+    calculate_sample_size_sf94(
+      0.05, 0.8, df_sf94_effect_size["subset2", "day8"],
+      df_sf94_sd["subset2", "day8"],
+      df_sf94_corr["subset2", "day8"]
+    )
+  ),
+  # subset3
+  c(
+    calculate_sample_size_sf94(
+      0.05, 0.8, df_sf94_effect_size["subset3", "day5"],
+      df_sf94_sd["subset3", "day5"],
+      df_sf94_corr["subset3", "day5"]
+    ),
+    calculate_sample_size_sf94(
+      0.05, 0.8, df_sf94_effect_size["subset3", "day8"],
+      df_sf94_sd["subset3", "day8"],
+      df_sf94_corr["subset3", "day8"]
+    )
+  )
+) %>%
+  data.frame()
+
+names(df_sf94_sample_size) <- c("day5", "day8")
+rownames(df_sf94_sample_size) <- c("subset1", "subset2", "subset3")
+
+
+# Write out
+write.csv(df_sf94_mean, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity/non_imputed", "/sf94_means.csv"))
+write.csv(df_sf94_sd, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity/non_imputed", "/sf94_sd.csv"))
+write.csv(df_sf94_corr, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity/non_imputed", "/sf94_correlation.csv"))
+write.csv(df_sf94_effect_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity/non_imputed", "/sf94_effect_size.csv"))
+write.csv(df_sf94_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity/non_imputed", "/sf94_sample_size.csv"))
+
+
+# Graph regression analysis
+# First need to set data distribution for rms functions
+attach(subset1)
+ddist <- datadist(sf94_day0, sf94_day5, mortality_28)
+options(datadist = "ddist")
+detach(subset1)
+
+### Predicted mortality risk plots
+
+## Multivariate
+multivariate_model <- lrm(mortality_28 ~ sf94_day0 + sf94_day5, subset1, x = TRUE, y = TRUE)
+not_na <- sum(!is.na(subset1$mortality_28) & !is.na(subset1$sf94_day0) & !is.na(subset1$sf94_day5))
+
+# Day 0
+predictions <- Predict(multivariate_model, fun = plogis) %>%
+  data.frame()
+
+plot_d0_multi <- ggplot(filter(predictions, .predictor. == "sf94_day0"), aes(x = sf94_day0, y = yhat)) +
+  geom_line() +
+  theme_bw() +
+  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.1) +
+  xlab("S/F94 day 0") +
+  ggtitle(paste0("N=", not_na)) +
+  ylab("Risk of 28-day mortality") +
+  ylim(0, 0.8) +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 12),
+    axis.text.y = element_text(size = 9),
+    axis.text.x = element_text(size = 9),
+    axis.title.y = element_text(size = 9),
+    axis.title.x = element_text(size = 9)
+  )
+
+plot_d5_multi <- ggplot(filter(predictions, .predictor. == "sf94_day5"), aes(x = sf94_day5, y = yhat)) +
+  geom_line() +
+  theme_bw() +
+  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.1) +
+  xlab("S/F94 day 5") +
+  ggtitle(paste0("N=", not_na)) +
+  ylab("Risk of 28-day mortality") +
+  ylim(0, 0.8) +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 12),
+    axis.text.y = element_text(size = 9),
+    axis.text.x = element_text(size = 9),
+    axis.title.y = element_text(size = 9),
+    axis.title.x = element_text(size = 9)
+  )
+
+ggarrange(plot_d0_multi, plot_d5_multi,
+          ncol = 2, nrow = 1
+)
+
+
+## Univariate
+univariate_model <- lrm(mortality_28 ~ sf94_day0, subset1, x = TRUE, y = TRUE)
+
+not_na <- sum(!is.na(subset1$mortality_28) & !is.na(subset1$sf94_day0))
+
+predictions <- Predict(univariate_model, fun = plogis) %>%
+  data.frame()
+
+plot_d0_uni <- ggplot(predictions, aes(x = sf94_day0, y = yhat)) +
+  geom_line() +
+  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.1) +
+  theme_bw() +
+  xlab("S/F94 day 0") +
+  ggtitle(paste0("N=", not_na)) +
+  ylab("Risk of 28-day mortality") +
+  ylim(0, 0.8) +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 12),
+    axis.text.y = element_text(size = 9),
+    axis.text.x = element_text(size = 9),
+    axis.title.y = element_text(size = 9),
+    axis.title.x = element_text(size = 9)
+  )
+
+day_0_plots <- ggarrange(plot_d0_multi, plot_d0_uni,
+                         ncol = 2, nrow = 1
+)
+
+
+ggsave(plot = day_0_plots, dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity/non_imputed"), filename = "day_0_predicted_mortality_plots.pdf")
+ggsave(
+  plot = plot_d5_multi, dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity/non_imputed"), filename = "day_5_predicted_mortality_multivariate_model_plot.pdf",
+  width = 4, height = 7, units = "cm"
+)
+ggsave(plot = plot_d0_uni, dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity/non_imputed"), filename = "day_0_predicted_mortality_univariate_model_plot.pdf")
+ggsave(plot = plot_d0_multi, dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/Sensitivity/non_imputed"), filename = "day_0_predicted_mortality_multivariate_model_plot.pdf")
+
