@@ -380,7 +380,7 @@ ggplot(
   theme(legend.position = c(0.8, 0.675))
 
 ggsave(dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename = "samplesize_graph.pdf")
-
+ggsave(dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename = "samplesize_graph.png")
 
 #################################### sf94 violin plots ####################################################
 # experiment to improve graphs, waiting for feedback from kenny before i delete this code
@@ -479,6 +479,7 @@ ggplot(df) +
   scale_x_discrete(expand = c(0, 0.2))
 
 ggsave(width = 13, dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename = "sf94_violin_plot_12_days.pdf")
+ggsave(width = 13, dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/PNG_format"), filename = "sf94_violin_plot_12_days.png")
 
 # Respiratory rate and SF9/4 function, including regression line (Sup figure 5)
 pearson_value <- as.character(round(cor(x = data_1$sf94, y = data_1$rr_vsorres, method = "pearson", use = "complete.obs"), 2))
@@ -492,7 +493,7 @@ ggplot(data_1, aes(x = sf94, y = rr_vsorres)) +
   annotate("text", x = c(3.7, 4), y = 68, label = c("R=", pearson_value))
 
 ggsave(dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename = "sf94_rr_plot.pdf")
-
+ggsave(dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/PNG_format"), filename = "sf94_rr_plot.png")
 write.csv(
   data.frame(
     unique_subjids_subset1 = length(unique(subset1$subjid)),
@@ -518,7 +519,6 @@ ggplot(df, aes(
   )
 
 ggsave(dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename = "timeseries_sf94.pdf")
-
 # sf94 violin plots over 28 days
 df <- dplyr::select(data, subjid, days_since_start, sf94, mortality_28) %>%
   filter(!is.na(sf94), days_since_start <= 28, subjid %in% pull(data_1, subjid)) %>%
@@ -583,7 +583,7 @@ ggplot(
   scale_x_discrete(labels = c("4 Hosp", "5 Ox", "6 CPAP/HFNO", "7 IMV", "8 IMV S/F<2", "9 MOF", "10 Dead"))
 
 ggsave(dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename = "who_sf94_day5_violin_plot.pdf")
-
+ggsave(dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/PNG_format"), filename = "who_sf94_day5_violin_plot.png")
 
 # sf94 day 0 violin plot
 day0 <- filter(data_1, days_since_start == 0)
@@ -607,6 +607,7 @@ ggplot(
   ) # remove legend + center title
 
 ggsave(dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename = "mort_sf94_day0_violin_plot.pdf")
+ggsave(dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/PNG_format"), filename = "mort_sf94_day0_violin_plot.png")
 
 # sf94 day 5 violin plot
 day5 <- filter(data_1, days_since_start == 5)
@@ -630,6 +631,7 @@ ggplot(
   ) # remove legend + center title
 
 ggsave(dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename = "mort_sf94_day5_violin_plot.pdf")
+ggsave(dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/PNG_format"), filename = "mort_sf94_day5_violin_plot.png")
 
 
 
@@ -667,7 +669,7 @@ ggplot(
   scale_x_discrete(labels = c("4 Hosp", "5 Ox", "6 CPAP/HFNO", "7 IMV", "8 IMV S/F<2", "9 MOF", "10 Dead"))
 
 ggsave(dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename = "who_sf94_day5_violin_plot_all.pdf")
-
+ggsave(dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/PNG_format"), filename = "who_sf94_day5_violin_plot_all.png")
 
 
 
@@ -693,6 +695,7 @@ ggplot(
   ) # remove legend + center title
 
 ggsave(dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename = "mort_sf94_day0_violin_plot_all.pdf")
+ggsave(dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/PNG_format"), filename = "mort_sf94_day0_violin_plot_all.png")
 
 
 # sf94 day 5 violin plot for everyone
@@ -717,7 +720,7 @@ ggplot(
   ) # remove legend + center title
 
 ggsave(dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename = "mort_sf94_day5_violin_plot_all.pdf")
-
+ggsave(dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/PNG_format"), filename = "mort_sf94_day5_violin_plot_all.png")
 
 
 
@@ -882,6 +885,14 @@ ggsave(
 ggsave(plot = plot_d0_uni, dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename = "day_0_predicted_mortality_univariate_model_plot.pdf")
 ggsave(plot = plot_d0_multi, dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename = "day_0_predicted_mortality_multivariate_model_plot.pdf")
 
+ggsave(plot = day_0_plots, dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/PNG_format"), filename = "day_0_predicted_mortality_plots.png")
+ggsave(
+  plot = plot_d5_multi, dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/PNG_format"), filename = "day_5_predicted_mortality_multivariate_model_plot.png",
+  width = 4, height = 7, units = "cm"
+)
+ggsave(plot = plot_d0_uni, dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/PNG_format"), filename = "day_0_predicted_mortality_univariate_model_plot.png")
+ggsave(plot = plot_d0_multi, dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/PNG_format"), filename = "day_0_predicted_mortality_multivariate_model_plot.png")
+
 # graph for added deaths/ discharges
 # assuming the dataset looks as follows
 # long dataframe, with 1 column sf94, with all sf94 values
@@ -942,3 +953,4 @@ ggplot(df_hist, aes(x = sf94, fill = group)) +
 
 
 ggsave(dpi = 300, width = 13, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename = "countplot.pdf")
+ggsave(dpi = 300, width = 13, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/PNG_format"), filename = "countplot.png")
