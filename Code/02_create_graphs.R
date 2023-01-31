@@ -558,8 +558,10 @@ who_day5 <- filter(data_1, days_since_start == 5, !is.na(severity_scale_ordinal)
       "WHO level 8", "WHO level 9", "WHO level 10"
     )
   ))
-n_day5 <- length(unique(who_day5$subjid))
+n_day5 <- length(unique(who_day5$subjid[!is.na(who_day5$sf94)]))
 title <- paste0("N=", n_day5)
+
+
 
 ggplot(
   who_day5,
@@ -642,7 +644,7 @@ who_day5_all <- filter(data, days_since_start == 5, !is.na(severity_scale_ordina
       "WHO level 8", "WHO level 9", "WHO level 10"
     )
   ))
-n_who5all <- length(unique(who_day5_all$subjid))
+n_who5all <- length(unique(who_day5_all$subjid[!is.na(who_day5_all$sf94)]))
 title <- paste0("Unselected patients (N=", n_who5all, ")", sep = "")
 
 ggplot(
