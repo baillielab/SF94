@@ -596,4 +596,42 @@ ggsave(
 ggsave(plot = plot_d0_uni, dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity/non_imputed"), filename = "day_0_predicted_mortality_univariate_model_plot.pdf")
 ggsave(plot = plot_d0_multi, dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity/non_imputed"), filename = "day_0_predicted_mortality_multivariate_model_plot.pdf")
 
+
+############################################################################################################################################################
 # WHO graph without imputed data
+
+# sf94 day 5 violin plot for everyone in subset 1
+who_day5 <- filter(subset1, days_since_start == 5, !is.na(severity_scale_ordinal)) %>%
+  mutate(severity_scale_ordinal = paste0("WHO level ", severity_scale_ordinal)) %>%
+  mutate(severity_scale_ordinal = factor(severity_scale_ordinal,
+                                         levels = c(
+                                           "WHO level 4", "WHO level 5",
+                                           "WHO level 6", "WHO level 7",
+                                           "WHO level 8", "WHO level 9", "WHO level 10"
+                                         )
+  ))
+n_day5 <- length(unique(who_day5$subjid[!is.na(who_day5$sf94_day5_P)]))
+title <- paste0("N=", n_day5)
+
+
+
+ggplot(
+  who_day5,
+  aes(x = severity_scale_ordinal, y = sf94_day5_P, fill = severity_scale_ordinal)
+) +
+  geom_violin() + # remove outliers
+  theme_bw() +
+  ggtitle(title) +
+  ylab("S/F94 day5 (with imputed values)") +
+  scale_fill_manual(values = c(
+    "#ff0000", "#d7001b", "#a5002b", "#7e0055",
+    "#530073", "#350087", "#0000aa"
+  )) +
+  xlab("WHO ordinal severity scale") +
+  theme(
+    legend.position = "none",
+    plot.title = element_text(hjust = 0.5)
+  ) + # remove legend + center title
+  scale_x_discrete(labels = c("4 Hosp", "5 Ox", "6 CPAP/HFNO", "7 IMV", "8 IMV S/F<2", "9 MOF", "10 Dead"))
+
+ggsave(dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity), filename = "who_sf94_day5_violin_plot_imputed.pdf")
