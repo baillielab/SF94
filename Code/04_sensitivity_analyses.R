@@ -7,6 +7,8 @@ write.csv(transfer, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensit
 # create a subset that does not include transferred patients from the main analysis (subset 1)
 subset4 <- filter(subset1, dsterm != "Transfer to other facility") 
 
+data_4 = filter(data, subjid %in% subset4$subjid)
+
 # repeat main analysis without the transferred patients
 
 # Mortality
@@ -355,6 +357,23 @@ write.csv(df_sf94_prot_effect_sample_size, paste0("/home/skerr/Git/SF94/Outputs/
 # sd - standard deviation of the outcome measure
 # rho - correlation between the outcome measured at baseline and at follow-up
 
+## Summary stats. This is required for some corrections to the sample size calculation
+# Mean and SD
+calculate_mean_sf94 <- function(df) {
+  mean <- as.data.frame(rbind(sapply(df[c("sf94_day5", "sf94_day8")], mean, na.rm = T)))
+  
+  names(mean) <- c("day5", "day8")
+  
+  return(mean)
+}
+
+calculate_sd_sf94 <- function(df) {
+  sd <- as.data.frame(rbind(sapply(df[c("sf94_day5", "sf94_day8")], sd, na.rm = T)))
+  
+  names(sd) <- c("day5", "day8")
+  
+  return(sd)
+}
 
 df_sf94_mean <- rbind(
   calculate_mean_sf94(subset1),
@@ -413,7 +432,7 @@ calculate_effect_size <- function(prob_pred, treatment, coef) {
 }
 
 effect_size_boot_sf94 <- function(data, indices, day, treatment) {
-  formula <- as.formula(paste0("mortality_28 ~ sf94_day", day, "+ sf94_day0 + age_estimateyears + sex"))
+  formula <- as.formula(paste0("mortality_28 ~ sf94_day", day, "_P + sf94_day0 + age_estimateyears + sex"))
   
   model <- glm(formula,
                data = data[indices, ],
@@ -600,8 +619,8 @@ ggsave(plot = plot_d0_multi, dpi = 300, path = paste0("/home/skerr/Git/SF94/Outp
 ############################################################################################################################################################
 # WHO graph without imputed data
 
-# sf94 day 5 violin plot for everyone in subset 1
-who_day5 <- filter(subset1, days_since_start == 5, !is.na(severity_scale_ordinal)) %>%
+# sf94 day 5 violin plot for everyone in subset 4
+who_day5 <- filter(data_4, days_since_start == 5, !is.na(severity_scale_ordinal)) %>%
   mutate(severity_scale_ordinal = paste0("WHO level ", severity_scale_ordinal)) %>%
   mutate(severity_scale_ordinal = factor(severity_scale_ordinal,
                                          levels = c(
@@ -610,14 +629,14 @@ who_day5 <- filter(subset1, days_since_start == 5, !is.na(severity_scale_ordinal
                                            "WHO level 8", "WHO level 9", "WHO level 10"
                                          )
   ))
-n_day5 <- length(unique(who_day5$subjid[!is.na(who_day5$sf94_day5_P)]))
+n_day5 <- length(unique(who_day5$subjid[!is.na(who_day5$sf94)]))
 title <- paste0("N=", n_day5)
 
 
 
 ggplot(
   who_day5,
-  aes(x = severity_scale_ordinal, y = sf94_day5_P, fill = severity_scale_ordinal)
+  aes(x = severity_scale_ordinal, y = sf94, fill = severity_scale_ordinal)
 ) +
   geom_violin() + # remove outliers
   theme_bw() +
@@ -634,4 +653,4 @@ ggplot(
   ) + # remove legend + center title
   scale_x_discrete(labels = c("4 Hosp", "5 Ox", "6 CPAP/HFNO", "7 IMV", "8 IMV S/F<2", "9 MOF", "10 Dead"))
 
-ggsave(dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity), filename = "who_sf94_day5_violin_plot_imputed.pdf")
+ggsave(dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity"), filename = "who_sf94_day5_violin_plot_imputed.pdf")

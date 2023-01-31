@@ -504,9 +504,9 @@ calculate_sd_sf94 <- function(df) {
 }
 
 df_sf94_mean <- rbind(
-  calculate_mean_sf94(subset1, 1),
-  calculate_mean_sf94(subset2, 2),
-  calculate_mean_sf94(subset3, 3)
+  calculate_mean_sf94(subset1),
+  calculate_mean_sf94(subset2),
+  calculate_mean_sf94(subset3)
 ) %>%
   data.frame()
 
@@ -514,9 +514,9 @@ names(df_sf94_mean) <- c("day5_P", "day8_P")
 rownames(df_sf94_mean) <- c("subset1", "subset2", "subset3")
 
 df_sf94_sd <- rbind(
-  calculate_sd_sf94(subset1, 1),
-  calculate_sd_sf94(subset2, 2),
-  calculate_sd_sf94(subset3, 3)
+  calculate_sd_sf94(subset1),
+  calculate_sd_sf94(subset2),
+  calculate_sd_sf94(subset3)
 ) %>%
   data.frame()
 
