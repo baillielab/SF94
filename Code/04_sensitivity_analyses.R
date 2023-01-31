@@ -346,6 +346,7 @@ write.csv(df_sf94_prot_effect_sample_size, paste0("/home/skerr/Git/SF94/Outputs/
 
 ############################################################################################################################################################
 # S/F94 without imputed data
+# use S/F94_day5 instead of s/f94_day5_P (and the same for day 8)
 ######################### Sample size calculation with opportunistic sf94 as endpoint ###############################
 ## INPUTS REQUIRED ##
 # alpha - significance level =0.05
