@@ -413,7 +413,7 @@ calculate_effect_size <- function(prob_pred, treatment, coef) {
 }
 
 effect_size_boot_sf94 <- function(data, indices, day, treatment) {
-  formula <- as.formula(paste0("mortality_28 ~ sf94_day", day, "_P + sf94_day0 + age_estimateyears + sex"))
+  formula <- as.formula(paste0("mortality_28 ~ sf94_day", day, "+ sf94_day0 + age_estimateyears + sex"))
   
   model <- glm(formula,
                data = data[indices, ],
