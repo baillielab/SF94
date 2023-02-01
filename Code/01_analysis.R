@@ -236,16 +236,22 @@ df_sf94 <- prop_add(df_sf94, dead_discharge_proportions, 8)
 # Add columns for who day 0, 5, 8, with proportionally added deaths/discharged
 df_sf94 <- left_join(df_sf94, df_who %>% dplyr::select(subjid, who_day0, who_day5, who_day8)) %>%
   mutate(
-    who_day5_P = case_when(
-      sf94_day5_P == 4.76 ~ 4,
-      sf94_day5_P == 0.5 ~ 10,
-      TRUE ~ who_day5
-    ),
-    who_day8_P = case_when(
-      sf94_day8_P == 4.76 ~ 4,
-      sf94_day8_P == 0.5 ~ 10,
-      TRUE ~ who_day8
-    )
+    # The rationale here is that the the number of proportionally added dead/discharged people
+    # is determined by missingness in sf94, and we should not be using sf94 missingness
+    # to determine how many values to proportionally add for who scale.
+    who_day5_P = who_day5,
+    who_day8_P = who_day8
+    
+    # who_day5_P = case_when(
+    #   sf94_day5_P == 4.76 ~ 4,
+    #   sf94_day5_P == 0.5 ~ 10,
+    #   TRUE ~ who_day5
+    # ),
+    # who_day8_P = case_when(
+    #   sf94_day8_P == 4.76 ~ 4,
+    #   sf94_day8_P == 0.5 ~ 10,
+    #   TRUE ~ who_day8
+    # )
   )
 
 ####################### Create subsets that we will work with ###################################

@@ -903,18 +903,18 @@ ggsave(plot = plot_d0_multi, dpi = 300, path = paste0("/home/skerr/Git/SF94/Outp
 
 
 # df_countplot$sf94 = df_countplot %>% count(sf94, group_sf94)
-#
-# df_bar = bind_rows(subset1 %>%
-#                     mutate(group = 'original',
-#                            sf94_bin = cut(sf94_day5, breaks = seq(from = 0.4, to = 4.8, by = 0.1),
-#                                           labels = seq(from = 0.5, to = 4.8, by = 0.1), right = FALSE) ) %>%
-#                     select(sf94_bin, group),
-#                    subset1 %>%
-#                     mutate(group = 'dd',
-#                            sf94_bin = cut(sf94_day5_P, breaks = seq(from = 0.4, to = 4.8, by = 0.1),
-#                                           labels = seq(from = 0.5, to = 4.8, by = 0.1), right = FALSE)) %>%
-#                      select(sf94_bin, group)) %>%
-#           count(sf94_bin, group)
+# 
+df_bar = bind_rows(subset1 %>%
+                    mutate(group = 'original',
+                           sf94_bin = cut(sf94_day5, breaks = seq(from = 0.4, to = 4.8, by = 0.1),
+                                          labels = seq(from = 0.5, to = 4.8, by = 0.1), right = FALSE) ) %>%
+                    select(sf94_bin, group),
+                   subset1 %>%
+                    mutate(group = 'dd',
+                           sf94_bin = cut(sf94_day5_P, breaks = seq(from = 0.4, to = 4.8, by = 0.1),
+                                          labels = seq(from = 0.5, to = 4.8, by = 0.1), right = FALSE)) %>%
+                     select(sf94_bin, group)) %>%
+          count(sf94_bin, group)
 
 ggplot(df_bar, aes(x = sf94_bin, y = n, fill = group)) +
   geom_bar(stat = "identity", show.legend = FALSE) +
