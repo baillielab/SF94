@@ -618,28 +618,31 @@ ggsave(plot = plot_d0_multi, dpi = 300, path = paste0("/home/skerr/Git/SF94/Outp
 # WHO graph with imputed data
 
 # sf94 day 5 violin plot for everyone in subset 1
-who_day5 <- filter(data_1, days_since_start == 5, !is.na(severity_scale_ordinal)) %>%
-  mutate(severity_scale_ordinal = paste0("WHO level ", severity_scale_ordinal)) %>%
-  mutate(severity_scale_ordinal = factor(severity_scale_ordinal,
-                                         levels = c(
-                                           "WHO level 4", "WHO level 5",
-                                           "WHO level 6", "WHO level 7",
-                                           "WHO level 8", "WHO level 9", "WHO level 10"
-                                         )
-  ))
-n_day5 <- length(unique(who_day5$subjid[!is.na(who_day5$sf94_dd)]))
+# who_day5 <- filter(data_1, days_since_start == 5, !is.na(severity_scale_ordinal)) %>%
+#   mutate(severity_scale_ordinal = paste0("WHO level ", severity_scale_ordinal)) %>%
+#   mutate(severity_scale_ordinal = factor(severity_scale_ordinal,
+#                                          levels = c(
+#                                            "WHO level 4", "WHO level 5",
+#                                            "WHO level 6", "WHO level 7",
+#                                            "WHO level 8", "WHO level 9", "WHO level 10"
+#                                          )
+#   ))
+
+n_day5 <- length(unique(subset1$subjid[!is.na(subset1$sf94_day5)]))
 title <- paste0("N=", n_day5)
 
 
 
 ggplot(
-  who_day5,
-  aes(x = severity_scale_ordinal, y = sf94_dd, fill = severity_scale_ordinal)
+  subset1 %>% 
+    filter(!is.na(sf94_day5)) %>%
+    mutate(who_day5 = factor(who_day5)),
+  aes(x = who_day5, y = sf94_day5, fill = who_day5)
 ) +
   geom_violin() + # remove outliers
   theme_bw() +
   ggtitle(title) +
-  ylab("S/F94 day5 (with imputed values)") +
+  ylab("S/F94 day5 (without imputed values)") +
   scale_fill_manual(values = c(
     "#ff0000", "#d7001b", "#a5002b", "#7e0055",
     "#530073", "#350087", "#0000aa"
