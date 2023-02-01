@@ -628,21 +628,21 @@ ggsave(plot = plot_d0_multi, dpi = 300, path = paste0("/home/skerr/Git/SF94/Outp
 #                                          )
 #   ))
 
-n_day5 <- length(unique(subset1$subjid[!is.na(subset1$sf94_day5)]))
+n_day5 <- length(unique(subset1$subjid[!is.na(subset1$sf94_day5_P)]))
 title <- paste0("N=", n_day5)
 
 
 
 ggplot(
   subset1 %>% 
-    filter(!is.na(sf94_day5)) %>%
-    mutate(who_day5 = factor(who_day5)),
-  aes(x = who_day5, y = sf94_day5, fill = who_day5)
+    filter(!is.na(who_day5_P)) %>%
+    mutate(who_day5_P = factor(who_day5_P)),
+  aes(x = who_day5_P, y = sf94_day5_P, fill = who_day5_P)
 ) +
   geom_violin() + # remove outliers
   theme_bw() +
   ggtitle(title) +
-  ylab("S/F94 day5 (without imputed values)") +
+  ylab("S/F94 day5 (with imputed values)") +
   scale_fill_manual(values = c(
     "#ff0000", "#d7001b", "#a5002b", "#7e0055",
     "#530073", "#350087", "#0000aa"
