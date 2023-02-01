@@ -523,6 +523,23 @@ write.csv(df_sf94_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stam
 
 
 # Graph regression analysis
+
+# tbl_regression appears only to work with glm and not lrm
+multivariate_model <- glm(mortality_28 ~ sf94_day0 + sf94_day5, subset1, family = "binomial")
+
+results <- tidy(multivariate_model) %>%
+  mutate(
+    ucl = estimate + 1.96 * std.error,
+    lcl = estimate - 1.96 * std.error,
+    term = gsub("period", "", term)
+  ) %>%
+  select(term, estimate, lcl, ucl) %>%
+  mutate_if(is.numeric, ~ formatC(round(exp(.), 2), format = "f", big.mark = ",", drop0trailing = TRUE)) %>%
+  mutate(estimate = paste0(estimate, " (", lcl, " - ", ucl, ")")) %>%
+  select(-lcl, -ucl)
+
+write.csv(results, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity/non_imputed", "/day0_day5_P_multivariate_model_summary.csv"))
+
 # First need to set data distribution for rms functions
 attach(subset1)
 ddist <- datadist(sf94_day0, sf94_day5, mortality_28)
