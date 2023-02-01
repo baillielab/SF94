@@ -627,14 +627,14 @@ who_day5 <- filter(data_1, days_since_start == 5, !is.na(severity_scale_ordinal)
                                            "WHO level 8", "WHO level 9", "WHO level 10"
                                          )
   ))
-n_day5 <- length(unique(who_day5$subjid[!is.na(who_day5$sf94)]))
+n_day5 <- length(unique(who_day5$subjid[!is.na(who_day5$sf94_dd)]))
 title <- paste0("N=", n_day5)
 
 
 
 ggplot(
   who_day5,
-  aes(x = severity_scale_ordinal, y = sf94, fill = severity_scale_ordinal)
+  aes(x = severity_scale_ordinal, y = sf94_dd, fill = severity_scale_ordinal)
 ) +
   geom_violin() + # remove outliers
   theme_bw() +
