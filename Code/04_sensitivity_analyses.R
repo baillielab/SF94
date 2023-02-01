@@ -7,8 +7,6 @@ write.csv(transfer, paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensit
 # create a subset that does not include transferred patients from the main analysis (subset 1)
 subset4 <- filter(subset1, dsterm != "Transfer to other facility") 
 
-data_4 = filter(data, subjid %in% subset4$subjid)
-
 # repeat main analysis without the transferred patients
 
 # Mortality
@@ -620,7 +618,7 @@ ggsave(plot = plot_d0_multi, dpi = 300, path = paste0("/home/skerr/Git/SF94/Outp
 # WHO graph with imputed data
 
 # sf94 day 5 violin plot for everyone in subset 1
-who_day5 <- filter(subset1, days_since_start == 5, !is.na(severity_scale_ordinal)) %>%
+who_day5 <- filter(data_1, days_since_start == 5, !is.na(severity_scale_ordinal)) %>%
   mutate(severity_scale_ordinal = paste0("WHO level ", severity_scale_ordinal)) %>%
   mutate(severity_scale_ordinal = factor(severity_scale_ordinal,
                                          levels = c(
@@ -629,14 +627,14 @@ who_day5 <- filter(subset1, days_since_start == 5, !is.na(severity_scale_ordinal
                                            "WHO level 8", "WHO level 9", "WHO level 10"
                                          )
   ))
-n_day5 <- length(unique(who_day5$subjid[!is.na(who_day5$sf94_day5_P)]))
+n_day5 <- length(unique(who_day5$subjid[!is.na(who_day5$sf94)]))
 title <- paste0("N=", n_day5)
 
 
 
 ggplot(
   who_day5,
-  aes(x = severity_scale_ordinal, y = sf94_day5_P, fill = severity_scale_ordinal)
+  aes(x = severity_scale_ordinal, y = sf94, fill = severity_scale_ordinal)
 ) +
   geom_violin() + # remove outliers
   theme_bw() +
@@ -653,4 +651,4 @@ ggplot(
   ) + # remove legend + center title
   scale_x_discrete(labels = c("4 Hosp", "5 Ox", "6 CPAP/HFNO", "7 IMV", "8 IMV S/F<2", "9 MOF", "10 Dead"))
 
-ggsave(dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity), filename = "who_sf94_day5_violin_plot_imputed.pdf")
+ggsave(dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/sensitivity"), filename = "who_sf94_day5_violin_plot_imputed.pdf")
