@@ -525,7 +525,7 @@ write.csv(df_sf94_sample_size, paste0("/home/skerr/Git/SF94/Outputs/", time_stam
 # Graph regression analysis
 
 # tbl_regression appears only to work with glm and not lrm
-multivariate_model <- glm(mortality_28 ~ sf94_day0 + sf94_day5, subset1, family = "binomial")
+multivariate_model <- glm(mortality_28 ~ sf94_day0 + sf94_day5 + age_estimateyears + sex, subset1, family = "binomial")
 
 results <- tidy(multivariate_model) %>%
   mutate(
