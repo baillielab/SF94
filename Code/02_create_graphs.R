@@ -728,7 +728,7 @@ ggsave(dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/P
 ############################# Model summary and predictions #############################################
 
 # tbl_regression appears only to work with glm and not lrm
-multivariate_model <- glm(mortality_28 ~ sf94_day0 + sf94_day5_P, subset1, family = "binomial")
+multivariate_model <- glm(mortality_28 ~ sf94_day0 + sf94_day5_P + age_estimateyears + sex, subset1, family = "binomial")
 
 results <- tidy(multivariate_model) %>%
   mutate(
