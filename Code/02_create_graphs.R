@@ -491,13 +491,13 @@ data_1 = data_1 %>%
   )
 
 ggplot(data_1, aes(x = sf94, y = rr_vsorres, colour = IMV)) +
-  geom_jitter(size = 1.2, shape = 16, stroke = 0, alpha = 0.5) +
+  geom_jitter(size = 1.2, shape = 16, stroke = 0) +
   geom_smooth(method = lm, colour = "darkblue") +
   xlab("S/F94") +
   ylab("Respiratory Rate") +
   theme_bw() +
   annotate("text", x = c(3.7, 4), y = 68, label = c("R=", pearson_value)) + 
-  scale_color_manual(values=c("black", "red"))
+  scale_color_manual(values=c("black", "red", "blue"))
 
 ggsave(dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp), filename = "sf94_rr_plot.pdf")
 ggsave(dpi = 300, path = paste0("/home/skerr/Git/SF94/Outputs/", time_stamp, "/PNG_format"), filename = "sf94_rr_plot.png")
